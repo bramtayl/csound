@@ -28,9 +28,15 @@
 /* John ffitch 1995 Jun 19                                           */
 /* ***************************************************************** */
 
-#include "std_util.h"
+#include "csdl.h"
+#include "util/std_util.h"
 #include <stdio.h>
-#include <stdarg.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csound.h"
+#include "sysdep.h"
 
 #define END  32767
 

@@ -28,9 +28,20 @@
 #include "csdl.h"
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_UNISTD_H
-    #include <unistd.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
 #endif
+#include <string.h>
+#include <lo/lo_lowlevel.h>
+#include <lo/lo_osc_types.h>
+#include <lo/lo_serverthread.h>
+#include <lo/lo_types.h>
+#include <netinet/in.h>
+
+#include "csound.h"
+#include "csound_type_system.h"
+#include "sysdep.h"
+#include "version.h"
 #include <lo/lo.h>
 #include <ctype.h>
 #ifndef WIN32

@@ -1,5 +1,12 @@
 #ifndef UGGAB_H
 #define UGGAB_H
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 /*
     uggab.h:
 

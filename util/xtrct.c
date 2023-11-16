@@ -31,9 +31,25 @@
  *     Needs to take much more care
  */
 
-#include "std_util.h"
+#include <sndfile.h>
+#include <stdarg.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+
+#include "csdl.h"
+#include "util/std_util.h"
 #include "soundio.h"
-#include <ctype.h>
+#include "csound.h"
+#include "msg_attr.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 
 /* Constants */

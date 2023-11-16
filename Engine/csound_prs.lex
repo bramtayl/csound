@@ -23,12 +23,16 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
+
+#include "csound.h"
 #include "csoundCore.h"
-#include "corfile.h"
+#include "H/corfile.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
+
+struct yyguts_t;
+
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
@@ -54,7 +58,7 @@ static inline int isNameChar(int cc, int pos)
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
-#include "score_param.h"
+#include "Engine/score_param.h"
 
 static void expand_macro(CSOUND*, MACRO*, yyscan_t);
 static void expand_macroa(CSOUND*, MACRO*, yyscan_t);

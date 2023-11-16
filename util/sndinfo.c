@@ -22,8 +22,19 @@
     02110-1301 USA
 */
 
-#include "std_util.h"                               /*  SNDINFO.C  */
-#include "soundio.h"
+#include <sndfile.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "csdl.h"
+#include "util/std_util.h"                               /*  SNDINFO.C  */
+#include "csound.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 /* Some of the information is borrowed from libsndfile's sndfile-info code */
 

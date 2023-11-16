@@ -21,10 +21,19 @@
   02110-1301 USA
 */
 
+#include <sndfile.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"
-#include "interlocks.h"
 #include "pstream.h"
-#include "soundio.h"
+#include "csound.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
+
 #define MAXOUTS 2
 
 typedef struct dats {

@@ -20,8 +20,15 @@
 /* $Id: mpadec.c,v 1.3 2009/03/01 15:27:05 jpff Exp $ */
 
 #include <stdlib.h>
-#include "csoundCore.h"
-#include "mpadec_internal.h"
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
+#include "H/mpadec_internal.h"
+#include "H/mpadec.h"
+#include "sysdep.h"
 
 extern const uint16_t crc_table[256];
 extern void *synth_table[2][2][4][4];

@@ -1,6 +1,6 @@
 #include "csoundCore.h"
-#include "corfile.h"
-#include "score_param.h"
+#include "H/corfile.h"
+#include "Engine/score_param.h"
 
 extern uint8_t file_to_int(CSOUND*, const char*);
 int scope(CSOUND *csound)

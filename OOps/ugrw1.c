@@ -44,10 +44,21 @@
  * clearly indicated as such.
  */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include "ugrw1.h"
-#include <math.h>
+#include "H/ugrw1.h"
 #include <ctype.h>
+#include "csound.h"
+#include "csound_standard_types.h"
+#include "csound_type_system.h"
+#include "msg_attr.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 /*****************************************************************************/
 /*****************************************************************************/

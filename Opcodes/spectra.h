@@ -26,6 +26,15 @@
 #ifndef __SPECTRA_H
 #define __SPECTRA_H
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csound.h"
+#include "csoundCore.h"
+#include "cwindow.h"
+#include "sysdep.h"
+
 #define MAXFRQS 120
 
 typedef struct {

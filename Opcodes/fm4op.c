@@ -34,8 +34,15 @@
 /*                                                       */
 /*********************************************************/
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"
 #include "fm4op.h"
+#include "Opcodes/physutil.h"
+#include "csound.h"
 
 /***********************************************************/
 /*  Two Zero Filter Class,                                 */

@@ -23,7 +23,14 @@
     02110-1301 USA
 */
 
-#include "../OpcodeBase.hpp"
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
+#include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define min(x, y) (((x) < (y)) ? (x) : (y))

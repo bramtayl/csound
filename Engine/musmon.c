@@ -22,16 +22,31 @@
   02110-1301 USA
 */
 
+#include <stdarg.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                         MUSMON.C     */
-#include "midiops.h"
+#include "H/midiops.h"
 #include "soundio.h"
-#include "namedins.h"
-#include "oload.h"
-#include "remote.h"
+#include "H/namedins.h"
+#include "H/oload.h"
+#include "H/remote.h"
 #include <math.h>
-#include "corfile.h"
+#include "H/corfile.h"
 
 #include "csdebug.h"
+#include "cscore.h"
+#include "csound.h"
+#include "cwindow.h"
+#include "msg_attr.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG

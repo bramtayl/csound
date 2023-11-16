@@ -24,6 +24,12 @@
 #pragma once
 
 #include <csoundCore.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct _compile {
   OPDS h;

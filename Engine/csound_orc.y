@@ -23,6 +23,10 @@
 */
 %pure-parser
 //define api.pure full
+%code requires {
+  #include "csound.h"
+  #include "Engine/parse_param.h"
+}
 %parse-param {PARSE_PARM *parm}
 %parse-param {void *scanner}
 %lex-param { CSOUND * csound }
@@ -133,16 +137,19 @@
 #define NULL 0L
 #endif
 #include "csoundCore.h"
-#include <ctype.h>
+#include <features.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdlib.h>
 #include <string.h>
-#include "namedins.h"
 
-#include "csound_orc.h"
-#include "parse_param.h"
+#include "H/csound_orc.h"
+#include "Engine/parse_param.h"
+#include "sysdep.h"
 
 #ifdef PARCS
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
+#include "H/cs_par_orc_semantics.h"
 #else
 #define csp_orc_sa_instr_add(a,b)
 #define csp_orc_sa_instr_add_tree(a,b)

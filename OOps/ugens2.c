@@ -21,9 +21,16 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h" /*                              UGENS2.C        */
-#include "ugens2.h"
+#include "H/ugens2.h"
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
 /* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x                          */

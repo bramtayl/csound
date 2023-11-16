@@ -1,15 +1,19 @@
 #include "csound.h"
 #include "csoundCore.h"
 #include "emugens_common.h"
-#include "csound_orc.h"
+#include "H/csound_orc.h"
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <stdint.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
 
 // returns the address of a string
 // pointer which is writable from js

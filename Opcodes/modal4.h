@@ -32,7 +32,14 @@
 #if !defined(__Modal4_h)
 #define __Modal4_h
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
 #include "physutil.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct Modal4 {
     Envelope envelope;

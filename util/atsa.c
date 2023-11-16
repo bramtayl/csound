@@ -26,13 +26,18 @@
 
 #define _FILE_OFFSET_BITS 64
 
-#include "std_util.h"
+#include "csdl.h"
+#include "util/std_util.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <sndfile.h>
+
+#include "csound.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 #if defined(__GNUC__) && defined(__STRICT_ANSI__)
 #  ifndef inline

@@ -847,12 +847,12 @@ typedef struct CORFIL {
     void * threadId;
   } THREADINFO;
 
-#include "sort.h"
+#include "H/sort.h"
 #include "text.h"
-#include "prototyp.h"
+#include "H/prototyp.h"
 #include "cwindow.h"
-#include "envvar.h"
-#include "remote.h"
+#include "H/envvar.h"
+#include "H/remote.h"
 
 #define CS_STATE_PRE    (1)
 #define CS_STATE_COMP   (2)

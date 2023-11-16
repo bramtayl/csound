@@ -21,10 +21,15 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
 
-#include <math.h>
+#include "csoundCore.h"
+#include "csound.h"
+#include "sysdep.h"
+
 /* definitions */
 /* from mit */
 #define minelev (-40)

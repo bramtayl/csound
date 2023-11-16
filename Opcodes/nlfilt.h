@@ -24,6 +24,13 @@
                         /* Structure for Dobson/Fitch nonlinear filter */
 #pragma once
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct  {
         OPDS    h;
         MYFLT   *ar, *in, *a, *b, *d, *C, *L;   /* The parameter */

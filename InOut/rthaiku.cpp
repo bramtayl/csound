@@ -32,8 +32,8 @@
 // Prevent int32 etc conflicts
 #define __HAIKU_CONFLICT
 
-#include "haiku_audio.h"
-#include "haiku_midi.h"
+#include "H/haiku_audio.h"
+#include "H/haiku_midi.h"
 
 #include "csound.h"
 #include "csdl.h"

@@ -22,15 +22,28 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                              MEMFILES.C      */
-#include "soundio.h"
-#include "pvfileio.h"
-#include "convolve.h"
-#include "lpc.h"
-#include "pstream.h"
-#include "namedins.h"
 #include <string.h>
+#include <math.h>
+#include <sndfile.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+
+#include "csoundCore.h"     /*                              MEMFILES.C      */
+#include "pvfileio.h"
+#include "H/convolve.h"
+#include "H/lpc.h"
+#include "pstream.h"
 #include <inttypes.h>
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "H/envvar.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 static int Load_Het_File_(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)

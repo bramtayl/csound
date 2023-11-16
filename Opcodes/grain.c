@@ -27,8 +27,15 @@
 
 /* Some speed hacks added by John Fitch */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
 #include "grain.h"
+#include "csound.h"
+#include "interlocks.h"
 
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 {

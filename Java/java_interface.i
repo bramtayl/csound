@@ -34,7 +34,7 @@
 %{
     #include "csound.h"
     #include "csound.hpp"
-    #include "cs_glue.hpp"
+    #include "H/cs_glue.hpp"
     #include "csPerfThread.hpp"
 %}
 

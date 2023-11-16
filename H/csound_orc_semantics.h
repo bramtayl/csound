@@ -25,7 +25,7 @@
 #define CSOUND_ORC_SEMANTICS_H
 
 #include "csoundCore.h"
-#include "csound_orc.h"
+#include "H/csound_orc.h"
 
 /** Gets short version of opcode name, trimming off anything after '.'.
  If opname has no '.' in name, simply returns the opname pointer.

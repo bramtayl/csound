@@ -24,11 +24,11 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include "csoundCore.h"
+#include "csound.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
+#include "H/tok.h"
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \
@@ -36,8 +36,7 @@
 #define YYSTYPE TREE*
 #define YYLTYPE ORCTOKEN*
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
-#include "csound_orc.h"
-#include "corfile.h"
+#include "H/csound_orc.h"
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
@@ -49,7 +48,7 @@ ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
 #define namedInstrFlag csound->parserNamedInstrFlag
-#include "parse_param.h"
+#include "Engine/parse_param.h"
 
 #define YY_EXTRA_TYPE  PARSE_PARM *
 #define PARM    yyget_extra(yyscanner)

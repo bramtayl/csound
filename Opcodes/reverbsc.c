@@ -34,8 +34,16 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
 #include <math.h>
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 #define DEFAULT_SRATE   44100.0
 #define MIN_SRATE       5000.0

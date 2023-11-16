@@ -52,10 +52,18 @@
 /* Code fixes by John ffitch, March 2000 */
 /*               Made interpolation selectable April 2000 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 #include "csdl.h"
 #include "scansyn.h"
-#include <math.h>
 #include "cwindow.h"
+#include "csound.h"
+#include "interlocks.h"
+#include "sysdep.h"
 
 /* Order of interpolation of scanning */
 /* Either 1, 2 (linear), 3 (cubic) or 4 (quadratic) */

@@ -29,8 +29,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <sys/types.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#if defined(HAVE_SYS_TYPES_H)
+    #include <sys/time.h>
+#endif
 #include <dlfcn.h>
 #include <setjmp.h>
 #include <signal.h>

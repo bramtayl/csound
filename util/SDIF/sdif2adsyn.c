@@ -23,11 +23,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <endian.h>
 
 #include "sdif.h"
-#include "sdif-mem.h"
 
 #ifndef max
 #define max(x,y) ((x)>(y) ? (x) : (y))
@@ -269,9 +271,6 @@ int main(int argc, char **argv)
         fprintf(stderr,"\nWARNING: multiple stream IDs found - skipping");
         continue;
       }
-#ifdef _DEBUG
-      /*printf("\nReading SDIF Frame %d, time = %.4f",framecount,fh.time); */
-#endif
       thistime = (float) fh.time;
       /* Csound adsyn counts time in msecs, in shorts, so can only have
          32.767 seconds! */
@@ -294,9 +293,6 @@ int main(int argc, char **argv)
         }
 
         n_partials = mh.rowCount;
-#ifdef _DEBUG
-        /*printf("\nReading Matrix %d: %d rows",i+1,n_partials); */
-#endif
 
         for (j=0;j < n_partials; j++) {
 

@@ -24,6 +24,14 @@
 /*                                                      PVADD.H    */
 #pragma once
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "Opcodes/ugens8.h"
+#include "csoundCore.h"
+#include "sysdep.h"
+
 #define     MAXBINS         4096
 #ifndef PVFRAMSIZE
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */

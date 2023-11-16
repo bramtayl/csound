@@ -20,8 +20,12 @@
          02110-1301 USA
 */
 
-#include "compile_ops.h"
+#include "H/compile_ops.h"
+
 #include <stdio.h>
+
+#include "csoundCore.h"
+
 int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
 

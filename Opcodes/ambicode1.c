@@ -29,9 +29,16 @@
 */
 
 #include "csoundCore.h"
-#include "interlocks.h"
 #include <assert.h>
 #include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
+
+#include "csound.h"
+#include "sysdep.h"
 
 /* ------------------------------------------------------------------------- */
 

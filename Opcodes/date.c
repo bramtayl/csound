@@ -21,8 +21,20 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+
 #include "csoundCore.h"
 #include <time.h>
+#include "csound.h"
+#include "float-version.h"
+#include "sysdep.h"
 
 #ifndef __wasi__
 #include <errno.h>
@@ -30,10 +42,6 @@
 
 #if defined(WIN32)
 #include "direct.h"
-#endif
-
-#if defined(__MACH__)
-#include <unistd.h>
 #endif
 
 typedef struct {

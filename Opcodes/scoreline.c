@@ -21,8 +21,15 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
 //#include "csdl.h"
 #include "csoundCore.h"
+#include "csound.h"
+#include "sysdep.h"
 //extern void csoundInputMessageInternal(CSOUND *, const char *);
 
 typedef struct _inmess {

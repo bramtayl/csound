@@ -21,8 +21,16 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
                                                         /* buchla.c */
 #include "csoundCore.h"
+#include "csound.h"
+#include "sysdep.h"
 #ifdef MSVC
 #define _USE_MATH_DEFINES
 #include <math.h>

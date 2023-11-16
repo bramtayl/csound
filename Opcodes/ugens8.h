@@ -25,7 +25,13 @@
 #ifndef _UGENS8_H_
 #define _UGENS8_H_
 
-#include "pvoc.h"
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "Opcodes/pvoc_dummy.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */
 #define     PVFFTSIZE       (2*PVFRAMSIZE)      /* 2x for real + imag */

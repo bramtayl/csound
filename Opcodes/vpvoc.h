@@ -22,6 +22,10 @@
 */
 #pragma once
 
+#include "csoundCore.h"
+#include "sysdep.h"
+#include "Opcodes/pvoc_dummy.h"
+
 typedef struct {
     FUNC    *function, *nxtfunction;
     MYFLT   d;

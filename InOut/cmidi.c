@@ -28,7 +28,7 @@
 #include <CoreAudio/HostTime.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include "csdl.h"                               /*      CMIDI.C         */
-#include "midiops.h"
+#include "H/midiops.h"
 
 
 /* MIDI message queue size */

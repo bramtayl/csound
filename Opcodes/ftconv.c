@@ -21,8 +21,16 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
-#include <math.h>
+#include "csound.h"
+#include "csoundCore.h"
+#include "interlocks.h"
+#include "sysdep.h"
 
 #define FTCONV_MAXCHN   8
 

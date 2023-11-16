@@ -19,8 +19,23 @@
 
 /* $Id: mp3dec.c,v 1.6 2009/03/01 15:27:05 jpff Exp $ */
 
-#include "csoundCore.h"
-#include "mp3dec_internal.h"
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+
+#include "H/mp3dec_internal.h"
+#include "H/mp3dec.h"
+#include "H/mpadec.h"
+#include "sysdep.h"
 
 mp3dec_t mp3dec_init(void)
 {

@@ -29,13 +29,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
-#include "score_param.h"
+#include "Engine/score_param.h"
 #include "csound_scoparse.h"
 
 #define YYSTYPE MYFLT
 #define YYLTYPE SCOTOKEN
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
-#include "corfile.h"
+#include "H/corfile.h"
 YYLTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 static  SCOTOKEN *make_string(CSOUND *, char *);

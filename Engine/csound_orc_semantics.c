@@ -25,16 +25,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 //#include <stdbool.h>
 #include "csoundCore.h"
-#include "csound_orc.h"
+#include "H/csound_orc.h"
 #include "interlocks.h"
-#include "namedins.h"
-#include "parse_param.h"
+#include "Engine/parse_param.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
-#include "csound_orc_expressions.h"
-#include "csound_orc_semantics.h"
+#include "H/csound_orc_expressions.h"
+#include "H/csound_orc_semantics.h"
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "find_opcode.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);

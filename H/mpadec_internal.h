@@ -23,7 +23,7 @@
 #define __MPADEC_INTERNAL_H
 
 #include "csoundCore.h"
-#include "mpadec.h"
+#include "H/mpadec.h"
 
 #define MPADEC_STATE_UNDEFINED 0
 #define MPADEC_STATE_START     1
@@ -210,6 +210,6 @@ struct mpadec2_t {
 
 #define GETBITS(n) ((mpa->bits_left >= \
    (uint8_t)(n)) ? ((mpa->bit_buffer >> (mpa->bits_left -= (uint8_t)(n))) \
-                    & bitmask[n]) : getbits(mpa, n))
+                    & bitmask[n]) : 0)
 
 #endif

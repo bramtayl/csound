@@ -28,8 +28,19 @@
 /******************************************/
 /*    PVADD.C        */
 
-#include "pvoc.h"
-#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
+#include "Opcodes/pvadd.h"
+#include "Opcodes/pvocext.h"
+#include "Opcodes/ugens8.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "float-version.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 

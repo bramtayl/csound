@@ -29,38 +29,46 @@
 //#ifdef __cplusplus
 //extern "C" {
 //#endif
-
-#if defined(HAVE_UNISTD_H) || defined (__unix) || defined(__unix__)
-#include <unistd.h>
+#include <emmintrin.h>
+#include <setjmp.h>
+#include <sndfile.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
 #endif
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
 
 #include "csoundCore.h"
-#include "csmodule.h"
-#include "corfile.h"
-#include "csGblMtx.h"
+#include "H/csmodule.h"
+#include "H/corfile.h"
+#include "H/csGblMtx.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
 #include <time.h>
-#include <ctype.h>
 #include <limits.h>
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "csound_type_system.h"
+#include "cwindow.h"
+#include "H/envvar.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
+#include "version.h"
+
 #if defined(WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <windows.h>
 #endif
-#include <math.h>
-#include "oload.h"
-#include "fgens.h"
-#include "namedins.h"
+#include "H/fgens.h"
+#include "H/namedins.h"
 #include "pvfileio.h"
-#include "fftlib.h"
-#include "lpred.h"
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
-#include "namedins.h"
+#include "H/fftlib.h"
+#include "H/lpred.h"
 //#include "cs_par_dispatch.h"
 #include "find_opcode.h"
 
@@ -69,9 +77,7 @@
 #endif
 
 #include "csound_standard_types.h"
-
 #include "csdebug.h"
-#include <time.h>
 
 extern void allocate_message_queue(CSOUND *csound);
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
@@ -247,6 +253,9 @@ static int csoundGetDitherMode(CSOUND *csound){
 }
 
 #include "Opcodes/zak.h"
+
+struct CsoundCallbackEntry_s;
+
 static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
@@ -3910,7 +3919,9 @@ void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
 #endif
 #if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
 #define HAVE_GETTIMEOFDAY 1
-#include <sys/time.h>
+#if defined(HAVE_SYS_TIME_H)
+    #include <sys/time.h>
+#endif
 #endif
 
 /* enable use of high resolution timer (Linux/i586/GCC only) */

@@ -29,9 +29,14 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
 #include "locsig.h"
-#include <math.h>
+#include "csound.h"
 
 static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {

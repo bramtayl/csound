@@ -22,7 +22,7 @@
 #ifndef CSOUND_STD_UTIL_H
 #define CSOUND_STD_UTIL_H
 
-#include "csdl.h"
+#include "csound.h"    // for CSOUND
 #include <inttypes.h>
 
 extern int32_t atsa_init_(CSOUND *);

@@ -24,15 +24,28 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#include <sndfile.h>
+#include <stdarg.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                      FGENS.C         */
 #include <ctype.h>
 #include "soundio.h"
 #include "cwindow.h"
-#include "cmath.h"
-#include "fgens.h"
-#include "pstream.h"
-#include "pvfileio.h"
+#include "H/cmath.h"
+#include "H/fgens.h"
 #include <stdlib.h>
+#include "csound.h"
+#include "float-version.h"
+#include "H/mpadec.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 /* #undef ISSTRCOD */
 
 static inline int32_t byte_order(void)
@@ -2964,7 +2977,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
 }
 
 #ifndef NACL
-#include "mp3dec.h"
+#include "H/mp3dec.h"
 
 static int gen49raw(FGDATA *ff, FUNC *ftp)
 {
@@ -3471,7 +3484,7 @@ void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len) {
 }
 
 
-#include "resize.h"
+#include "H/resize.h"
 
 static int warned = 0;          /* Thread Safe */
 int resize_table(CSOUND *csound, RESIZE *p)

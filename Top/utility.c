@@ -21,9 +21,16 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include <setjmp.h>
-#include "corfile.h"
+#include "H/corfile.h"
+#include "csound.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 typedef struct csUtility_s {
     char                *name;

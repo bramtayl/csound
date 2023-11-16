@@ -27,7 +27,14 @@
 
 #pragma once
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+
 #include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct CONTROL_GLOBALS_ {
     CSOUND  *csound;

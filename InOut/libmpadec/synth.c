@@ -19,7 +19,14 @@
 
 /* $Id: synth.c,v 1.3 2004/08/03 05:22:22 metal_man Exp $ */
 
-#include "mpadec_internal.h"
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "H/mpadec_internal.h"
+#include "H/mpadec.h"
+#include "sysdep.h"
 
 #define ROUND(x) (floor((x) + 0.5))
 #define LROUND(x) ((int32_t)(ROUND(x)))

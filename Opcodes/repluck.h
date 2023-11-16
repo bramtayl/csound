@@ -24,6 +24,13 @@
                                                         /* repluck.h */
 #pragma once
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct _DelayLine {
     MYFLT   *data;
     int32_t length;

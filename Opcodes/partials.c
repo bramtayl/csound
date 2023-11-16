@@ -37,8 +37,19 @@ imaxtracks - max number of tracks (<= number of analysis bins)
 
 */
 
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 #include "pvs_ops.h"
 #include "pstream.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 typedef struct _parts {
     OPDS    h;

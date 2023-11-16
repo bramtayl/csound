@@ -26,9 +26,14 @@
         /*      Copyright (c) August 1994.  All rights reserve */
         /*      Improvements 1999 John ffitch */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
-#include <math.h>
 #include "follow.h"
+#include "csound.h"
 
 static int32_t flwset(CSOUND *csound, FOL *p)
 {

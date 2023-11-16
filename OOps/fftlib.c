@@ -29,11 +29,15 @@
 */
 
 #include <stdlib.h>
-#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
 #include "csoundCore.h"
 #include "csound.h"
-#include "fftlib.h"
-#include "pffft.h"
+#include "H/fftlib.h"
+#include "H/pffft.h"
+#include "sysdep.h"
 
 
 

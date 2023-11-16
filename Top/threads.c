@@ -22,6 +22,16 @@
 */
 
 #include <errno.h>
+#include <features.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "csound.h"
+#include "sysdep.h"
 
 #if defined(__linux) || defined(__linux__)
 /* for pthread_mutex_timedlock() */
@@ -36,8 +46,6 @@
 #define HAVE_GETTIMEOFDAY 1
 #endif
 #endif
-
-#include "csoundCore.h"
 
 #if 0
 static CS_NOINLINE void notImplementedWarning_(const char *name)
@@ -159,15 +167,14 @@ PUBLIC void csoundSleep(size_t milliseconds)
 }
 
 #endif
-
-#ifndef __wasi__
-#include <errno.h>
-#endif
-
 #include <pthread.h>
 #include <time.h>
-#include <unistd.h>
-#include <sys/time.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+#if defined(HAVE_SYS_TIME_H)
+    #include <sys/time.h>
+#endif
 
 #define BARRIER_SERIAL_THREAD (-1)
 

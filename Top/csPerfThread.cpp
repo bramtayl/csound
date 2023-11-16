@@ -21,12 +21,22 @@
     02110-1301 USA
 */
 
-#include <iostream>
-#include <exception>
+#include <emmintrin.h>
+#include <sndfile.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+#include <new>
+#include <string>
 
 #include "csound.hpp"
 #include "csPerfThread.hpp"
-#include "soundio.h"
+#include "csound.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 // ----------------------------------------------------------------------------
 

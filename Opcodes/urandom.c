@@ -21,16 +21,21 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+
 #include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 //#include <ieee754.h>
-
-#ifdef __HAIKU__
-#include <fcntl.h>
-#endif
-
-#ifdef MACOSX
-#include <unistd.h>
-#endif
 
 typedef struct {
     OPDS    h;

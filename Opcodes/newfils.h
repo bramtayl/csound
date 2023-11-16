@@ -108,6 +108,14 @@ on startup. 0 means no initialisation.
 
 #ifndef _NEWFILS_H
 #define _NEWFILS_H
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
+
 #define DIM 4
 
 typedef struct _moogladder {

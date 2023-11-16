@@ -21,15 +21,21 @@
     02110-1301 USA
 */
 
+#include <stdlib.h>
+#include <sys/select.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+
 #include "csdl.h"
 #include "control.h"
 
-#include <sys/time.h>
-#include <sys/types.h>
 #include <signal.h>
 
 #if defined(__MACH__)
-#include <unistd.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
 #endif
 
 static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)

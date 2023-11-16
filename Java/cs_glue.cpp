@@ -25,7 +25,7 @@
 //#include "cs_glue.h"
 #include "csound.hpp"
 #include "csdl.h"
-#include "cs_glue.hpp"
+#include "H/cs_glue.hpp"
 
 extern "C" {
 

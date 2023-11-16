@@ -21,6 +21,11 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdlib.h>
+
 /* This program converted from the FORTRAN routines by Singleton in
  * Section 1.4 of  "Programs for Digital Signal Processing", IEEE Press, 1979.
  *  Conversion by Trevor Wishart and Keith Henderson, York Univ.
@@ -86,6 +91,8 @@ static char *rcsid = "$Id$";
 #include "csoundCore.h"
 #include <math.h>
 #include <assert.h>
+#include "csound.h"
+#include "sysdep.h"
 
 static void fft_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t);
 static void fftmx(MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t, int32_t,

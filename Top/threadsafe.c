@@ -19,9 +19,19 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"
-#include "csound_orc.h"
+#include "H/csound_orc.h"
 #include <stdlib.h>
+#include "csound.h"
+#include "float-version.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 #ifdef USE_DOUBLE
 #  define MYFLT_INT_TYPE int64_t

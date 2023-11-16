@@ -45,7 +45,14 @@ of points around kpos which will be used in the de-mixing process.
 #ifndef _PVSDEMIX_H
 #define _PVSDEMIX_H
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
 #include "pstream.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct _pvsdemix {
         OPDS h;

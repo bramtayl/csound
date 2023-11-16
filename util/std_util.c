@@ -19,7 +19,13 @@
     02110-1301 USA
 */
 
-#include "std_util.h"
+#include "csdl.h"
+#include "util/std_util.h"
+
+#include <stddef.h>
+
+#include "sysdep.h"
+#include "version.h"
 
 /* Modified from BSD sources for strlcpy */
 /*

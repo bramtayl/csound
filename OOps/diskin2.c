@@ -21,11 +21,24 @@
   02110-1301 USA
 */
 
+#include <emmintrin.h>
+#include <sndfile.h>
+#include <stdio.h>
+#include <string.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+
 #include "csoundCore.h"
-#include "soundio.h"
-#include "diskin2.h"
+#include "H/diskin2.h"
 #include <math.h>
 #include <inttypes.h>
+#include "csound.h"
+#include "csound_type_system.h"
+#include "float-version.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 typedef struct DISKIN_INST_ {
   CSOUND *csound;

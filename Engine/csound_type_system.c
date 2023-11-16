@@ -25,7 +25,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "csoundCore.h"
-#include "aops.h"
+#include "H/aops.h"
+#include "H/prototyp.h"
 
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;

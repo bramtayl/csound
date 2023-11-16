@@ -35,7 +35,15 @@
 #if !defined(__Moog1_h)
 #define __Moog1_h
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
 #include "fm4op.h"
+#include "Opcodes/physutil.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 /*******************************************/
 /*  Sweepable Formant (2-pole)             */

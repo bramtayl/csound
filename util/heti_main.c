@@ -29,11 +29,12 @@
 /* ***************************************************************** */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdlib.h>
 #define END  32767
 
-#include <stdint.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 #if defined(HAVE_GCC3)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else

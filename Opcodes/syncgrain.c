@@ -21,14 +21,23 @@
     02110-1301 USA
 */
 
+#include <sndfile.h>
+#include <stdio.h>
+#include <string.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+
 #include "stdopcod.h"
 #include "syncgrain.h"
-#include "soundio.h"
 #include "interlocks.h"
+#include "soundfile.h"
 
 /*
 #ifdef HAVE_VALUES_H
-#include <values.h>
+#if defined(HAVE_VALUES_H)
+    #include <termios.h>
+#endif
 #endif
 
 #ifndef MAXINT

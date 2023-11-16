@@ -23,8 +23,13 @@
 */
 #pragma once
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
 #include "sftype.h"
-#include "sf.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct {
         OPDS    h;

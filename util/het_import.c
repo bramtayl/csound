@@ -28,15 +28,22 @@
 /* John ffitch 1995 Jul 14                                           */
 /* ***************************************************************** */
 
-#include "std_util.h"
+#include "csdl.h"
+#include "util/std_util.h"
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdlib.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
+
+#include "csound.h"
+#include "sysdep.h"
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
 /*#include "hetro.h"*/
-#include "text.h"
 
 #define END  32767
 

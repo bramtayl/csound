@@ -21,6 +21,13 @@
 #ifndef GAB_VECTORIAL_H
 #define GAB_VECTORIAL_H
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 /* The follwoing from CsoundAV/newopcodes.h */
 typedef struct {
     OPDS    h;

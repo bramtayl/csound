@@ -22,15 +22,25 @@
     02110-1301 USA
 */
 
-#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include "namedins.h"
-#include "linevent.h"
+#include "H/namedins.h"
+#include "H/linevent.h"
+#include "csound.h"
+#include "csound_standard_types.h"
+#include "csound_type_system.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 /* Keep Microsoft's schedule.h from being used instead of our schedule.h. */
 #ifdef _MSC_VER
 #include "H/schedule.h"
 #else
-#include "schedule.h"
+#include "H/schedule.h"
 #endif
 
 extern void csoundInputMessageInternal(CSOUND *, const char *);

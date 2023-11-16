@@ -22,6 +22,13 @@
 */
 #pragma once
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
   int32_t    cnt, wsize, flag; /* , section; */
         MYFLT  ampincr, ampphs, offset;

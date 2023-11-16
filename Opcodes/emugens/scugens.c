@@ -23,7 +23,15 @@
 */
 
 #include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "emugens_common.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 #define LOG001 FL(-6.907755278982137)
 #define CALCSLOPE(next,prev,nsmps) ((next - prev)/nsmps)

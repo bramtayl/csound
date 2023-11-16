@@ -26,7 +26,13 @@
 #ifndef CSOUND_SPAT3D_H
 #define CSOUND_SPAT3D_H
 
-#include "csdl.h"
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csoundCore.h"
+#include "sysdep.h"
 
 #ifdef CSOUND_SPAT3D_C  /* define these only when included from spat3d.c */
 

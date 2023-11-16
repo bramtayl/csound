@@ -1,4 +1,12 @@
 [
+  { include: ["<alsa/control.h>", "private", "<alsa/asoundlib.h>", "public"] },
+  { include: ["<alsa/error.h>", "private", "<alsa/asoundlib.h>", "public"] },
+  { include: ["<alsa/pcm.h>", "private", "<alsa/asoundlib.h>", "public"] },
+  { include: ["<alsa/rawmidi.h>", "private", "<alsa/asoundlib.h>", "public"] },
+  { include: ["<alsa/seq.h>", "private", "<alsa/asoundlib.h>", "public"] },
+  { include: ["<alsa/seq_event.h>", "private", "<alsa/asoundlib.h>", "public"] },
+  { include: ["<alsa/seq_midi_event.h>", "private", "<alsa/asoundlib.h>", "public"] },
+  { include: ["<alsa/seqmid.h>", "private", "<alsa/asoundlib.h>", "public"] },
   { include: ["<bits/termios-baud.h>", "private", "<termios.h>", "public"] },
   { include: ["<bits/termios-c_cc.h>", "private", "<termios.h>", "public"] },
   { include: ["<bits/termios-c_cflag.h>", "private", "<termios.h>", "public"] },
@@ -7,5 +15,8 @@
   { include: ["<bits/termios-c_oflag.h>", "private", "<termios.h>", "public"] },
   { include: ["<bits/termios-struct.h>", "private", "<termios.h>", "public"] },
   { include: ["<bits/termios-tcflow.h>", "private", "<termios.h>", "public"] },
-  { include: ["<bits/types/struct_sched_param.h>", "private", "<sched.h>", "public"] }
+  { include: ["<bits/types/locale_t.h>", "private", "<locale.h>", "public"] },
+  { include: ["<bits/types/struct_sched_param.h>", "private", "<sched.h>", "public"] },
+  { include: ["<bits/types/struct_tm.h>", "private", "<time.h>", "public"] },
+  { include: ["<ext/alloc_traits.h>", "private", "<memory>", "public"] }
 ]

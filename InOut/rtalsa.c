@@ -37,26 +37,35 @@
 #define _BSD_SOURCE 1
 #endif
 
-#include "csdl.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <fcntl.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
 #include <sys/select.h>
-#include <termios.h>
+#if defined(HAVE_TERMIOS_H)
+    #include <termios.h>
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <alsa/asoundlib.h>
 #include <sched.h>
-#include <unistd.h>
-#include <signal.h>
-#include <sys/mman.h>
 #include <sys/resource.h>
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdlib.h>
+#include <string.h>
 
-
-#include "soundio.h"
+#include "csdl.h"
+#include "csound.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "soundfile.h"
+#include "sysdep.h"
+#include "version.h"
 
 /* Modified from BSD sources for strlcpy */
 /*

@@ -25,7 +25,13 @@
 
 /* Various filters etc for Physical models */
 
-#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 #define AMP_SCALE (csound->e0dbfs)
 #define AMP_RSCALE (csound->dbfs_to_float)

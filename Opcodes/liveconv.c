@@ -23,9 +23,15 @@
 
 /* The implementation is indebted to the ftconv opcode by Istvan Varga 2005 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"
 #include "interlocks.h"
-#include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 /*
 ** Data structures holding the load/unload information

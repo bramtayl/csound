@@ -22,12 +22,20 @@
 */
 
 #include "csoundCore.h"                             /*   SREAD.C     */
-#include <math.h>      /* for fabs() */
 #include <ctype.h>
 #include <inttypes.h>
-#include "namedins.h"           /* IV - Oct 31 2002 */
-#include "corfile.h"
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+
+
+#include "H/namedins.h"           /* IV - Oct 31 2002 */
+#include "H/corfile.h"
 #include "Engine/score_param.h"
+#include "csound.h"
+#include "H/prototyp.h"
+#include "H/sort.h"
+#include "sysdep.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */

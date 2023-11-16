@@ -24,8 +24,12 @@
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/AudioHardware.h>
 #include <CoreFoundation/CoreFoundation.h>
-#include <unistd.h>
-#include <stdint.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 #include "csdl.h"
 #include "soundio.h"
 

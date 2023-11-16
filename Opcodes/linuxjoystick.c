@@ -36,7 +36,20 @@
 */
 
 #include "linuxjoystick.h"
+
 #include <errno.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+#include <linux/joystick.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+
+#include "csound.h"
 
 static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 {

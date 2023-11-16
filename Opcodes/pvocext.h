@@ -29,6 +29,13 @@
 #pragma once
 
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 void    SpectralExtract(float *, float *, int32_t, int32, int32_t, MYFLT);
 MYFLT   PvocMaxAmp(float *, int32, int32);
 void    PvAmpGate(MYFLT *, int32, FUNC *, MYFLT);

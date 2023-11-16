@@ -28,7 +28,9 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
 #include <signal.h>
 #include <Locker.h>
 
@@ -36,7 +38,7 @@
 #include <MidiProducer.h>
 #include <MidiConsumer.h>
 
-#include "haiku_midi.h"
+#include "H/haiku_midi.h"
 
 #define XDPRINTF(x)
 #define DPRINTF(x)

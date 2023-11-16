@@ -88,7 +88,9 @@ typedef __int16 int16;
 typedef unsigned __int32 uint32;
 typedef unsigned __int16 uint16;
 #else
-#include <stdint.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 typedef int_least32_t int32;
 typedef int_least16_t int16;
 typedef uint_least32_t uint32;
@@ -178,11 +180,11 @@ typedef uint_least16_t uint16;
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#if defined(HAVE_FCNTL_H) || defined(__unix) || defined(__unix__)
-#include <fcntl.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
 #endif
-#if defined(HAVE_UNISTD_H) || defined(__unix) || defined(__unix__)
-#include <unistd.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
 #endif
 
 /* Experiment with doubles or floats */

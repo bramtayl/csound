@@ -24,12 +24,23 @@
 */
 
 #include "csoundCore.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "msg_attr.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
+
 #define CSOUND_STR_OPS_C    1
-#include "str_ops.h"
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+#include "H/str_ops.h"
 #include <ctype.h>
 #ifdef HAVE_CURL
 #include <curl/curl.h>
-#include "corfile.h"
+#include "H/corfile.h"
 #endif
 
 #define STRSMAX 8

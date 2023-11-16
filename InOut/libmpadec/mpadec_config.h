@@ -77,11 +77,13 @@ typedef uint32_t uintptr_t;
 #include <string.h>
 #include <memory.h>
 #include <math.h>
-#include <fcntl.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_IO_H
-#include <io.h>
+#if defined(HAVE_IO_H)
+    #include <io.h>
 #endif
 
 #undef FALSE

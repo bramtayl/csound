@@ -88,7 +88,9 @@ typedef __int16 int16;
 typedef unsigned __int32 uint32;
 typedef unsigned __int16 uint16;
 #else
-#include <stdint.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 #if defined(__HAIKU__) && defined(__HAIKU_CONFLICT)
  /* Haiku has different typedefs -- relevant to rthaiku and network*/
  #include <SupportDefs.h>
@@ -184,10 +186,10 @@ typedef uint_least16_t uint16;
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#if defined(HAVE_FCNTL_H) || defined(__unix) || defined(__unix__)
+#if defined(HAVE_FCNTL_H)
 #include <fcntl.h>
 #endif
-#if defined(HAVE_UNISTD_H) || defined(__unix) || defined(__unix__)
+#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
 

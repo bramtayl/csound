@@ -23,6 +23,13 @@
 
 #pragma once
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 #define MAXVOICE 128
 
 typedef struct {

@@ -25,17 +25,28 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+
 #include "csoundCore.h"
-#include <stdlib.h>
-#include <sys/types.h>
+#include "csound.h"
+#include "sysdep.h"
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
-#include <unistd.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
+
 #define SOCKET_ERROR (-1)
 #endif
 #include <string.h>

@@ -23,10 +23,18 @@
 
 /* ------ oscils, lphasor, and tablexkt by Istvan Varga (Jan 5 2002) ------ */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
+
 #define CSOUND_OSCILS_C 1
-#include "oscils.h"
+#include "H/oscils.h"
 
 /* ------------- set up fast sine generator ------------- */
 /* Input args:                                            */

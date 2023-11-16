@@ -22,7 +22,7 @@
 */
 
 #include "csoundCore.h"
-#include "csmodule.h"
+#include "H/csmodule.h"
 
 /* Do not declare these in header files; just define them in the module file
  * as extern "C", and declare them here as extern.

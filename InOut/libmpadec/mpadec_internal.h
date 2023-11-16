@@ -23,7 +23,7 @@
 #define __MPADEC_INTERNAL_H
 
 #include "mpadec_config.h"
-#include "mpadec.h"
+#include "H/mpadec.h"
 
 #define MPADEC_STATE_UNDEFINED 0
 #define MPADEC_STATE_START     1

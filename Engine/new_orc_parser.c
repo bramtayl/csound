@@ -23,10 +23,22 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include "csound_orc.h"
-#include "corfile.h"
-#include "score_param.h"
+#include "H/csound_orc.h"
+#include "H/corfile.h"
+#include "Engine/score_param.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "Engine/parse_param.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>

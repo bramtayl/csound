@@ -21,24 +21,33 @@
     02110-1301 USA
 */
 
-#include "std_util.h"                                   /*  HETRO.C   */
+#include <sndfile.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "csdl.h"
+#include "util/std_util.h"                                   /*  HETRO.C   */
 #include "soundio.h"
 #include <math.h>
 #include <inttypes.h>
+#include "csound.h"
+#include "float-version.h"
+#include "sysdep.h"
 
 //#define DEBUG 1
 
-#ifndef WIN32
-#include <unistd.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
 #endif
+
 #define INCSDIF 1
 
 #if INCSDIF
 /*RWD need to set this to prevent sdif.h including windows.h */
 #define _WINDOWS_
 /* CNMAT sdif library, subject to change..... */
-#include "SDIF/sdif.h"
-#include "SDIF/sdif-mem.h"
+#include "util/SDIF/sdif.h"
+
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;

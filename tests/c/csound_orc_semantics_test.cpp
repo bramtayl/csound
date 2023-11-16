@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "csoundCore.h"
-#include "csound_orc.h"
+#include "H/csound_orc.h"
 #include "gtest/gtest.h"
 
 extern "C" {

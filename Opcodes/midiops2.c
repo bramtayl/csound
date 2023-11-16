@@ -26,8 +26,14 @@
 /** midicXX   UGs by Gabriel Maldonado **/
 /****************************************/
 
+#include <stddef.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
 #include "stdopcod.h"
 #include "midiops2.h"
+#include "csound.h"
 #ifndef TRUE
 #define TRUE (1)
 #endif

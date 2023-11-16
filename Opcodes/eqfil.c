@@ -21,9 +21,16 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
-#include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct _equ {
   OPDS h;

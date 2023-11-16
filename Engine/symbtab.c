@@ -24,16 +24,22 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+
 #include "csoundCore.h"
-#include "tok.h"
-#include "csound_orc.h"
-#include "insert.h"
-#include "namedins.h"
+#include "H/tok.h"
+#include "H/csound_orc.h"
+#include "H/insert.h"
+#include "H/namedins.h"
 #include "interlocks.h"
-#include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "csound_type_system.h"
+#include "find_opcode.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)

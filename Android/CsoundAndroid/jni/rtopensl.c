@@ -26,7 +26,9 @@
 #include "SLES/OpenSLES_Android.h"
 #include "csoundCore.h"
 #include <android/log.h>
-#include <stdint.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 #include <time.h>
 
 typedef struct OPEN_SL_PARAMS_ {

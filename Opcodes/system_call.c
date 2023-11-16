@@ -22,7 +22,14 @@
 */
 
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdlib.h>
+
 #include "csoundCore.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct {
   OPDS  h;
@@ -61,7 +68,9 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
 }
 
 #else
-#include <unistd.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
 
 #ifdef __APPLE__  
 #include <TargetConditionals.h>

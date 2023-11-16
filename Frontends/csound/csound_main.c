@@ -25,12 +25,12 @@
 #include "csound.h"
 #include <stdio.h>
 #include <signal.h>
-#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
-#if defined(HAVE_UNISTD_H) || defined(MACOSX)
+#include <stdlib.h>
 #include <unistd.h>
-#endif
+
+#include "msg_attr.h"
 #ifdef GNU_GETTEXT
 #include <locale.h>
 #endif

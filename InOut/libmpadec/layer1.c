@@ -19,7 +19,13 @@
 
 /* $Id: layer1.c,v 1.1.1.1 2004/07/27 02:57:18 metal_man Exp $ */
 
-#include "mpadec_internal.h"
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "H/mpadec_internal.h"
+#include "H/mpadec.h"
+#include "sysdep.h"
 
 extern const uint32_t bitmask[17];
 extern alloc_table_t *alloc_tables[5];

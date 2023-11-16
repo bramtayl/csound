@@ -24,7 +24,7 @@
 #ifndef __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 #define __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 
-#include "cs_par_base.h"
+#include "H/cs_par_base.h"
 
 #ifdef PARCS
 /*

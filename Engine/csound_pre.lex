@@ -23,13 +23,17 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include <sys/stat.h>
+
 #include <ctype.h>
+#include "csound.h"
 #include "csoundCore.h"
-#include "corfile.h"
-#include <inttypes.h>
+#include "H/corfile.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
+
+struct yyguts_t;
+
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
@@ -45,7 +49,7 @@ static void do_function(CSOUND*, char *, CORFIL*);
 //static void print_csound_predata(CSOUND *,char *,yyscan_t);
 static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
 //static void delete_macros(CSOUND*, yyscan_t);
-#include "parse_param.h"
+#include "Engine/parse_param.h"
 
 #define YY_EXTRA_TYPE  PRE_PARM *
 #define PARM    yyget_extra(yyscanner)

@@ -27,9 +27,16 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
 #include "space.h"
-#include <math.h>
+#include "csound.h"
+#include "interlocks.h"
 
 #define RESOLUTION 100
 

@@ -26,11 +26,18 @@
 /*** By Richard Karpen - July-October 1992*********************/
 /**************************************************************/
 
-#include "pvoc.h"
-#include <math.h>
 
-/*RWD 10:9:2000 read pvocex file format */
-#include "pvfileio.h"
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "Opcodes/pvadd.h"
+#include "Opcodes/pvread.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
+
 static int32_t pvocex_loadfile(CSOUND *, const char *fname, PVREAD *p);
 
 #define WLN   1         /* time window is WLN*2*ksmps long */

@@ -25,7 +25,14 @@
 */
 
 #include <csdl.h>
-#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
+#include "csound.h"
+#include "interlocks.h"
+#include "sysdep.h"
 
 /*  Wave-terrain synthesis opcode
  *

@@ -197,13 +197,15 @@ in pkgs.stdenvNoCC.mkDerivation rec {
                 'void sanitize(CSOUND *csound);'
 
     substituteInPlace Top/one_file.c \
-      --replace '#include "corfile.h"' \
-            '#include "corfile.h"
+      --replace '#include "H/corfile.h"' \
+            '#include "H/corfile.h"
              #include <sys/types.h>
              #include <sys/stat.h>
              #include <string.h>
              #include <stdlib.h>
-             #include <unistd.h>
+             #if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
              #include <fcntl.h>
              #include <errno.h>' \
              --replace 'umask(0077);' "" \
@@ -234,8 +236,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
                  '
 
     substituteInPlace Opcodes/mp3in.c \
-      --replace '#include "mp3dec.h"' \
-        '#include "mp3dec.h"
+      --replace '#include "H/mp3dec.h"' \
+        '#include "H/mp3dec.h"
          #include <unistd.h>
          #include <fcntl.h>'
 

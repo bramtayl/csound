@@ -19,10 +19,17 @@
 
 #include <stdlib.h>
 #include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"
 #include "csound.h"
-#include "fftlib.h"
-#include "lpred.h"
+#include "H/fftlib.h"
+#include "H/lpred.h"
+#include "pstream.h"
+#include "sysdep.h"
 
 static inline MYFLT magc(MYCMPLX c) {
   return HYPOT(c.re, c.im);

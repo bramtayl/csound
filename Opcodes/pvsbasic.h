@@ -123,7 +123,14 @@
 #ifndef _PVSBASIC_H
 #define _PVSBASIC_H
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
 #include "pstream.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct _pvsini {
     OPDS    h;

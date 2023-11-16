@@ -24,6 +24,13 @@
                                                          /* ugmoss.h */
 #pragma once
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
   OPDS                  h;
   MYFLT                 *ar, *ain, *isize, *ifn;

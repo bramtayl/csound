@@ -21,9 +21,17 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
+#include "csoundCore.h"
 #include "wave-terrain.h"
-#include <math.h>
+#include "csdl.h"
+#include "csound.h"
+#include "interlocks.h"
 
 /*  Wave-terrain synthesis opcode
  *

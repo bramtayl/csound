@@ -27,8 +27,15 @@
 */
 
 #include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"
 #include "pstream.h"
+#include "csound.h"
+#include "sysdep.h"
 
         double  besseli(double x);
 static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);

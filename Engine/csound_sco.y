@@ -30,7 +30,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-#include "score_param.h"
+#include "Engine/score_param.h"
     extern void csound_scoerror(SCORE_PARM *, void *,
                             CSOUND *, ScoreTree *, const char*);
     extern int csound_scolex(ScoreTree**, CSOUND *, void *);

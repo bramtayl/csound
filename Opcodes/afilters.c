@@ -21,9 +21,16 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"         /*                      AFILTERS.C        */
-#include "ugens5.h"
+#include "H/ugens5.h"
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 extern int32_t rsnset(CSOUND *csound, RESON *p);
 

@@ -21,10 +21,23 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                      DISPREP.C       */
 #include <math.h>
 #include "cwindow.h"
-#include "disprep.h"
+#include "H/disprep.h"
+#include "csound.h"
+#include "csound_standard_types.h"
+#include "csound_type_system.h"
+#include "msg_attr.h"
+#include "H/prototyp.h"
+#include "pstream.h"
+#include "sysdep.h"
 
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */

@@ -73,11 +73,22 @@
         higher sample rate than 16KHz might indicate a higher N.
 */
 
-#include "std_util.h"
+#include "csdl.h"
+#include "util/std_util.h"
 #include "soundio.h"
 #include <math.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <sndfile.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "csound.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 
 #define ERR(x)                          \

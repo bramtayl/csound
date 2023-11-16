@@ -22,7 +22,7 @@
 */
 #pragma once
 
-#include "lpc.h"        /*                               UGENS5.H        */
+#include "H/lpc.h"        /*                               UGENS5.H        */
 
 typedef struct {
         OPDS    h;

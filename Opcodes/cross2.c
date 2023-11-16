@@ -21,11 +21,18 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
 #include "ptrigtbl.h"
 #include "fhtfun.h"
 #include "interlocks.h"
-#include <math.h>
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 #define CH_THRESH       1.19209e-7
 #define CHOP(a) (a < CH_THRESH ? CH_THRESH : a)

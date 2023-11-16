@@ -21,16 +21,30 @@
     02110-1301 USA
 */
 
+#include <emmintrin.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+#include <sndfile.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdlib.h>
+#include <string.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif
+
 #include "csoundCore.h"
-#include "soundio.h"
-#include "envvar.h"
+#include "H/envvar.h"
 #include <stdio.h>
 #include <ctype.h>
-#include <math.h>
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
-#if defined(MSVC) || defined(__wasi__)
-#include <fcntl.h>
-#endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
 #  include <direct.h>
@@ -42,7 +56,7 @@
 #  define getcwd(x,y) "/"
 #endif
 
-#include "namedins.h"
+#include "H/namedins.h"
 
 /* list of environment variables used by Csound */
 

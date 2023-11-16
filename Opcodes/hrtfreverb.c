@@ -21,8 +21,15 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 #define SQUARE(X) ((X)*(X))
 

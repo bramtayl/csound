@@ -16,16 +16,22 @@
     02110-1301 USA
 */
 
-#include <ctype.h>
+#include <errno.h>
+#include <setjmp.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                      MAIN.C          */
-#include "soundio.h"
-#include "csmodule.h"
-#include "corfile.h"
-
-#include "csound_orc.h"
-
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
+#include "H/csmodule.h"
+#include "H/corfile.h"
+#include "csound.h"
+#include "H/envvar.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 //#include "cs_par_dispatch.h"
 
 extern void allocate_message_queue(CSOUND *csound);

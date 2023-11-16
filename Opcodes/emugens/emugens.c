@@ -22,10 +22,22 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+
 #include "emugens_common.h"
 #include "interlocks.h"
 #include "arrays.h"
 #include <ctype.h>
+#include "csound.h"
+#include "csoundCore.h"
+#include "csound_type_system.h"
+#include "msg_attr.h"
+#include "sysdep.h"
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \

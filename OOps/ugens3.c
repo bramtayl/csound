@@ -21,9 +21,17 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"         /*                              UGENS3.C    */
-#include "ugens3.h"
+#include "H/ugens3.h"
 #include <math.h>
+#include "csound.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {

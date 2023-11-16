@@ -26,10 +26,17 @@
 /*      Berklee College of Music Csound development team        */
 /*      Copyright (c) May 1994.  All rights reserved            */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "csoundCore.h"
 
 #include <math.h>
-#include "vdelay.h"
+#include "H/vdelay.h"
+#include "csound.h"
+#include "sysdep.h"
 
 //#define ESR     (csound->esr/FL(1000.0))
 #define ESR     (csound->esr*FL(0.001))

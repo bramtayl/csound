@@ -21,8 +21,41 @@
   02110-1301 USA
 */
 
-#include "entry1.h"             /*                      ENTRY1.C        */
+#include "H/entry1.h"             /*                      ENTRY1.C        */
+
+#include <stddef.h>
+
 #include "interlocks.h"
+#include "H/aops.h"
+#include "H/bus.h"
+#include "H/cmath.h"
+#include "H/compile_ops.h"
+#include "csoundCore.h"
+#include "H/disprep.h"
+#include "H/dumpf.h"
+#include "H/insert.h"
+#include "H/linevent.h"
+#include "H/lpred.h"
+#include "H/midifile.h"
+#include "H/midiinterop.h"
+#include "H/midiops.h"
+#include "H/midiout.h"
+#include "H/oload.h"
+#include "H/oscils.h"
+#include "H/remote.h"
+#include "H/resize.h"
+#include "H/schedule.h"
+#include "H/sndinfUG.h"
+#include "H/str_ops.h"
+#include "H/ugens1.h"
+#include "H/ugens2.h"
+#include "H/ugens3.h"
+#include "H/ugens4.h"
+#include "H/ugens5.h"
+#include "H/ugens6.h"
+#include "H/ugrw1.h"
+#include "H/vdelay.h"
+#include "H/windin.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)

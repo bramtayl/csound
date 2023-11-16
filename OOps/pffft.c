@@ -58,11 +58,13 @@
   - 2011/10/02, version 1: This is the very first release of this file.
 */
 
-#include "pffft.h"
+#include "H/pffft.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <stdint.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 
 /* detect compiler flavour */
 #if defined(_MSC_VER)

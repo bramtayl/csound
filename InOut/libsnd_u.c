@@ -21,8 +21,22 @@
     02110-1301 USA
 */
 
+#include <sndfile.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <string.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+
 #include "csoundCore.h"
 #include "soundio.h"
+#include "csound.h"
+#include "H/prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 void rewriteheader(void *ofd)
 {

@@ -21,14 +21,24 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                              LINEVENT.C      */
-#include <ctype.h>
-
-#ifdef MSVC
-#include <fcntl.h>
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif
+#include <setjmp.h>
+#include <stdio.h>
+#include <string.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
 #endif
 
-#include "linevent.h"
+#include "csoundCore.h"     /*                              LINEVENT.C      */
+#include <ctype.h>
+#include "csound.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
+
+
+#include "H/linevent.h"
 
 #ifdef PIPES
 # if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
@@ -36,6 +46,7 @@
 #  define _pclose pclose
 # elif defined(__BEOS__) ||  defined(__HAIKU__) || defined(__MACH__)
 #  include <stdio.h>
+
 #  define _popen popen
 #  define _pclose pclose
 # else

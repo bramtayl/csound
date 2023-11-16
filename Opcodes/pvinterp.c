@@ -26,8 +26,21 @@
 /******** By Richard Karpen 1996 *********/
 /*****************************************/
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "pvoc.h"
 #include <math.h>
+#include "Opcodes/dsputil.h"
+#include "Opcodes/pvoc_dummy.h"
+#include "Opcodes/ugens8.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
+#include "pvinterp.h"
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */

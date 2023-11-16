@@ -34,21 +34,32 @@
 
 #ifndef NO_SERIAL_OPCODES
 
-#include <stdlib.h>
-#include <stdint.h>   /* Standard types */
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif   /* Standard types */
 #include <string.h>   /* String function definitions */
+#include <math.h>
+#include <stdio.h>
 
 #ifndef WIN32
-#include <unistd.h>   /* UNIX standard function definitions */
-#include <fcntl.h>    /* File control definitions */
-#include <termios.h>  /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
+#if defined(HAVE_UNISTD_H)
+    #include <unistd.h>
+#endif   /* UNIX standard function definitions */
+#if defined(HAVE_FCNTL_H)
+    #include <fcntl.h>
+#endif    /* File control definitions */
+#if defined(HAVE_TERMIOS_H)
+    #include <termios.h>
+#endif  /* POSIX terminal control definitions */
 #else
 #include "winsock2.h"
 #endif
 
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "csound.h"
+#include "msg_attr.h"
+#include "sysdep.h"
 
 /* **************************************************
    As far as I can tell his should work on Windows

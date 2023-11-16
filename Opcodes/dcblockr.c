@@ -31,8 +31,14 @@
 /*  structures.                            */
 /*******************************************/
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"
 #include "dcblockr.h"
+#include "csound.h"
 
 static int32_t dcblockrset(CSOUND *csound, DCBlocker* p)
 {

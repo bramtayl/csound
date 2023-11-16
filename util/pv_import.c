@@ -29,11 +29,18 @@
 /* John ffitch 1995 Jun 17                                           */
 /* ***************************************************************** */
 
-#include "std_util.h"
+#include "csdl.h"
+#include "util/std_util.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+
+
 #include "pvfileio.h"
+#include "csound.h"
+#include "sysdep.h"
 
 static void pv_import_usage(CSOUND *csound)
 {

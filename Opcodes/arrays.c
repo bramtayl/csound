@@ -23,8 +23,12 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
-#include "aops.h"
+#include "H/aops.h"
 #include "find_opcode.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "H/prototyp.h"
+#include "sysdep.h"
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
@@ -154,6 +158,13 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
 }
 
 #include <ctype.h>
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static MYFLT nextval(FILE *f)
 {
@@ -3164,7 +3175,7 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
     return OK;
 }
 
-//#include "str_ops.h"
+//#include "H/str_ops.h"
 //// This cheats using strcpy opcode fake
 //static int32_t tabsliceS(CSOUND *csound, TABSLICE *p) {
 //

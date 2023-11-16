@@ -22,12 +22,17 @@
  */
 
 #include <stdlib.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <new>
+#include <cmath>
+
 //#include <unistd.h>
 #include "csdl.h"
-#include <math.h>
-#include "csoundCore.h"
 #include <string.h>
-#include <new>
+#include "csound.h"
+#include "sysdep.h"
 
 
 /* Band-splitting constants */

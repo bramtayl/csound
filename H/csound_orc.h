@@ -27,10 +27,10 @@
 
 #define YYDEBUG 1
 
-#include "parse_param.h"
-#include "score_param.h"
-#include "tok.h"
-#include "csound_orcparse.h"
+#include "Engine/parse_param.h"
+#include "Engine/score_param.h"
+#include "H/tok.h"
+#include "build/csound_orcparse.h"
 #include "csoundCore.h"
 
 enum {

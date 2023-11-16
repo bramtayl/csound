@@ -30,12 +30,15 @@
 /* ***************************************************************** */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdlib.h>
+#include <math.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
-#include "lpc.h"
+#include "H/lpc.h"
 
 #define Str(x) x
 

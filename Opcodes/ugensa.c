@@ -21,10 +21,17 @@
     02110-1301 USA
 */
 
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
+#include <string.h>
+
 #include "stdopcod.h"                 /*                              UGENSA.C  */
 #include "ugensa.h"
-#include "ugens7.h"
+#include "H/ugens7.h"
 #include <math.h>
+#include "csound.h"
+#include "interlocks.h"
 
 /* FOG generator */
 

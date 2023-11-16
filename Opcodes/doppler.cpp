@@ -22,9 +22,18 @@
  */
 
 #include "OpcodeBase.hpp"
+#include "csdl.h"
+#include <stddef.h>
+#if defined(HAVE_STDINT_H)
+    #include <stdint.h>
+#endif
 #include <cmath>
 #include <list>
 #include <vector>
+#include <algorithm>
+
+#include "csound.h"
+#include "sysdep.h"
 
 
 #ifndef M_PI
