@@ -33,19 +33,27 @@
       #define SHUT_RDWR 0x02
     #endif
   #else
-    #include <sys/ioctl.h>
+    #ifdef HAVE_SYS_IOCTL_H
+      #include <sys/ioctl.h>
+    #endif
     #ifdef __HAIKU__
       #include <sys/sockio.h>
     #endif
-    #include <sys/socket.h>
-    #include <netinet/in.h>
+    #ifdef HAVE_SYS_SOCKET_H
+      #include <sys/socket.h>
+    #endif
+    #ifdef HAVE_NETINET_IN_H
+      #include <netinet/in.h>
+    #endif
     #ifdef MACOSX
       #include <net/if.h>
     #endif
     #ifdef LINUX
       #include <linux/if.h>
     #endif
-    #include <arpa/inet.h>
+    #ifdef HAVE_ARPA_INET_H
+      #include <arpa/inet.h>
+    #endif
     #ifdef HAVE_UNISTD_H
     #  include <unistd.h>
     #endif
@@ -60,6 +68,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include "csoundCore.h"
 
 void m_chanmsg(CSOUND *csound, MEVENT *mep);   /* called from midirecv & musmon */
 char remoteID(CSOUND *csound);

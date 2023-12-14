@@ -24,11 +24,18 @@
 */
 
 /* pvsmix */
-
-#include "pvs_ops.h"
 #include "pvsbasic.h"
-#include "pvfileio.h"
-#include <math.h>
+
+#include <math.h>        // for cos, sqrt, atan2, fabsf, hypot, sin, pow, isnan
+#include <emmintrin.h>   // for _MM_DENORMALS_ZERO_ON, _MM_SET_DENORMALS_ZER...
+#include <stdlib.h>      // for NULL, abs
+#include <string.h>      // for memset, memcpy
+
+#include "pvs_ops.h"     // for pvsbasic_init_
+#include "pvfileio.h"    // for PVOCDATA, WAVEFORMATEX, PVOC_HAMMING, PVOC_HANN
+#include "interlocks.h"  // for TR
+#include "prototyp.h"    // for get_arg_string
+
 #define MAXOUTS 16
 
 static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);

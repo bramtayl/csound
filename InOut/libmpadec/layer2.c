@@ -19,7 +19,12 @@
 
 /* $Id: layer2.c,v 1.2 2009/03/01 15:27:05 jpff Exp $ */
 
-#include "mpadec_internal.h"
+#include <stdint.h>                         // for uint8_t, int64_t, uint16_t
+
+#include "mpadec.h"                         // for mpadec_t, mpadec_config_t
+#include "mpadec_internal.h"                // for mpadec_t, frameinfo_t
+#include "sysdep.h"                         // for MYFLT
+#include "InOut/libmpadec/mpadec_config.h"  // for FALSE, TRUE
 
 extern const uint32_t bitmask[17];
 extern alloc_table_t *alloc_tables[5];

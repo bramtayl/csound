@@ -22,19 +22,26 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
 */
+#include "insert.h"  // for SUBINST, UOPCODE, OPCOD_IOBUFS
 
-#include "csoundCore.h" /*  INSERT.C */
-#include "oload.h"
-#include "insert.h"     /* for goto's */
-#include "aops.h"       /* for cond's */
-#include "midiops.h"
-#include "namedins.h"   /* IV - Oct 31 2002 */
-#include "pstream.h"
-#include "interlocks.h"
-#include "csound_type_system.h"
-#include "csound_standard_types.h"
-#include "csound_orc_semantics.h"
-#include <inttypes.h>
+#include <inttypes.h>                // for uintptr_t, int64_t, PRIi64, int32_t
+#include <math.h>                    // for modf
+#include <stdarg.h>                  // for va_list, va_end, va_start
+#include <stdio.h>                   // for NULL, fprintf, snprintf, size_t
+#include <string.h>                  // for strcmp, memcpy, memset, strlen
+
+#include "aops.h"                    // for AOP
+#include "csound.h"                  // for CSOUND, Str, csoundSpinLock, cso...
+#include "csoundCore.h"              // for INSDS, CSOUND_, INSTRTXT, OPDS
+#include "csound_data_structures.h"  // for CONS_CELL, cs_inverse_hash_get
+#include "csound_orc_semantics.h"    // for CS_STRUCT_VAR
+#include "csound_standard_types.h"   // for CS_VAR_TYPE_A, CS_VAR_TYPE_I
+#include "csound_type_system.h"      // for CS_VAR_MEM, CS_VARIABLE, CS_TYPE
+#include "float-version.h"           // for USE_DOUBLE
+#include "msg_attr.h"                // for CSOUNDMSG_TYPE_MASK, CSOUNDMSG_B...
+#include "namedins.h"                // for strarg2insno, named_instr_find
+#include "prototyp.h"                // for csoundWarning, csoundGetTypeForArg
+#include "sysdep.h"                  // for MYFLT, UNLIKELY, FL, ATOMIC_SET
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -1693,13 +1700,6 @@ int xoutset(CSOUND *csound, XOUT *p)
 
 /* IV - Sep 8 2002: new opcode: setksmps */
 
-/*
-  This opcode sets the local ksmps for an instrument
-  it can be used on any instrument with the implementation
-  of a mechanism to perform at local ksmps (in kperf etc)
-*/
-//#include "typetabl.h"
-#include "csound_standard_types.h"
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 

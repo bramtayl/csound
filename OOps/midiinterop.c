@@ -20,10 +20,14 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
-#include "csoundCore.h"
 #include "midiinterop.h"
-#include "math.h"
+
+#include <math.h>        // for modf
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for INSDS, OPDS, OK, IGN, MCHNBLK, CPSOCTL, OCTRES
+#include "sysdep.h"      // for FL, MYFLT
 
 #define dv127   (FL(1.0)/FL(127.0))
 

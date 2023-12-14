@@ -25,10 +25,15 @@
    split into two files: pvsimp.c for just the CARL anal/synth code, under LGPL,
    pvsops.c for everythng else, under ????
 */
+#include "pstream.h"     // for PVSDAT, PVSFREAD, PVSMASKA, PVADS, PVSFTR
 
-#include "csoundCore.h"
-#include "pstream.h"
-#include "pvfileio.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for NULL, memcpy, memset, size_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, AUXCH, OK, FUNC, PVOCEX_MEMFILE
+#include "prototyp.h"    // for PVOCEX_LoadFile, get_arg_string
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, strNcpy, FABS, MYFLT2LRND
 
 #ifdef _DEBUG
 #include <assert.h>

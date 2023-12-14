@@ -28,10 +28,13 @@
 /* designed and coded by Richard Karpen   */
 /* University of Washington, Seattle 1998 */
 /******************************************/
-
-#include "stdopcod.h"
 #include "locsig.h"
-#include <math.h>
+
+#include <stdint.h>    // for uint32_t, int32_t
+#include <string.h>    // for memset, memcpy, NULL, size_t
+
+#include "stdopcod.h"  // for STDOPCOD_GLOBALS, locsig_init_
+#include "csound.h"    // for CSOUND, Str
 
 static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {

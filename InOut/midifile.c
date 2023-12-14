@@ -20,10 +20,14 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include <errno.h>       // for errno
+#include <stdio.h>       // for size_t, NULL, FILE, getc, EOF, stdin
+#include <string.h>      // for memcpy, memset, strcmp, strerror
 
-#include "csoundCore.h"
-#include "midifile.h"
-#include <errno.h>
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_STD_MIDI
+#include "csoundCore.h"  // for CSOUND_, MGLOBAL, OPARMS, OK, CSFILE_STD, IGN
+#include "midifile.h"    // for MIDITEMPO, csoundMIDIFileClose, csoundMIDIFi...
+#include "sysdep.h"      // for UNLIKELY, CS_NOINLINE, LIKELY, MYFLT, int16, FL
 
 static const char *midiFile_ID = "MThd";
 static const char *midiTrack_ID = "MTrk";

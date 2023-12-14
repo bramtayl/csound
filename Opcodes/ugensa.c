@@ -20,11 +20,16 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
-#include "stdopcod.h"                 /*                              UGENSA.C  */
 #include "ugensa.h"
-#include "ugens7.h"
-#include <math.h>
+
+#include <math.h>        // for fabs
+#include <stdint.h>      // for int32_t, uint32_t, int64_t
+#include <string.h>      // for NULL, memset, size_t
+
+#include "stdopcod.h"    // for ugensa_init_
+#include "ugens7.h"      // for PFRAC1
+#include "csound.h"      // for CSOUND, Str
+#include "interlocks.h"  // for TR
 
 /* FOG generator */
 

@@ -44,10 +44,11 @@
  *    MODIFIED:  John ffitch December 2000; changes to Csound context
  */
 
-#include "std_util.h"
-#include "soundio.h"
-#include <math.h>
-#include <ctype.h>
+#include <stddef.h>    // for NULL
+
+#include "std_util.h"  // for srconv_init_
+#include "csdl.h"      // for CSOUND_, Str
+#include "csound.h"    // for CSOUND
 
 #define IBUF    (4096)
 #define IBUF2   (IBUF/2)
@@ -758,7 +759,9 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 #else
 
 #ifndef WIN32
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>    // for execv
+#endif
 #endif
 
 static int srconv(CSOUND *csound, int argc, char **argv)

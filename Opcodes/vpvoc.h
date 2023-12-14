@@ -23,6 +23,10 @@
 
 #pragma once
 
+#include "csoundCore.h"    // for AUXCH, FUNC, OPDS, VARGMAX
+#include "sysdep.h"        // for MYFLT, int32
+#include "pvoc_forward.h"  // for PVOC_GLOBALS
+
 typedef struct {
     FUNC    *function, *nxtfunction;
     MYFLT   d;

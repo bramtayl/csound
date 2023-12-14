@@ -21,16 +21,18 @@
     02110-1301 USA
 */
 
-/* Console Csound using the Csound API. */
-#include "csound.h"
-#include <stdio.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <string.h>
-#include <errno.h>
-#if defined(HAVE_UNISTD_H) || defined(MACOSX)
-#include <unistd.h>
+#include <errno.h>     // for errno
+#include <stdio.h>     // for NULL, fclose, vfprintf, fflush, fileno, fopen
+#include <signal.h>    // for psignal, SIGPIPE, signal, SIGINT, SIGTERM, SIG...
+#include <string.h>    // for strcmp, strlen, strncmp, strerror
+#include <stdlib.h>    // for exit
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>    // for isatty
 #endif
+
+/* Console Csound using the Csound API. */
+#include "csound.h"    // for csoundDestroy, csoundSetDefaultMessageCallback
+#include "msg_attr.h"  // for CSOUNDMSG_REALTIME, CSOUNDMSG_TYPE_MASK
 #ifdef GNU_GETTEXT
 #include <locale.h>
 #endif

@@ -20,10 +20,15 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
-#include "csoundCore.h"
 #include "pools.h"
-#include "csound_standard_types.h"
+
+#include <stddef.h>                 // for NULL
+
+#include "csound.h"                 // for CSOUND, cs_strtod
+#include "csoundCore.h"             // for CSOUND_
+#include "csound_standard_types.h"  // for CS_VAR_TYPE_C
+#include "csound_type_system.h"     // for CS_VAR_MEM, CS_TYPE
+#include "sysdep.h"                 // for MYFLT, UNLIKELY
 
 /* MYFLT POOL */
 

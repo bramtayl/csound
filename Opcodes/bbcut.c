@@ -20,10 +20,12 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include "csoundCore.h"
-#include "interlocks.h"
 #include "bbcut.h"
-#include <math.h>
+
+#include <string.h>      // for memset, size_t, NULL
+
+#include "csoundCore.h"  // for SUBR, AUXCH, CSOUND_, CS_ESR, INSDS, OK, OPDS
+#include "csound.h"      // for CSOUND
 
 /* my auxilliary functions */
 

@@ -54,9 +54,15 @@
 /* CSOUND NB: floats must be kept as 'float', not MYFLT,
    as only 32bit floats supported at present.
  */
+#include "pvfileio.h"    // for PVOCDATA, WAVEFORMATEX, WAVEFORMATPVOCEX, GUID
 
-#include "csoundCore.h"
-#include "pvfileio.h"
+#include <stdint.h>      // for int32_t, uint32_t, uint16_t
+#include <stdio.h>       // for NULL, fwrite, fseek, fread, ftell, remove
+#include <string.h>      // for memcpy, strcmp, memset, strcpy, strlen, memcmp
+
+#include "csound.h"      // for CSOUND, Str_noop, CSFTYPE_PVCEX, Str
+#include "csoundCore.h"  // for CSOUND_, CSFILE_STD
+#include "sysdep.h"      // for UNLIKELY, uint32
 
 #if !defined(WAVE_FORMAT_EXTENSIBLE)
 #define WAVE_FORMAT_EXTENSIBLE  (0xFFFE)

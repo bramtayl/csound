@@ -45,7 +45,11 @@
 
 #pragma once
 
-#include "csoundCore.h"
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for OPDS, FUNC, VARGMAX
+#include "csound.h"      // for CSOUND
+#include "sysdep.h"      // for MYFLT, int32
 
 /*
  *      Unit generators by Robin Whittle                6 January 1996

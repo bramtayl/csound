@@ -49,6 +49,8 @@
 #include "pools.h"
 #include "soundfile.h"
 
+struct REMOT_BUF;
+
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
@@ -81,7 +83,9 @@ extern "C" {
 #endif
 
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__) || defined(__HAIKU__))
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -870,7 +874,6 @@ typedef struct CORFIL {
 #include "prototyp.h"
 #include "cwindow.h"
 #include "envvar.h"
-#include "remote.h"
 
 #define CS_STATE_PRE    (1)
 #define CS_STATE_COMP   (2)
@@ -1015,7 +1018,6 @@ typedef struct _message_queue_t_ {
     int attr;
     char str[MAX_MESSAGE_STR];
 } message_string_queue_t;
-
 
 #include "find_opcode.h"
 
@@ -1781,7 +1783,7 @@ typedef struct _message_queue_t_ {
     MYFLT         *disprep_fftcoefs;
     void          *winEPS_globals;
     OPARMS        oparms_;
-    REMOT_BUF     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
+    struct REMOT_BUF*     SVrecvbuf;  /* RM: rt_evt input Communications buffer */
     void          *remoteGlobals;
     /* VL: pvs bus */
     int            nchanif, nchanof;

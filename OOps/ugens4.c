@@ -20,11 +20,15 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include "ugens4.h"      // for RANDC, RANDI, RANDH, PLUCK, GBUZZ, RAND, BUZZ
 
-#include "csoundCore.h"         /*                      UGENS4.C        */
-#include "ugens4.h"
-#include <math.h>
-#include <inttypes.h>
+#include <inttypes.h>    // for PRIu32
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, DV32768, OK, INSDS, OPDS, FUNC, IS_...
+#include "prototyp.h"    // for intpow
+#include "sysdep.h"      // for MYFLT, FL, int16, UNLIKELY, uint32, LIKELY
 
 /* The branch prediction slows it down!! */
 

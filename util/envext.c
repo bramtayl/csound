@@ -28,10 +28,19 @@
 *   mainly lifted from scale and Csound itself          *
 \*******************************************************/
 
-#include "std_util.h"
-#include "soundio.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdio.h>      // for NULL, fprintf, fclose, fopen, FILE
+#include <stdlib.h>     // for atof, malloc
+#include <inttypes.h>   // for int32_t, int64_t, PRId64
+#include <sndfile.h>    // for SNDFILE
+#include <stdarg.h>     // for va_end, va_list, va_start
+#include <string.h>     // for memset
+
+#include "std_util.h"   // for envext_init_
+#include "soundio.h"    // for SOUNDIN, MAXSNDNAME
+#include "csdl.h"       // for CSOUND_, Str, OPARMS, ALLCHNLS
+#include "csound.h"     // for CSOUND
+#include "soundfile.h"  // for sflib_close
+#include "sysdep.h"     // for UNLIKELY, MYFLT, strNcpy, FL, LIKELY
 
 /* Constants */
 

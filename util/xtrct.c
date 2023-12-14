@@ -31,9 +31,23 @@
  *     Needs to take much more care
  */
 
-#include "std_util.h"
-#include "soundio.h"
-#include <ctype.h>
+#include <sndfile.h>    // for SNDFILE, SFC_UPDATE_HEADER_NOW, SFM_WRITE
+#include <stdarg.h>     // for va_end, va_list, va_start
+#include <stdint.h>     // for int32_t
+#include <stdio.h>      // for NULL
+#include <stdlib.h>     // for atof, atoi
+#include <string.h>     // for strcmp, memset
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>      // for SEEK_CUR, SEEK_END
+#endif
+
+#include "std_util.h"   // for xtrct_init_
+#include "soundio.h"    // for SOUNDIN, MAXSNDNAME
+#include "csdl.h"       // for CSOUND_, Str, OPARMS, CS_WARNMSG, CSFILE_SND_W
+#include "csound.h"     // for CSOUND
+#include "msg_attr.h"   // for CSOUNDMSG_REALTIME
+#include "soundfile.h"  // for sflib_command, sflib_seek, SFLIB_INFO, sflib_...
+#include "sysdep.h"     // for UNLIKELY, FL, MYFLT, strNcpy
 
 
 /* Constants */

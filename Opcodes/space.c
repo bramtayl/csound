@@ -26,10 +26,15 @@
 /* designed and coded by Richard Karpen   */
 /* University of Washington, Seattle 1998 */
 /******************************************/
-
-#include "stdopcod.h"
 #include "space.h"
-#include <math.h>
+
+#include <math.h>        // for floor
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, memmove, NULL, size_t
+
+#include "stdopcod.h"    // for STDOPCOD_GLOBALS, space_init_
+#include "csound.h"      // for CSOUND, Str
+#include "interlocks.h"  // for TR
 
 #define RESOLUTION 100
 

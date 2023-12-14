@@ -15,7 +15,9 @@ static void androidMessageCallback(CSOUND*, int attr, const char *format, va_lis
 }
 }
 
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 void AndroidCsound::setOpenSlCallbacks() {
 
    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","setOpenSlCallbacks"); 

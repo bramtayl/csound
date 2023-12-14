@@ -260,7 +260,7 @@ $(CSOUND_SRC_ROOT)/Engine/new_orc_parser.c \
 $(CSOUND_SRC_ROOT)/Engine/symbtab.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
-$(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
+$(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Opcodes/mp3in.c \
 $(CSOUND_SRC_ROOT)/InOut/libmpadec/layer1.c \
 $(CSOUND_SRC_ROOT)/InOut/libmpadec/layer2.c \

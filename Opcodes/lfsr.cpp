@@ -50,14 +50,14 @@
 
 /**
  * Linear Feedback Shift Register (LFSR) opcode.
- * 
+ *
  * Description
- * 
+ *
  *      Output is a series of pseudo-random positive integers. This is the technique
  *      used in so-called "Turing machine" synth modules and is usually used to
  *      generate melodic sequences. This implementation is adapted from the firmware
  *      for the Ornament & Crime module, as used in the Quantermain and Meta-Q apps.
- * 
+ *
  * Syntax
  *
  *      knum lfsr ilen, iprob [, iseed]
@@ -65,25 +65,29 @@
  *      knum = lfsr(ilen, iprob [, iseed])
  *
  * Initialization
- * 
+ *
  *      ilen -- length of shift register, valid values are 1-31 (inclusive). The
  *      larger the length, the larger the resulting integers in the output. You
  *      can use this to constrain the output to a suitable range.
- * 
+ *
  *      iprob -- probability, valid values 1-255 (inclusive). Controls the spread
  *      of the output; larger values result in a wider spread of values.
- * 
+ *
  *      iseed (optional, default -1) -- initial state of the shift register, as a
  *      pattern of bits. The value is treated as an unsigned integer, so the default
  *      of -1 is effectively all bits on (0b11111111...).
- *  
+ *
  * Performance
- * 
+ *
  *      knum -- Integer output.
  */
+#include <modload.h>  // for on_load
+#include <stdint.h>   // for uint32_t, uint8_t
+#include <stdlib.h>   // for rand, srand, NULL
+#include <time.h>     // for time
 
-#include <time.h>
-#include <plugin.h>
+#include "csdl.h"     // for OK
+#include "plugin.h"   // for Param, plugin, Csound (ptr only), Plugin, ik
 
 struct LFSR : csnd::Plugin<1, 3> {
     static constexpr char const *otypes = "k";
@@ -133,7 +137,6 @@ struct LFSR : csnd::Plugin<1, 3> {
     }
 };
 
-#include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<LFSR>(csound, "lfsr", "k", "iij", csnd::thread::ik);
 }

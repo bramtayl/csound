@@ -40,8 +40,10 @@ downloads/pdf/VAFilterDesign_1.1.1.pdf)
 
 Csound C versions by Steven Yi
 */
-
 #include "wpfilters.h"
+
+#include <math.h>    // for tan, tanh
+#include <string.h>  // for memset
 
 static int32_t zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
      IGN(csound);

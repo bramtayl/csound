@@ -28,14 +28,14 @@
  * while setting to false is possible with any of '-+no-NAME', '-+NAME=0',
  *  '-+NAME=no', '-+NAME=off', and '-+NAME=false'.
  */
+#include "new_opts.h"    // for dump_cfg_variables, parse_option_as_cfgvar
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdio.h>       // for NULL, size_t
+#include <string.h>      // for strlen, strchr, strncmp
 
-#include "csoundCore.h"
-#include "csound.h"
-#include "new_opts.h"
+#include "csound.h"      // for csCfgVariable_t, CSOUND, Str, csCfgVariableH...
+#include "csoundCore.h"  // for CSOUND_
+#include "sysdep.h"      // for UNLIKELY, LIKELY, MYFLT
 
 /* list command line usage of all registered configuration variables */
 

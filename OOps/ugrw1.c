@@ -43,11 +43,20 @@
  * any alterations to the source code, including comments, are
  * clearly indicated as such.
  */
+#include "ugrw1.h"                  // for PRINTKS, PRINTK, RDTIME, PRINTK2
 
-#include "csoundCore.h"
-#include "ugrw1.h"
-#include <math.h>
-#include <ctype.h>
+#include <ctype.h>                  // for isalpha, isblank, isspace
+#include <stdint.h>                 // for int32_t, uint32_t
+#include <stdio.h>                  // for snprintf, NULL, size_t
+#include <string.h>                 // for memset, strlen, memcpy, strcmp
+
+#include "csound.h"                 // for CSOUND, Str
+#include "csoundCore.h"             // for CSOUND_, OK, CS_KCNT, IGN, OPDS
+#include "csound_standard_types.h"  // for CS_VAR_TYPE_S
+#include "csound_type_system.h"     // for CS_VAR_MEM
+#include "msg_attr.h"               // for CSOUNDMSG_ORCH
+#include "prototyp.h"               // for cs_strdup, csoundInitError, csoun...
+#include "sysdep.h"                 // for MYFLT, UNLIKELY, FL, FABS, MYFLT2...
 
 /*****************************************************************************/
 /*****************************************************************************/

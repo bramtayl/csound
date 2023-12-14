@@ -57,12 +57,13 @@
   ChangeLog:
   - 2011/10/02, version 1: This is the very first release of this file.
 */
-
 #include "pffft.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <stdint.h>
+
+#include <assert.h>     // for assert
+#include <math.h>       // for cos, sin, M_PI, M_SQRT2
+#include <stdio.h>      // for printf
+#include <stdlib.h>     // for free, malloc
+#include <stdint.h>     // for int32_t
 
 /* detect compiler flavour */
 #if defined(_MSC_VER)
@@ -74,7 +75,6 @@
 #ifdef COMPILER_MSVC
 #define _USE_MATH_DEFINES
 #endif
-#include <math.h>
 
 #if defined(COMPILER_GCC)
 #  define ALWAYS_INLINE(return_type) inline return_type __attribute__ ((always_inline))
@@ -136,7 +136,8 @@ inline v4sf ld_ps1(const float *p) { v4sf v=vec_lde(0,p); return vec_splat(vec_p
 */
 #elif !defined(PFFFT_SIMD_DISABLE) && (defined(__x86_64__) || defined(_M_X64) || defined(i386) || defined(_M_IX86))
 
-#include <xmmintrin.h>
+#include <xmmintrin.h>  // for _mm_mul_ps, _mm_add_ps, _mm_set1_ps, _mm_sub_ps
+
 typedef __m128 v4sf;
 #  define SIMD_SZ 4 // 4 floats by simd vector -- this is pretty much hardcoded in the preprocess/finalize functions anyway so you will have to work if you want to enable AVX with its 256-bit vectors.
 #  define VZERO() _mm_setzero_ps()
@@ -211,7 +212,7 @@ typedef union v4sf_union {
   float f[4];
 } v4sf_union;
 
-#include <string.h>
+#include <string.h>     // for memcpy
 
 #define assertv4(v,f0,f1,f2,f3) assert(v.f[0] == (f0) && v.f[1] == (f1) && v.f[2] == (f2) && v.f[3] == (f3))
 

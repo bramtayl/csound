@@ -3,7 +3,7 @@
 ./Engine/corfiles.c
 ./Engine/cs_new_dispatch.c
 ./Engine/cs_par_base.c
-./Engine/cs_par_orc_semantic_analysis.c
+./Engine/cs_par_orc_semantics.c
 ./Engine/csound_data_structures.c
 ./Engine/csound_orc.lex
 ./Engine/csound_orc.y

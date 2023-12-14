@@ -34,7 +34,9 @@
 #ifndef _pluck_h
 #define _pluck_h
 
-#include "wavegde.h"
+#include "wavegde.h"     // for filter3, len_t, waveguide
+#include "csoundCore.h"  // for AUXCH, OPDS
+#include "sysdep.h"      // for MYFLT
 
 /* pluck -- derived class to implement simple plucked string algorithm */
 typedef struct {

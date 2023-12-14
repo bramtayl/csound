@@ -21,6 +21,12 @@
     02110-1301 USA
 */
 
+#include <ctype.h>           // for isprint
+#include <math.h>            // for pow, sqrt
+#include <stdio.h>           // for NULL, fread, FILE
+#include <stdlib.h>          // for qsort
+#include <string.h>          // for memset, strcmp, strerror
+
 /* WARNING! This file MUST be compiled by setting the structure member
    alignment (compiler option) to 1 byte. That is: no padding bytes
    should be present between a structure data member and another.
@@ -28,18 +34,16 @@
    compiled with structure member alignment different than 1. See the
    documentation of your C compiler to choose the appropriate compiler
    directive switch.  */
-
+#include "sf.h"              // for splitType, SFBANK, CHUNK, layerType, pre...
+#include "Opcodes/sftype.h"  // for SHORT, sfInstGenList, DWORD, genAmountType
+#include "csound.h"          // for CSOUND, Str, CSFTYPE_SOUNDFONT
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <ctype.h>
+#include "csoundCore.h"      // for SUBR, CSOUND_, CS_EKR, OK, OPDS, INSDS
+#include "prototyp.h"        // for get_arg_string
 #ifndef __wasi__
-#include <errno.h>
+#include <errno.h>           // for errno
 #endif
-#include "sfenum.h"
+#include "sfenum.h"          // for sampleID, coarseTune, fineTune, initialA...
 #include "sfont.h"
 
 #define s2d(x)  *((DWORD *) (x))

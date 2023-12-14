@@ -20,9 +20,11 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
-#include "pvs_ops.h"
 #include "pvsdemix.h"
+
+#include <stddef.h>   // for NULL
+
+#include "pvs_ops.h"  // for pvsdemix_init_
 
 static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {

@@ -1,5 +1,5 @@
 /*
-    cs_par_orc_semantic_analysis.c:
+    cs_par_orc_semantics.c:
 
     Copyright (C) 2009: Chris Wilson and John ffitch
 
@@ -20,18 +20,18 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include "cs_par_orc_semantics.h"  // for INSTR_SEMANTICS, instr_semantics_t
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdio.h>                 // for NULL, snprintf
+#include <string.h>                // for memcpy, memset, strcmp
 
-#include "csoundCore.h"
-#include "csound_orc.h"
-#include "tok.h"
-
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
-
-#include "interlocks.h"
+#include "cs_par_base.h"           // for csp_set_add, csp_set_dealloc, csp_...
+#include "csound.h"                // for CSOUND, TREE, ORCTOKEN, Str
+#include "csoundCore.h"            // for CSOUND_, OENTRY, CS_NOQQ, OPARMS
+#include "csound_orc.h"            // for PARSER_DEBUG, LABEL_TOKEN, T_IDENT
+#include "interlocks.h"            // for IR, IW, TR, TW, WR, ZR, ZW, _CR, _CW
+#include "prototyp.h"              // for cs_strdup
+#include "sysdep.h"                // for UNLIKELY, int16
 
 OENTRY* find_opcode(CSOUND *, char *);
 /***********************************************************************

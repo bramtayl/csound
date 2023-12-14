@@ -27,12 +27,14 @@
 /*changed some comments to c-style */
 /*Check csystem, exitnow */
 /*Check other opcodes commented out in Oentry */
-
-
-#include "stdopcod.h"
 #include "gab.h"
-#include <math.h>
-#include "interlocks.h"
+
+#include <math.h>        // for fabs
+#include <string.h>      // for NULL, memset, memcmp, memcpy
+
+#include "stdopcod.h"    // for STDOPCOD_GLOBALS, gab_gab_init_
+#include "interlocks.h"  // for _QQ, TR, TW
+#include "csound.h"      // for CSOUND, Str, csoundGetTable
 
 #define FLT_MAX ((MYFLT)0x7fffffff)
 

@@ -1,5 +1,10 @@
 #ifndef UGGAB_H
 #define UGGAB_H
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for CSOUND_, OPDS, FUNC, VARGMAX, AUXCH
+#include "sysdep.h"      // for MYFLT, int32, int16
 /*
     uggab.h:
 

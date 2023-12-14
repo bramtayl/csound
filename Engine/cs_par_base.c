@@ -20,13 +20,20 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include "cs_par_base.h"  // for set_t, set_element_t, HDR_LEN, SET_ELEMENT_HDR
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifdef HAVE_PTHREAD
+#include <pthread.h>     // for pthread_equal, pthread_t
+#endif
+#include <stdio.h>       // for NULL
+#include <stdlib.h>      // for free
+#include <string.h>      // for memcpy, memset, strcmp
 
-#include "csoundCore.h"
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, THREADINFO
+#include "prototyp.h"    // for cs_strdup
+#include "sysdep.h"      // for UNLIKELY
 
-#include "cs_par_base.h"
 static int csp_set_exists(struct set_t *set, void *data);
 
 int csp_thread_index_get(CSOUND *csound)

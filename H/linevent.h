@@ -24,6 +24,9 @@
 #ifndef CSOUND_LINEVENT_H
 #define CSOUND_LINEVENT_H
 
+#include "csoundCore.h"  // for OPDS, VARGMAX
+#include "sysdep.h"      // for MYFLT
+
 /*****************************************************************/
 /* linevent                                                      */
 /* Dec 2001 by matt ingalls                                      */

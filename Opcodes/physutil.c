@@ -24,11 +24,10 @@
 /* This file contains a collection of utilities for the Physical Model
    opcodes, in no particular order
 */
+#include "physutil.h"
 
 // #include "csdl.h"
-#include "csoundCore.h"
-#include <stdlib.h>
-#include "physutil.h"
+#include "csoundCore.h"  // for CSOUND_, CS_ESR, AUXCH
 
 /*******************************************/
 /*  Noise Generator Class,                 */

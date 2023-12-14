@@ -44,12 +44,13 @@
 /*  Wrench (basic socket wrench, friend of guiro)         */
 /*  Sandpapr (sandpaper)                                  */
 /**********************************************************/
-
-// #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
 #include "phisem.h"
-#include <math.h>
+
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND
+// #include "csdl.h"
+#include "csoundCore.h"  // for SUBR, CSOUND_, INSDS, OPDS, CS_EKR, OK, CS_K...
 
 /* To do
    "10: Wrench", "12: CokeCan"};

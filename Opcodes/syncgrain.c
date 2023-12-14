@@ -20,11 +20,15 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
-#include "stdopcod.h"
 #include "syncgrain.h"
-#include "soundio.h"
-#include "interlocks.h"
+
+#include <sndfile.h>     // for SNDFILE
+#include <stdio.h>       // for NULL, SEEK_SET, SEEK_END
+#include <string.h>      // for memset
+
+#include "stdopcod.h"    // for syncgrain_init_
+#include "interlocks.h"  // for TR
+#include "soundfile.h"   // for sflib_seek, sflib_read_MYFLT, SFLIB_INFO
 
 /*
 #ifdef HAVE_VALUES_H

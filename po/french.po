@@ -160,33 +160,33 @@ msgstr "Echec de l'allocation d'un élément de set."
 msgid "Invalid NULL Parameter set_element"
 msgstr "Paramètre set_element NULL non valide"
 
-#: Engine/cs_par_orc_semantic_analysis.c:155
-#: Engine/cs_par_orc_semantic_analysis.c:174
+#: Engine/cs_par_orc_semantics.c:155
+#: Engine/cs_par_orc_semantics.c:174
 msgid "Invalid NULL parameter set to add to global read, write lists\n"
 msgstr ""
 "Paramètre NULL non valide pour ajouter à une liste de lecture, écriture "
 "globale\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:202
+#: Engine/cs_par_orc_semantics.c:202
 msgid "Add a global write_list without any instruments\n"
 msgstr "Ajout d'une liste d'écriture globale sans instruments\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:206
+#: Engine/cs_par_orc_semantics.c:206
 msgid "Invalid NULL parameter set to add to a global write_list\n"
 msgstr ""
 "Paramètre NULL non valide pour ajouter à une liste de lecture globale\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:228
+#: Engine/cs_par_orc_semantics.c:228
 msgid "Invalid NULL parameter set to add to a global read_list\n"
 msgstr ""
 "Paramètre NULL non valide pour ajouter à une liste de lecture globale\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:262
+#: Engine/cs_par_orc_semantics.c:262
 #, c-format
 msgid "opcode %s deprecated\n"
 msgstr "l'opcode %s est obsolète\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:319
+#: Engine/cs_par_orc_semantics.c:319
 msgid "Not a proper list of ints"
 msgstr "N'est pas une liste d'ints correcte"
 

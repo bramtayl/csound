@@ -25,11 +25,15 @@
 /*      vdelay, multitap, reverb2 coded by Paris Smaragdis 1994 */
 /*      Berklee College of Music Csound development team        */
 /*      Copyright (c) May 1994.  All rights reserved            */
+#include "vdelay.h"      // for NREV2, VDELXQ, VDELXS, VDELX, VDEL, MDEL
 
-#include "csoundCore.h"
+#include <math.h>        // for pow, sin, exp, sqrt
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL, memcpy
 
-#include <math.h>
-#include "vdelay.h"
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for AUXCH, CSOUND_, INSDS, OPDS, OK, CS_KSMPS, PI
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, LIKELY, uint32, EXP
 
 //#define ESR     (csound->esr/FL(1000.0))
 #define ESR     (csound->esr*FL(0.001))

@@ -80,7 +80,9 @@ extern "C" {
 #endif
 
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;

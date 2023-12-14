@@ -20,11 +20,14 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
-#include "csoundCore.h"
-#include "interlocks.h"
 #include "crossfm.h"
-#include <math.h>
+
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, FUNC, INSDS, OPDS, CSOUND_, OK, CS_KSMPS
+#include "interlocks.h"  // for TR
 
 int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {

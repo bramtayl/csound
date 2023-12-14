@@ -20,8 +20,9 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
 #include "stdopcod.h"
+
+#include "csoundCore.h"  // for CSOUND_
 
 /* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {

@@ -20,12 +20,16 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include "ugmoss.h"
+
+#include <string.h>         // for memset, NULL, size_t
 
                                                         /* ugmoss.c */
-#include "stdopcod.h"
-#include "ugmoss.h"
-#include "aops.h"
-#include <math.h>
+#include "stdopcod.h"       // for ugmoss_init_
+#include "aops.h"           // for AOP
+#include "csound.h"         // for CSOUND, Str
+#include "float-version.h"  // for USE_DOUBLE
+#include "interlocks.h"     // for TR
 
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>

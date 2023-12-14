@@ -25,12 +25,16 @@
 /***********pvread ********************************************/
 /*** By Richard Karpen - July-October 1992*********************/
 /**************************************************************/
+#include "pvread.h"
 
-#include "pvoc.h"
-#include <math.h>
+#include <stdint.h>         // for int32_t
 
-/*RWD 10:9:2000 read pvocex file format */
-#include "pvfileio.h"
+#include "Opcodes/pvadd.h"  // for pvfrsiz
+#include "csound.h"         // for CSOUND, Str
+#include "csoundCore.h"     // for CSOUND_, PVOCEX_MEMFILE, OK, MAXNAME, STR...
+#include "prototyp.h"       // for get_arg_string
+#include "sysdep.h"         // for MYFLT, int32, strNcpy, UNLIKELY, MYFLT2LRND
+
 static int32_t pvocex_loadfile(CSOUND *, const char *fname, PVREAD *p);
 
 #define WLN   1         /* time window is WLN*2*ksmps long */

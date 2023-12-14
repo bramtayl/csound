@@ -34,6 +34,11 @@
 #ifndef __filter_h
 #define __filter_h
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for AUXCH, OPDS
+#include "sysdep.h"      // for MYFLT
+
 #define MAXZEROS 50 /* Allow up to 50th-order digital filters */
 #define MAXPOLES 50
 

@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-/** API Functions for creating instances of Csound Opcodes as 
+/** API Functions for creating instances of Csound Opcodes as
  * individual unit generators. UGEN's should also be extensible
  * by host languages at runtime.
  *
@@ -30,7 +30,7 @@
  *
  * - User creates a CSOUND instance
  * - User creates a UGEN_FACTORY
- * - User lists OENTRYs 
+ * - User lists OENTRYs
  * - User uses OENTRY with UGEN_FACTORY to create UGEN instance.
  * - User connects arguments together using ugen_set_input and ugen_set_output.
  *   This is the process to dynamically create a graph.
@@ -39,10 +39,13 @@
  *
  * - context: required for things like hold, releasing, etc.
  * */
-
 #include "ugen.h"
-#include "csound_standard_types.h"
-#include "csound_orc.h"
+
+#include <string.h>                  // for NULL, strchr, strcmp
+
+#include "csound_data_structures.h"  // for cs_cons, CONS_CELL, cs_cons_length
+#include "csound_orc.h"              // for OENTRIES
+#include "csound_standard_types.h"   // for CS_VAR_TYPE_A, CS_VAR_TYPE_K
 
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern char** splitArgs(CSOUND* csound, char* argString);

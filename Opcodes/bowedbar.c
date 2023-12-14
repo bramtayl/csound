@@ -20,7 +20,13 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include "bowedbar.h"
 
+#include <string.h>            // for memset
+
+#include "Opcodes/bowed.h"     // for BowTabl, BowTabl_lookup
+#include "Opcodes/physutil.h"  // for BiQuad, make_BiQuad, ADSR, BiQuad_clear
+#include "csound.h"            // for CSOUND, Str
 /*********************************************/
 /*  Bowed Bar model                          */
 /*  by Georg Essl, 1999                      */
@@ -30,8 +36,7 @@
 /*    Percussion Instruments", ICMC'99       */
 /*********************************************/
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "bowedbar.h"
+#include "csoundCore.h"        // for CSOUND_, CS_ESR, INSDS, OPDS, OK, AUXCH
 
 /* Number of banded waveguide modes */
 

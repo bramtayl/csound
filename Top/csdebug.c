@@ -20,10 +20,15 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include "csdebug.h"             // for csdebug_data_t, bkpt_node_t, debug_i...
 
-#include <assert.h>
+#include <assert.h>              // for assert
+#include <string.h>              // for NULL, strcmp
 
-#include "csdebug.h"
+#include "csound.h"              // for CSOUND, csoundWriteCircularBuffer
+#include "csoundCore.h"          // for CSOUND_, INSDS, OPDS, OPTXT, STRINGDAT
+#include "csound_type_system.h"  // for CS_VARIABLE, CS_VAR_MEM, CS_VAR_POOL
+#include "sysdep.h"              // for strNcpy, MYFLT
 
 debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
 debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound);

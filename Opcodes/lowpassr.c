@@ -22,10 +22,13 @@
 */
 
 /* Resonant Lowpass filters by G.Maldonado */
-
-#include "stdopcod.h"
 #include "lowpassr.h"
-#include <math.h>
+
+#include <math.h>      // for sqrt
+#include <string.h>    // for memset
+
+#include "stdopcod.h"  // for lowpassr_init_
+#include "csound.h"    // for CSOUND, Str
 
 static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 {

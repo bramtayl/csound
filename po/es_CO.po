@@ -169,29 +169,29 @@ msgstr "No fue posible crear %s"
 msgid "Invalid NULL Parameter set_element"
 msgstr "parámetros de modo inválidos"
 
-#: Engine/cs_par_orc_semantic_analysis.c:155
-#: Engine/cs_par_orc_semantic_analysis.c:174
+#: Engine/cs_par_orc_semantics.c:155
+#: Engine/cs_par_orc_semantics.c:174
 msgid "Invalid NULL parameter set to add to global read, write lists\n"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:202
+#: Engine/cs_par_orc_semantics.c:202
 msgid "Add a global write_list without any instruments\n"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:206
+#: Engine/cs_par_orc_semantics.c:206
 msgid "Invalid NULL parameter set to add to a global write_list\n"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:228
+#: Engine/cs_par_orc_semantics.c:228
 msgid "Invalid NULL parameter set to add to a global read_list\n"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:262
+#: Engine/cs_par_orc_semantics.c:262
 #, c-format
 msgid "opcode %s deprecated\n"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:319
+#: Engine/cs_par_orc_semantics.c:319
 msgid "Not a proper list of ints"
 msgstr ""
 

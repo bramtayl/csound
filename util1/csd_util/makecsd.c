@@ -4,12 +4,13 @@
 
 #define VERSION "2.0"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <time.h>
-#include <ctype.h>
+#include <stdio.h>   // for fprintf, stderr, NULL, FILE, fclose, fflush, fopen
+#include <stdlib.h>  // for exit, atoi, free, realloc
+#include <string.h>  // for strcmp, strlen, strerror
+#include <errno.h>   // for errno
+#include <time.h>    // for gmtime, strftime, time, time_t
+#include <ctype.h>   // for isblank
+
 #define MAXLICENCE (7)
 
 static  char    *orcname = NULL, *sconame = NULL, *optname = NULL;

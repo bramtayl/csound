@@ -3,7 +3,7 @@
 /*
     pitch.h:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker,
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubï¿½cker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
@@ -25,8 +25,15 @@
 */
 
                         /*                                      PITCH.H */
-#include "spectra.h"
-#include "uggab.h"
+#include <stdint.h>      // for int32_t, uint32_t
+
+#include "csound.h"      // for CSOUND, WINDAT
+#include "csoundCore.h"  // for OPDS, AUXCH, FUNC, SPECDAT, DOWNDAT, VARGMAX
+#include "cwindow.h"     // for windat_
+
+#include "spectra.h"     // for MAXPTL
+#include "sysdep.h"      // for MYFLT, int32, uint32
+#include "uggab.h"       // for SUM
 
 typedef struct {
         OPDS    h;

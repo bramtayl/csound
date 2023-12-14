@@ -129,12 +129,14 @@
 
 /* Contains modifications by John ffitch, which have no restrictions attached
  * Main changes are to work in double precision internally */
-
-#include <stdlib.h>
-
-#include "stdopcod.h"
 #include "filter.h"
-#include <math.h>
+
+#include <stdlib.h>    // for qsort, NULL
+#include <math.h>      // for fabs, sqrt, cos, sin, atan2, exp, hypot, log
+#include <string.h>    // for memset
+
+#include "stdopcod.h"  // for filter_init_
+#include "csound.h"    // for CSOUND, Str
 
 typedef struct FCOMPLEX {double r,i;} fcomplex;
 

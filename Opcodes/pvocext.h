@@ -30,6 +30,11 @@
 #pragma once
 
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for FUNC
+#include "sysdep.h"      // for MYFLT, int32
+
 void    SpectralExtract(float *, float *, int32_t, int32, int32_t, MYFLT);
 MYFLT   PvocMaxAmp(float *, int32, int32);
 void    PvAmpGate(MYFLT *, int32, FUNC *, MYFLT);

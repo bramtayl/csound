@@ -21,9 +21,17 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // IWYU pragma: keep
+#endif
+#include <math.h>        // for lrint
+#include <stdio.h>       // for fputc, NULL, fwrite, size_t, fseek, FILE
 
-#include "csoundCore.h"                                 /*    MIDISEND.C    */
-#include "midioops.h"
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_STD_MIDI
+#include "csoundCore.h"  // for CSOUND_, MGLOBAL, OPARMS, CSFILE_STD
+#include "midioops.h"    // for MD_CHANPRESS, MD_CNTRLCHG, MD_NOTEOFF, MD_NO...
+#include "prototyp.h"    // for csoundDie, csoundExternalMidiErrorString
+#include "sysdep.h"      // for UNLIKELY, CS_NOINLINE, HAVE_C99
 
 typedef struct midiOutFile_s {
     FILE            *f;

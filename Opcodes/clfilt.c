@@ -32,10 +32,13 @@
 /* bilinear z-transform.                                       */
 /* April/May 2002 by Erik Spjut                                */
 /***************************************************************/
-
-#include <math.h>
-#include "stdopcod.h"
 #include "clfilt.h"
+
+#include <math.h>      // for sqrt, cos, sin, cosh, log, pow, sinh, tan, fmod
+#include <string.h>    // for memset
+
+#include "stdopcod.h"  // for clfilt_init_
+#include "csound.h"    // for CSOUND, Str
 
 static int32_t clfiltset(CSOUND *csound, CLFILT *p)
 {

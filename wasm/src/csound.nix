@@ -199,7 +199,9 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     substituteInPlace Top/one_file.c \
       --replace '#include "corfile.h"' \
             '#include "corfile.h"
-             #include <sys/types.h>
+             #ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
              #include <sys/stat.h>
              #include <string.h>
              #include <stdlib.h>
@@ -229,7 +231,9 @@ in pkgs.stdenvNoCC.mkDerivation rec {
                 '#include "csoundCore.h"
                  #include <stdlib.h>
                  #include <stdio.h>
-                 #include <sys/types.h>
+                 #ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
                  #include <unistd.h>
                  '
 

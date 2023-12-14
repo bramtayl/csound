@@ -28,9 +28,13 @@
 /*This is a version that uses table lookup instead of reading */
 /*from soundfiles.                                            */
 /**************************************************************/
-
-#include "stdopcod.h"
 #include "sndwarp.h"
+
+#include <string.h>      // for memset, NULL, size_t
+
+#include "stdopcod.h"    // for sndwarp_init_
+#include "csound.h"      // for CSOUND, Str
+#include "interlocks.h"  // for TR
 
 #define unirand(x) ((MYFLT) (x->Rand31(&(x->randSeed1)) - 1) / FL(2147483645.0))
 

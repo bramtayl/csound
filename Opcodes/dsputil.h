@@ -30,6 +30,12 @@
 
 #pragma once
 
+#include <stdint.h>                // for int32_t
+
+#include "Opcodes/pvoc_forward.h"  // for PVOC_GLOBALS
+#include "csound.h"                // for CSOUND
+#include "sysdep.h"                // for MYFLT, int32
+
 #define     SPTS    (16)    /* SINC TABLE: How many points in each lobe   */
 #define     SPDS    (6)     /*   (was 8)   How many sinc lobes to go out  */
 #define     SBW     0.9     /* To compensate for short sinc, reduce bandw */

@@ -29,13 +29,12 @@
 /* Version that does not need to load rest of csound5                */
 /* ***************************************************************** */
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#include <stdio.h>   // for fclose, fprintf, printf, fread, fopen, putc, NULL
+#include <stdlib.h>  // for exit, free, malloc
 #ifndef MYFLT
-#include "sysdep.h"
+#include "sysdep.h"  // for MYFLT, UNLIKELY
 #endif
-#include "lpc.h"
+#include "lpc.h"     // for LPHEADER, LP_MAGIC, LP_MAGIC2
 
 #define Str(x) x
 

@@ -159,35 +159,35 @@ msgstr "Konnte Set Element nicht reservieren"
 msgid "Invalid NULL Parameter set_element"
 msgstr "Ungültiger NULL Parameter: set_element"
 
-#: Engine/cs_par_orc_semantic_analysis.c:155
-#: Engine/cs_par_orc_semantic_analysis.c:174
+#: Engine/cs_par_orc_semantics.c:155
+#: Engine/cs_par_orc_semantics.c:174
 msgid "Invalid NULL parameter set to add to global read, write lists\n"
 msgstr ""
 "ungültiges NULL Parameter set, kann nicht der globalen lese/schreib\n"
 "Liste zugefügt werden\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:202
+#: Engine/cs_par_orc_semantics.c:202
 msgid "Add a global write_list without any instruments\n"
 msgstr "Füge globale schreibliste ohne jegliche Instrument hinzu\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:206
+#: Engine/cs_par_orc_semantics.c:206
 msgid "Invalid NULL parameter set to add to a global write_list\n"
 msgstr ""
 "Ungültiges NULL Parameter Set, kann nicht einer globaln Schreibliste "
 "hinzugefügt werden\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:228
+#: Engine/cs_par_orc_semantics.c:228
 msgid "Invalid NULL parameter set to add to a global read_list\n"
 msgstr ""
 "Ungültoiges NULL Parameter Set, kann nicht einer globalen Leseliste "
 "hinzugefügt werden\n"
 
-#: Engine/cs_par_orc_semantic_analysis.c:262
+#: Engine/cs_par_orc_semantics.c:262
 #, fuzzy, c-format
 msgid "opcode %s deprecated\n"
 msgstr "Opcode veraltet"
 
-#: Engine/cs_par_orc_semantic_analysis.c:319
+#: Engine/cs_par_orc_semantics.c:319
 msgid "Not a proper list of ints"
 msgstr "Keine korrekte Liste von ints"
 

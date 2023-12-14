@@ -20,12 +20,21 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include "ugens8.h"
 
-#include "pvoc.h"         /*      UGENS8.C        */
-#include <math.h>
+#include <stdint.h>           // for int32_t, uint32_t
+#include <string.h>           // for memset, NULL, memcpy
 
-/* RWD 10:9:2000 read pvocex file format */
-#include "pvfileio.h"
+#include "pvoc.h"             // for PVOC_GetGlobals
+#include "Opcodes/dsputil.h"  // for addToCircBuf, ApplyHalfWin, FetchIn
+#include "Opcodes/pvadd.h"    // for PVFFTSIZE, pvfrsiz
+#include "Opcodes/pvocext.h"  // for PvAmpGate, PvocMaxAmp, SpectralExtract
+#include "csound.h"           // for CSOUND, Str
+#include "csoundCore.h"       // for CSOUND_, PVOCEX_MEMFILE, CS_KSMPS, AUXCH
+#include "float-version.h"    // for USE_DOUBLE
+#include "prototyp.h"         // for get_arg_string
+#include "sysdep.h"           // for MYFLT, UNLIKELY, FL, int32, strNcpy, COS
+
 static int32_t pvx_loadfile(CSOUND *, const char *, PVOC *);
 
 /********************************************/

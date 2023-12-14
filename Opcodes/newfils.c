@@ -21,11 +21,12 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
 */
-
-#include "stdopcod.h"
-
 #include "newfils.h"
-#include <math.h>
+
+#include <math.h>      // for tanh, sqrt, log2, exp, floor, ldexp, fabs, cos
+#include <string.h>    // for memset, NULL
+
+#include "stdopcod.h"  // for newfils_init_
 
 static inline
 double fast_tanh(double x)

@@ -21,11 +21,15 @@
     and Istvan Varga.
 */
 //#include "stdopcod.h"
-#include "csoundCore.h"
-#include "interlocks.h"
 #include "vectorial.h"
-#include <math.h>
-#include <inttypes.h>
+
+#include <math.h>        // for fmod, pow
+#include <inttypes.h>    // for PRIu32
+#include <string.h>      // for NULL, memset
+
+#include "csoundCore.h"  // for SUBR, CSOUND_, FUNC, OK, AUXCH, TEXT, IGN
+#include "interlocks.h"  // for TB, TR
+#include "csound.h"      // for CSOUND, Str
 
 static int32_t mtable_i(CSOUND *csound,MTABLEI *p)
 {

@@ -27,9 +27,12 @@
 *   Various waveguide instruments                              *
 *   3 March 1996 John ffitch                                   *
 \***************************************************************/
-
-#include "stdopcod.h"
 #include "repluck.h"
+
+#include <string.h>    // for memset, NULL
+
+#include "stdopcod.h"  // for repluck_init_
+#include "csound.h"    // for CSOUND, Str
 
 static int32_t wgpsetin(CSOUND *, WGPLUCK2 *);
 

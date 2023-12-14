@@ -22,11 +22,14 @@
 */
 
 /* sliders and other MIDI opcodes by Gabriel Maldonado */
-
-#include "stdopcod.h"
-#include "midiops.h"
 #include "midiops3.h"
-#include <math.h>
+
+#include <math.h>      // for cos, sqrt
+#include <stdint.h>    // for int32_t
+#include <stdio.h>     // for snprintf, NULL
+
+#include "stdopcod.h"  // for midiops3_init_
+#include "csound.h"    // for CSOUND, Str
 
 #define f7bit           (FL(127.0))
 #define oneTOf7bit      (MYFLT)(1.0/127.0)

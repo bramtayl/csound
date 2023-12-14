@@ -24,6 +24,8 @@
 #ifndef CSOUND_SYSDEP_H
 #define CSOUND_SYSDEP_H
 
+#include <stdint.h>
+
 /* check for the presence of a modern compiler (for use of certain features) */
 #if defined(WIN32)
 #if !defined(locale_t)
@@ -205,7 +207,7 @@ typedef uint_least16_t uint16;
 /* Aligning to double boundaries, should work with MYFLT as float or double */
 #define CS_FLOAT_ALIGN(x) ((int)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
 
-#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
+#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H) || defined(BUILDING_PLUGIN)
 
 #define FL(x) ((MYFLT) (x))
 
@@ -349,7 +351,7 @@ typedef unsigned long       uintptr_t;
 #  define UNLIKELY(x)   x
 #endif
 
-#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
+#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H) || defined(BUILDING_PLUGIN)
 
 /* macros for converting floats to integers */
 /* MYFLT2LONG: converts with unspecified rounding */

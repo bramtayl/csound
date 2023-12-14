@@ -22,9 +22,17 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"               /*                      UGENS7.C        */
-#include "ugens7.h"
-#include <math.h>
+#include <math.h>        // for cos, pow, sqrt, HUGE_VAL
+#include <stdint.h>      // for int32_t, uint32_t, int64_t
+#include <stdio.h>       // for NULL, printf, size_t
+#include <string.h>      // for memset
+
+#include "stdopcod.h"    // for ugens7_init_
+#include "ugens7.h"      // for HARMON, FOFS, OVRLAP, PFRAC1
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, CSOUND_, FUNC, MAXLEN, PHMASK, AUXCH
+#include "interlocks.h"  // for TR
+#include "sysdep.h"      // for int32, FL, MYFLT, UNLIKELY, EXP, LIKELY
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 

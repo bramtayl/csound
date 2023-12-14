@@ -53,7 +53,9 @@
 
 #if defined(WIN32)
 #define PUBLIC __declspec(dllexport)
+#ifdef HAVE_IO_H
 #include <io.h>
+#endif
 #elif defined(__GNUC__) && !defined(__MACH__)
 #if !defined(PUBLIC)
 #define PUBLIC __attribute__ ( (visibility("default")) )

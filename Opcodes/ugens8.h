@@ -24,6 +24,12 @@
 /*                                                              UGENS8.H    */
 #ifndef _UGENS8_H_
 #define _UGENS8_H_
+#include <stdint.h>                // for uint32_t
+
+#include "csoundCore.h"            // for AUXCH, FUNC, OPDS
+#include "Opcodes/pvoc_forward.h"  // for PVOC_GLOBALS
+#include "sysdep.h"                // for MYFLT, int32
+
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */
 #define     PVFFTSIZE       (2*PVFRAMSIZE)      /* 2x for real + imag */
 #define     PVDATASIZE      (1+PVFRAMSIZE/2)    /* Need 1/2 channels + mid */
