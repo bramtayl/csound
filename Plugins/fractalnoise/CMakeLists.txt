@@ -1,0 +1,1 @@
+make_plugin(fractalnoise fractalnoise.cpp)

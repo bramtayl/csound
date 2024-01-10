@@ -65,7 +65,6 @@ mkdb
 mkdb.exe
 makecsd
 makecsd.exe
-mixer
 mixer.exe
 pv_export
 pv_export.exe

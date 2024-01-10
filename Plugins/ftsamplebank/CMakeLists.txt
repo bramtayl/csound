@@ -1,0 +1,5 @@
+if (DIRENT_H)
+    make_plugin(ftsamplebank ftsamplebank.cpp)
+    get_filename_component(DIRENT_INCLUDE_DIR ${DIRENT_H} DIRECTORY)
+    target_include_directories(ftsamplebank PRIVATE "${Csound_SOURCE_DIR}/Opcodes" ${DIRENT_INCLUDE_DIR} )
+endif()

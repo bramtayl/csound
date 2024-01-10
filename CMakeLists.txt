@@ -144,6 +144,7 @@ option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
+option(BUILD_CPP_OPCODES "Build CPP plugins" ON)
 
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
@@ -1333,7 +1334,6 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)
 add_subdirectory(Python)
@@ -1345,6 +1345,7 @@ add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
 add_subdirectory(tests/regression)
 add_subdirectory(tests/soak)
+add_subdirectory(Plugins)
 
 # uninstall target
 configure_file(

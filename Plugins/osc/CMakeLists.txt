@@ -1,0 +1,10 @@
+option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
+
+find_package(LIBLO)
+if(BUILD_OSC_OPCODES AND LIBLO_FOUND AND Threads_FOUND)
+    make_plugin(osc OSC.c)
+    target_link_libraries(osc PRIVATE ${LIBLO_LIBRARIES} Threads::Threads)
+    if(WIN32)
+      target_link_libraries(osc PRIVATE wsock32 ws2_32 iphlpapi)
+    endif()
+endif()
