@@ -1,0 +1,8 @@
+if(HAIKU)
+	find_library(HAIKU_MEDIA_LIBRARY media)
+	find_library(HAIKU_MIDI_LIBRARY midi2)
+	set(haiku_SRCS rthaiku.cpp HaikuAudio.cpp HaikuMidi.cpp)
+	make_plugin(rthaiku "${haiku_SRCS}")
+    target_link_libraries(rthaiku PRIVATE ${HAIKU_MEDIA_LIBRARY})
+    target_link_libraries(rthaiku PRIVATE ${HAIKU_MIDI_LIBRARY})
+endif()
