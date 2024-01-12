@@ -1,0 +1,1 @@
+make_utility(het_import heti_main.c)

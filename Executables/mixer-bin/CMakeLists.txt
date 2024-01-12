@@ -1,0 +1,1 @@
+make_executable(mixer-bin mixer_main.c "${CSOUNDLIB};${MATH_LIBRARY}" mixer)

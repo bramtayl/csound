@@ -1,0 +1,1 @@
+make_utility(lpanal lpc_main.c)

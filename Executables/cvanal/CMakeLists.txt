@@ -1,0 +1,1 @@
+make_utility(cvanal cvl_main.c)

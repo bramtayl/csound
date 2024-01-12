@@ -30,6 +30,10 @@ if (UNIX)
     add_subdirectory(urandom)
 endif()
 
+if(BUILD_UTILITIES)
+    add_subdirectory(stdutil)
+endif()
+
 add_subdirectory(cmidi)
 add_subdirectory(deprecated)
 add_subdirectory(dssi4cs)
@@ -47,4 +51,3 @@ add_subdirectory(rtpa)
 add_subdirectory(rtpulse)
 add_subdirectory(rtwinmm)
 add_subdirectory(scansyn)
-

@@ -1,0 +1,1 @@
+make_utility(lpc_export lpcx_main.c ${MATH_LIBRARY})

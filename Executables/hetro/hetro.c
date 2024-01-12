@@ -37,8 +37,8 @@
 /*RWD need to set this to prevent sdif.h including windows.h */
 #define _WINDOWS_
 /* CNMAT sdif library, subject to change..... */
-#include "SDIF/sdif.h"
-#include "SDIF/sdif-mem.h"
+#include "sdif.h"
+#include "sdif-mem.h"
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;

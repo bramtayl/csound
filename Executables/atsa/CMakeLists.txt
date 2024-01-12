@@ -1,0 +1,1 @@
+make_utility(atsa atsa_main.c)

@@ -1,0 +1,1 @@
+make_utility(scale scale_main.c)

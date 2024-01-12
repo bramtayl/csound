@@ -1337,7 +1337,6 @@ endif()
 add_subdirectory(Frontends)
 add_subdirectory(Python)
 add_subdirectory(Bela)
-add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(po)
 add_subdirectory(tests/c)
@@ -1345,6 +1344,7 @@ add_subdirectory(tests/commandline)
 add_subdirectory(tests/regression)
 add_subdirectory(tests/soak)
 add_subdirectory(Plugins)
+add_subdirectory(Executables)
 
 # uninstall target
 configure_file(

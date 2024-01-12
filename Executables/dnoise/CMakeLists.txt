@@ -1,0 +1,1 @@
+make_utility(dnoise dnoise_main.c)

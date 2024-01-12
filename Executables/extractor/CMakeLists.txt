@@ -1,0 +1,1 @@
+make_utility(extractor xtrc_main.c)

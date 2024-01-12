@@ -1,0 +1,1 @@
+make_utility(sndinfo sndinfo_main.c)
