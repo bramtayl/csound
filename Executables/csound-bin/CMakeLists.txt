@@ -1,0 +1,5 @@
+set(CS_MAIN_SRCS csound_main.c)
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    list(APPEND CS_MAIN_SRCS sched.c)
+endif()
+make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB};${MATH_LIBRARY}" csound)

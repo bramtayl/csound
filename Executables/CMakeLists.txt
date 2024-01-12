@@ -1,3 +1,5 @@
+option(BUILD_CSOUND_COMMAND "Build the Csound command" ON)
+
 if(BUILD_UTILITIES)
     add_subdirectory(atsa)
     add_subdirectory(cs)
@@ -27,3 +29,13 @@ if(BUILD_UTILITIES)
     add_subdirectory(src_conv)
     add_subdirectory(srconv)
 endif()
+
+if (BUILD_CSOUND_COMMAND)
+    if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+        list(APPEND CSOUNDLIB -lpthread)
+    endif()
+    add_subdirectory(csdebugger)
+    add_subdirectory(csound-bin)
+endif()
+
+add_subdirectory(csbeats)

@@ -145,6 +145,7 @@ option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" 
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_CPP_OPCODES "Build CPP plugins" ON)
+option(BUILD_CSOUND_COMMAND "Build the Csound command" ON)
 
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
@@ -1334,7 +1335,6 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-add_subdirectory(Frontends)
 add_subdirectory(Python)
 add_subdirectory(Bela)
 add_subdirectory(po)
