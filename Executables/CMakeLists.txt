@@ -39,3 +39,4 @@ if (BUILD_CSOUND_COMMAND)
 endif()
 
 add_subdirectory(csbeats)
+add_subdirectory(Bela)

@@ -1336,7 +1336,6 @@ if(BUILD_STATIC_LIBRARY)
 endif()
 
 add_subdirectory(Python)
-add_subdirectory(Bela)
 add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
