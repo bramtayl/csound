@@ -238,24 +238,6 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
-    set(CSOUND_WINDOWS_LIBRARIES
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32)
-
     if(MSVC)
         # Experimented with flags but did not make change performance results
         #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
@@ -1143,10 +1125,6 @@ if (HAVE_ATOMIC_BUILTIN)
     list(APPEND libcsound_LIBS ${ATOMIC_LIB})
 endif()
 
-if(WIN32)
-    list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
-endif()
-
 if(USE_CURL AND CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
 endif()
@@ -1309,9 +1287,7 @@ if(BUILD_STATIC_LIBRARY)
         set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
     endif()
 
-    if(MSVC)
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
-    else()
+    if (NOT(MSVC))
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
 
