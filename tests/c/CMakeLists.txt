@@ -20,7 +20,8 @@ if(BUILD_TESTS)
 
     target_link_libraries(unittests PRIVATE libcsound_internals)
 
-    set_property(TARGET unittests PROPERTY CXX_STANDARD 14)
+    # gtest requires C++14
+    target_compile_features(unittests PRIVATE cxx_std_14)
 
     target_link_libraries(unittests PRIVATE GTest::gtest_main ${CSOUNDLIB_STATIC})
 

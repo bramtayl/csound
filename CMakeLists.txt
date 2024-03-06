@@ -86,9 +86,7 @@ endif()
 message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
 
 # C++11 needed
-if(NOT MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
+target_compile_features(libcsound_interface INTERFACE cxx_std_11)
 
 # Project definitions
 set(APIVERSION "7.0")
