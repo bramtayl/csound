@@ -1,2 +1,5 @@
 make_plugin(fractalnoise fractalnoise.cpp libcsound_internals)
 target_include_directories(fractalnoise PRIVATE ${libcsound_private_include_dirs})
+if(INIT_STATIC_MODULES)
+    target_compile_defintions(fractalnoise PRIVATE "INIT_STATIC_MODULES")
+endif()

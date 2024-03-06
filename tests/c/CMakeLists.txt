@@ -24,6 +24,9 @@ if(BUILD_TESTS)
     target_compile_features(unittests PRIVATE cxx_std_14)
 
     target_link_libraries(unittests PRIVATE GTest::gtest_main ${CSOUNDLIB_STATIC})
+    
+    # needed for asserts
+    target_compile_definitions(unittests PRIVATE "$<$<CONFIG:Release>:NDEBUG>")
 
     include(GoogleTest)
     gtest_discover_tests(unittests)

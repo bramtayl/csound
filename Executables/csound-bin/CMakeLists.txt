@@ -10,3 +10,7 @@ if(LINUX)
     find_package(Threads)
     target_link_libraries(csound-bin PRIVATE Threads::Threads)
 endif()
+
+if(HAVE_UNISTD_H)
+    target_compile_definitions(csound-bin PRIVATE "HAVE_UNISTD_H")
+endif()
