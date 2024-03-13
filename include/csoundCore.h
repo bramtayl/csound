@@ -75,6 +75,10 @@ extern "C" {
 
 #ifdef __BUILDING_LIBCSOUND
 
+// declare an external function to init opcodes (defined elsewhere)
+#define EXTERN_INIT_FUNCTION(function_name)                                  \
+    extern int32_t function_name(CSOUND *, void *);
+
 #define INSTR   1
 #define ENDIN   2
 #define OPCODE  3
