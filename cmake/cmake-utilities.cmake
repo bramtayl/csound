@@ -94,7 +94,7 @@ function(make_plugin libname srcs)
     else()
         add_library(${libname} MODULE ${srcs})
     endif()
-    target_link_libraries(${libname} PUBLIC libcsound_public_interface)
+    target_link_libraries(${libname} PUBLIC ${CSOUNDLIB})
 
     set(i 2)
     while( ${i} LESS ${ARGC} )

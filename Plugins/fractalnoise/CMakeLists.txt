@@ -1,2 +1,2 @@
-make_plugin(fractalnoise fractalnoise.cpp libcsound_internals)
+make_plugin(fractalnoise fractalnoise.cpp)
 target_include_directories(fractalnoise PRIVATE ${libcsound_private_include_dirs})
