@@ -832,17 +832,28 @@ typedef struct _message_queue_t_ {
   char str[MAX_MESSAGE_STR];
 } message_string_queue_t;
 
+// declare an external function to init opcodes (defined elsewhere)
+#define EXTERN_INIT_FUNCTION(function_name)                                  \
+    extern int32_t function_name(CSOUND *, void *);
+
 /*
  * Move the C++ guards to enclose the entire file,
  * in order to enable C++ to #include this file.
  */
 
-#define LINKAGE_BUILTIN(name)                                                  \
-  long name##_init(CSOUND *csound, OENTRY **ep) {                              \
+/*
+ * Move the C++ guards to enclose the entire file,
+ * in order to enable C++ to #include this file.
+ */
+
+#define LINKAGE_BUILTIN_FOR(a_function, opcodes)                               \
+  long a_function(CSOUND *csound, OENTRY **ep) {                               \
     (void)csound;                                                              \
-    *ep = name;                                                                \
-    return (long)(sizeof(name));                                               \
+    *ep = opcodes;                                                             \
+    return (long)(sizeof(opcodes));                                            \
   }
+
+#define LINKAGE_BUILTIN(name) LINKAGE_BUILTIN_FOR(name##_init, name)
 
 #define FLINKAGE_BUILTIN(name)                                                 \
   NGFENS *name##_init(CSOUND *csound) {                                        \

@@ -108,12 +108,12 @@ static int32_t urand_arun(CSOUND *csound, URANDOM *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY urandom_localops[] = {
+static OENTRY localops[] = {
   { "urandom.i", S(URANDOM), 0, 1, "i", "jp", (SUBR) urand_irate, NULL, NULL, NULL},
   { "urandom.k", S(URANDOM), 0, 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run, NULL, NULL},
   { "urandom.a", S(URANDOM), 0, 3, "a", "jp",
                                     (SUBR) urand_init, (SUBR) urand_arun, NULL, NULL}
 };
 
-LINKAGE_BUILTIN(urandom_localops)
+LINKAGE
 
