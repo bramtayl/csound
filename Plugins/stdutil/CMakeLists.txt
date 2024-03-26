@@ -25,7 +25,7 @@ set(stdutil_SRCS
     ${Csound_SOURCE_DIR}/InOut/soundfile.c
 )
 
-make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} libcsound_internals)
+make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY})
 if (USE_LIBSNDFILE)
     target_link_libraries(stdutil PRIVATE SndFile::sndfile)
 endif()
