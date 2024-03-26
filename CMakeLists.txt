@@ -1111,7 +1111,7 @@ if(NOT IOS)
 endif()
 
 if(INIT_STATIC_MODULES)
-    target_compile_defintions(libcsound_internals PRIVATE "INIT_STATIC_MODULES")
+    target_compile_definitions(libcsound_internals INTERFACE "INIT_STATIC_MODULES")
 endif()
 
 if(APPLE)
