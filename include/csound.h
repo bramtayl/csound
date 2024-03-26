@@ -258,10 +258,11 @@
  */
 
 #if defined(_WIN32) && !defined(SWIG)
-#  define PUBLIC          __declspec(dllexport)
 #  if defined(__BUILDING_LIBCSOUND)
+#    define PUBLIC          __declspec(dllexport)
 #    define PUBLIC_DATA     __declspec(dllexport)
 #  else
+#    define PUBLIC          __declspec(dllexport)
 #    define PUBLIC_DATA     __declspec(dllimport)
 #  endif
 #elif defined(__wasi__)
@@ -668,6 +669,8 @@ extern "C" {
                                     const char *channelName,
                                     void *channelValuePtr,
                                     const void *channelType);
+
+#ifndef CSOUND_CSDL_H
 
   /** @defgroup INSTANTIATION Instantiation
    *
@@ -1171,6 +1174,7 @@ extern "C" {
   PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
                                         void (*func)(CSOUND*, const char*,
                                                      int, int, int));
+#endif
 
   /** @}*/
   /** @defgroup RTAUDIOIO Realtime Audio I/O

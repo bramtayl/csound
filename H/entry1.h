@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "csoundCore_internal.h"         /*                      ENTRY1.H        */
+#include "csoundCore.h"         /*                      ENTRY1.H        */
 #include "insert.h"
 #include "aops.h"
 #include "midiops.h"

@@ -40,7 +40,7 @@
 /********************************************/
 
 // #include "csdl.h"
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "mandolin.h"
 
 static inline int32_t infoTick(MANDOL *p)

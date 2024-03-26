@@ -104,12 +104,11 @@ LINKAGE(localops)
 * \endcode
 **/
 
-#include "interlocks.h"
 #ifdef __BUILDING_LIBCSOUND
-#include "csoundCore_internal.h"
-#else
-#include "csoundCore.h"
+#undef __BUILDING_LIBCSOUND
 #endif
+#include "interlocks.h"
+#include "csoundCore.h"
 
 
 #ifdef __cplusplus

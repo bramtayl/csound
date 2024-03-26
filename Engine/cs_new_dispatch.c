@@ -32,12 +32,10 @@
 ** NOTE marks notes
 */
 
-#include "cs_new_dispatch.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include <stdbool.h>

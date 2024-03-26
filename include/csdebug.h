@@ -50,10 +50,11 @@
 */
 
 #ifdef __BUILDING_LIBCSOUND
-#include "csoundCore_internal.h"
-#else
 #include "csoundCore.h"
+#else
+#include "csound.h"
 #endif
+
 #include "csound_type_system.h"
 
 
@@ -134,6 +135,12 @@ typedef enum {
     CSDEBUG_K = 0x01,
     CSDEBUG_INIT = 0x02
 } debug_mode_t;
+
+#ifdef __BUILD_LIBCSOUND
+
+void csoundDebuggerBreakpointReached(CSOUND *csound);
+
+#endif
 
 /** @endcond */
 

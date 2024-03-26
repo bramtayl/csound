@@ -22,7 +22,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "moog1.h"
 
 extern void make_TwoZero(TwoZero *);

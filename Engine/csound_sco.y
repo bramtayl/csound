@@ -25,7 +25,7 @@
 #ifndef NULL
 #define NULL 0L
 #endif
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>

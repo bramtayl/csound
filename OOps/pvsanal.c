@@ -27,7 +27,7 @@
 */
 
 #include <math.h>
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "pstream.h"
 
         double  besseli(double x);

@@ -25,7 +25,7 @@
 
 #define __TOK_H
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 
 /* typedef int    (*SUBR)(void *, void *); */
 

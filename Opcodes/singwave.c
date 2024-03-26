@@ -34,7 +34,7 @@
 /*******************************************/
 
 // #include "csdl.h"
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "singwave.h"
 #include "moog1.h"
 

@@ -26,6 +26,10 @@
 #ifndef CSOUND_LPRED_H
 #define CSOUND_LPRED_H
 
+#if !defined(__BUILDING_LIBCSOUND)
+#  error "Csound plugins and host applications should not include lpred.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -32,7 +32,7 @@
 #endif
 #include <math.h>
 #include <math.h>
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "interlocks.h"
 #include "H/fftlib.h"
 
