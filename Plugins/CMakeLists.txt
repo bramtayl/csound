@@ -14,7 +14,7 @@
 
 option(BUILD_CPP_OPCODES "Build CPP plugins" ON)
 option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
-option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" OFF)
+option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 option(USE_IPMIDI "Build the IPMIDI I/O module" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
@@ -56,7 +56,9 @@ if (NOT TARGET ALSA::ALSA)
     find_package(ALSA MODULE)
 endif()
 
-check_deps(BUILD_DSSI_OPCODES LINUX)
+check_include_file(ladspa.h LADSPA_H)
+
+check_deps(BUILD_DSSI_OPCODES LINUX LADSPA_H)
 check_deps(BUILD_OSC_OPCODES LibLO_FOUND)
 check_deps(USE_ALSA ALSA_FOUND LINUX)
 check_deps(USE_AUDIOUNIT CoreAudio_FOUND AudioUnit_FOUND CoreFoundation_FOUND)
