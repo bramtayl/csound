@@ -2168,4 +2168,4 @@ static OENTRY localops[] = {
     (SUBR)ihoambdec, (SUBR)ahoambdec, NULL, NULL},
 };
 
-LINKAGE_BUILTIN(localops)
+LINKAGE

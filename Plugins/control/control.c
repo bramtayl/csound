@@ -331,7 +331,7 @@ textflash_S(CSOUND *csound, TXTWIN *p){
 
 #define S(x)    sizeof(x)
 
-static OENTRY control_localops[] = {
+static OENTRY localops[] = {
   { "control",  S(CNTRL), 0, 3, "k", "k", (SUBR) cntrl_set, (SUBR) control, NULL, NULL},
 { "setctrl",  S(SCNTRL), 0, 1, "",  "iii", (SUBR) ocontrol, NULL, NULL, NULL},
 { "setctrl.S",  S(SCNTRL), 0, 1, "",  "iSi", (SUBR) ocontrol_S, NULL, NULL, NULL},
@@ -341,4 +341,4 @@ static OENTRY control_localops[] = {
 { "flashtxt.S", S(TXTWIN), 0, 1, "",  "iS",  (SUBR) textflash_S, NULL, NULL, NULL},
 };
 
-LINKAGE_BUILTIN(control_localops)
+LINKAGE
