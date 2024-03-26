@@ -1,4 +1,5 @@
 make_plugin(serial serial.c)
-if (WIN32)
-    target_compile_definitions(serial PRIVATE "WIN32")
+
+if (ADD_INTEGRATION_TESTS)
+    add_subdirectory(tests)
 endif()

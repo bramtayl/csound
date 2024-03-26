@@ -1,3 +1,7 @@
 make_plugin(ambicode1 ambicode1.c)
 # needed for asserts
 target_compile_definitions(ambicode1 PRIVATE "$<$<CONFIG:Release>:NDEBUG>")
+
+if (ADD_INTEGRATION_TESTS)
+    add_subdirectory(tests)
+endif()

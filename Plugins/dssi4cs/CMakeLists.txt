@@ -13,3 +13,7 @@ endif()
 if(HAVE_STRLCAT)
     target_compile_definitions(dssi4cs PRIVATE "HAVE_STRLCAT")
 endif()
+
+if (ADD_INTEGRATION_TESTS)
+    add_subdirectory(tests)
+endif()
