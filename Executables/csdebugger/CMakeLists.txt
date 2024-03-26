@@ -1,1 +1,1 @@
-make_executable(csdebugger csdebugger.cpp "${CSOUNDLIB}")
+make_utility(csdebugger csdebugger.cpp)
