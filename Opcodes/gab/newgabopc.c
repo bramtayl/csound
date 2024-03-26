@@ -16,7 +16,7 @@
   02110-1301 USA
 */
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "interlocks.h"
 
 /* (Shouldn't there be global decl's for these?) */

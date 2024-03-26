@@ -46,7 +46,7 @@
 /**********************************************************/
 
 // #include "csdl.h"
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "interlocks.h"
 #include "phisem.h"
 #include <math.h>

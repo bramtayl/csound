@@ -45,7 +45,7 @@
 
 #pragma once
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 
 /*
  *      Unit generators by Robin Whittle                6 January 1996

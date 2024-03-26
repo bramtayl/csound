@@ -23,7 +23,7 @@
 */
 
 #include <math.h>
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "namedins.h"
 #include "linevent.h"
 /* Keep Microsoft's schedule.h from being used instead of our schedule.h. */

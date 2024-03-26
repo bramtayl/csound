@@ -22,7 +22,7 @@
 */
 
 //#include "csdl.h"
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "interlocks.h"
 
 typedef struct {

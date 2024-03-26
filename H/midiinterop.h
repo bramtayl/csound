@@ -24,7 +24,7 @@
 #ifndef MIDIINTEROP_H
 #define MIDIINTEROP_H
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 
 /*
 

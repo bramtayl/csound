@@ -28,7 +28,7 @@
 #endif
 #endif
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 
 #if 0
 static CS_NOINLINE void notImplementedWarning_(const char *name)

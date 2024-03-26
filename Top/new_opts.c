@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "csound.h"
 #include "new_opts.h"
 

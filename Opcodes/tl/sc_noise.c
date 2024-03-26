@@ -34,7 +34,7 @@
 
 */
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 
 typedef struct {
         OPDS    h;

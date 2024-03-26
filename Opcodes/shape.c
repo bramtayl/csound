@@ -30,7 +30,7 @@
     02110-1301 USA
  */
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "interlocks.h"
 
 #include <math.h>

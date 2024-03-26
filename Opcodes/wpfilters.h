@@ -40,7 +40,7 @@ Csound C versions by Steven Yi
 
 #pragma once
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 
 typedef struct {
   OPDS h;

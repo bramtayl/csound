@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "midiinterop.h"
 #include "math.h"
 

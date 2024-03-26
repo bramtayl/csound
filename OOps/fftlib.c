@@ -30,7 +30,7 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "csound.h"
 #include "fftlib.h"
 #include "pffft.h"

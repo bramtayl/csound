@@ -100,7 +100,7 @@
                     const char *(*func)(int));
 */
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include "midiops.h"
 #include "midifile.h"
 

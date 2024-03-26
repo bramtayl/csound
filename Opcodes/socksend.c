@@ -26,7 +26,7 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
-#include "csoundCore_internal.h"
+#include "csoundCore.h"
 #include <sys/types.h>
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>

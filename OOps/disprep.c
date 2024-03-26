@@ -21,10 +21,9 @@
     02110-1301 USA
 */
 
-#include "csoundCore_internal.h"         /*                      DISPREP.C       */
+#include "csoundCore.h"         /*                      DISPREP.C       */
 #include <math.h>
 #include "cwindow.h"
-#include "cwindow_internal.h"
 #include "disprep.h"
 
 

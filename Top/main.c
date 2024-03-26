@@ -17,7 +17,7 @@
 */
 
 #include <ctype.h>
-#include "csoundCore_internal.h"         /*                      MAIN.C          */
+#include "csoundCore.h"         /*                      MAIN.C          */
 #include "soundio.h"
 #include "csmodule.h"
 #include "corfile.h"
