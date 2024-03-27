@@ -1,4 +1,4 @@
-make_plugin(doppler doppler.cpp libcsound_internals)
+make_plugin(doppler doppler.cpp)
 
 if (ADD_INTEGRATION_TESTS)
     add_subdirectory(tests)

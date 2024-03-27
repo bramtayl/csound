@@ -3,8 +3,6 @@ Version 7.0.0 (beta)
 
 ![Build Status](https://github.com/csound/csound/actions/workflows/csound_builds.yml/badge.svg?branch=develop)
 <!--- ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg) --->
-[![codecov](https://codecov.io/gh/bramtayl/csound/dev/graph/badge.svg?token=mjHkMy20mc)](https://codecov.io/gh/bramtayl/csound/dev)
-
 A sound and music computing system.
 
 Csound is copyright (c) 1991-2020 The Csound Developers, see CONTRIBUTORS
