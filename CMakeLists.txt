@@ -190,6 +190,9 @@ option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(INIT_STATIC_MODULES "Incorporate plugins into the library" OFF)
 option(NO_SERIAL_OPCODES "No serial opcodes" OFF)
+option(ADD_INTEGRATION_TESTS "Add command-line tests" ON)
+option(ADD_MIDI_TESTS "Add MIDI tests" OFF)
+option(ADD_MIC_TESTS "Add microphone tests" OFF)
 
 if (BUILD_TESTS)
     # c tests require the static library
@@ -1353,11 +1356,15 @@ endif()
 
 check_deps(BUILD_SRC_CONV USE_LIBSNDFILE SampleRate_FOUND)
 
+# needed for tests, plugin tests, and python
+find_package(Python3)
+check_deps(ADD_INTEGRATION_TESTS Python3_FOUND)
+
+add_subdirectory(tests)
+
 add_subdirectory(Executables)
 add_subdirectory(Plugins)
-add_subdirectory(Python)
 add_subdirectory(po)
-add_subdirectory(tests)
 
 # uninstall target
 configure_file(

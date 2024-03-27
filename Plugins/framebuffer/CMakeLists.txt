@@ -1,1 +1,5 @@
 make_plugin(framebuffer framebuffer.c)
+
+if (ADD_INTEGRATION_TESTS)
+    add_subdirectory(tests)
+endif()
