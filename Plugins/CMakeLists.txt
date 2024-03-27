@@ -97,7 +97,7 @@ if (BUILD_CPP_OPCODES)
     add_subdirectory(signalflowgraph)
     add_subdirectory(trigenvsegs)
 
-    if (DIRENT_H)
+    if (DIRENT_INCLUDE_DIR)
         add_subdirectory(ftsamplebank)
     endif()
 endif()

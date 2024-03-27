@@ -47,6 +47,10 @@
         {
             "name": "gettext",
             "platform": "linux|osx"
+        },
+        {
+            "name": "curl",
+            "platform": "!android"
         }
     ]
 }
