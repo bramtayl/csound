@@ -283,23 +283,10 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
-    set(CSOUND_WINDOWS_LIBRARIES
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32)
+    if (MSVC)
+        target_link_libraries(libcsound_public_interface INTERFACE kernel32)
+        target_link_libraries(libcsound_internals INTERFACE ws2_32)
+    endif()
 
     if(MSVC)
         # Experimented with flags but did not make change performance results
@@ -489,8 +476,6 @@ if(USE_LIBSNDFILE)
     endif()
 endif()
 
-find_package(CURL)
-
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 find_package(Threads)
@@ -531,13 +516,10 @@ check_function_exists(lrint HAVE_LRINT)
 cmake_pop_check_state()
 
 # MSVC / VCPKG won't find dirent.h by default. Need to add the path explicitly
-find_file(DIRENT_H "dirent.h")
-
-if(DIRENT_H)
-    if(MSVC)
-        get_filename_component(DIRENT_FOLDER ${DIRENT_H} DIRECTORY)
-        list(APPEND CMAKE_REQUIRED_INCLUDES ${DIRENT_FOLDER})
-    endif()
+find_path(DIRENT_INCLUDE_DIR "dirent.h")
+if (DIRENT_INCLUDE_DIR)
+    target_include_directories(libcsound_internals INTERFACE ${DIRENT_INCLUDE_DIR})
+    target_compile_definitions(libcsound_internals INTERFACE "HAVE_DIRENT_H")
 else()
     if(MSVC)
         message(FATAL_ERROR "Dirent.h not found, Csound will not be able to load dynamic plugins. Cannot continue with project generation")
@@ -550,7 +532,7 @@ set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
     sys/time.h sys/types.h termios.h
     values.h winsock.h sys/socket.h
-    dirent.h inttypes.h execinfo.h)
+    inttypes.h execinfo.h)
 
 foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
@@ -574,16 +556,12 @@ if(USE_LRINT)
 endif()
 
 ## Check existence of CURL
-if(USE_CURL)
-    find_package(CURL)
+find_package(CURL)
+check_deps(USE_CURL CURL_FOUND)
 
-    if(CURL_FOUND)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
-    else()
-        message(STATUS "Not using CURL for urls - not found.")
-    endif()
-else()
-    message(STATUS "Not using CURL for urls - disabled.")
+if(USE_CURL)
+    target_compile_definitions(libcsound_internals INTERFACE "HAVE_CURL")
+    target_link_libraries(libcsound_internals INTERFACE CURL::libcurl)
 endif()
 
 # Flex/Bison for the new parser
@@ -1152,28 +1130,18 @@ if (LINUX)
     )
 endif()
 
-set(libcsound_LIBS "")
-
 if(REQUIRE_PTHREADS)
-    list(APPEND libcsound_LIBS Threads::Threads)
+    target_link_libraries(libcsound_internals INTERFACE Threads::Threads)
 endif()
 
 if (HAVE_ATOMIC_BUILTIN)
-    list(APPEND libcsound_LIBS ${ATOMIC_LIB})
-endif()
-
-if(WIN32)
-    list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
-endif()
-
-if(USE_CURL AND CURL_FOUND)
-  list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
+    target_link_libraries(libcsound_internals INTERFACE ${ATOMIC_LIB})
 endif()
 
 check_deps(USE_GETTEXT Intl_FOUND GETTEXT_FOUND)
 if(USE_GETTEXT)
     message(STATUS "Using GNU gettext.")
-    list(APPEND libcsound_LIBS Intl::Intl)
+    target_link_libraries(libcsound_internals INTERFACE Intl::Intl)
     target_compile_definitions(libcsound_internals INTERFACE "GNU_GETTEXT")
     if(NOT DEFINED CSOUND_TEXTDOMAIN AND BUILD_RELEASE AND (LINUX))
         file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${LOCALE_INSTALL_DIR}" CSOUND_TEXTDOMAIN)
@@ -1192,30 +1160,29 @@ endif()
 if(LINUX)
     message(STATUS "Building on Linux.")
     target_compile_definitions(libcsound_internals INTERFACE "PIPES" "_GNU_SOURCE")
-    list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl)
+    target_link_libraries(libcsound_internals INTERFACE ${MATH_LIBRARY} dl)
 
     find_library(LIBRT_LIBRARY rt)
 
     if(LIBRT_LIBRARY)
-        list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
+        target_link_libraries(libcsound_internals INTERFACE ${LIBRT_LIBRARY})
         message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
     endif()
 
     find_library(LIBEXECINFO_LIBRARY execinfo)
 
     if(LIBEXECINFO_LIBRARY)
-       list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
-       message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
+        target_link_libraries(libcsound_internals INTERFACE ${LIBEXECINFO_LIBRARY})
+        message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
     endif()
 endif()
 
 if(APPLE AND NOT IOS)
     message(STATUS "Building on OSX")
-    target_compile_definitions(libcsound_internals INTERFACE "PIPES")
-    find_library(ACCELERATE_LIBRARY Accelerate)
-    find_path(VECLIB_PATH "Accelerate/Accelerate.h")
-    list(APPEND libcsound_private_include_dirs ${VECLIB_PATH})
-    list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl ${ACCELERATE_LIBRARY})
+    target_compile_definitions(libcsound_internals INTERFACE "PIPES")  
+
+    find_package(Accelerate REQUIRED)
+    target_link_libraries(libcsound_internals INTERFACE ${MATH_LIBRARY} dl Accelerate::accelerate)
 endif()
 
 if(WIN32)
@@ -1252,9 +1219,6 @@ check_function_exists(_sprintf_l HAVE__SPRINTF_L)
 if((HAVE_WINSOCK_H OR HAVE_SYS_SOCKET_H) AND NOT IOS)
     target_compile_definitions(libcsound_internals INTERFACE "HAVE_SOCKETS")
 endif()
-if(HAVE_DIRENT_H)
-    target_compile_definitions(libcsound_internals INTERFACE "HAVE_DIRENT_H")
-endif()
 if(HAVE_FCNTL_H)
     target_compile_definitions(libcsound_public_interface INTERFACE "HAVE_FCNTL_H")
 endif()
@@ -1284,14 +1248,6 @@ endif()
 
 if(BIG_ENDIAN)
     target_compile_definitions(libcsound_internals INTERFACE "WORDS_BIGENDIAN")
-endif()
-
-if(MSVC)
-    target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
-else()
-    if(NOT IOS)
-        target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
-    endif()
 endif()
 
 if(USE_LIBSNDFILE)
