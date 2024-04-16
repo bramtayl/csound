@@ -24,6 +24,7 @@
 
 #include "csoundCore_internal.h"
 #include "csound_orc.h"
+#include "csound_orc_semantics_public.h"
 extern void print_tree(CSOUND *csound, char*, TREE *l);
 extern void delete_tree(CSOUND *csound, TREE *l);
 

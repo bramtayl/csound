@@ -28,6 +28,8 @@
 #include "csound_type_system.h"
 #include "csound_orc_semantics.h"
 #include <inttypes.h>
+#include "csound_orc_semantics.h"
+#include "csound_orc_semantics_public.h"
 
 extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);
@@ -53,7 +55,6 @@ static TREE *create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
-extern void do_baktrace(CSOUND *csound, uint64_t files);
 
 
 

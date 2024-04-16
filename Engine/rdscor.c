@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#include "rdscor.h"
+
 #include "csoundCore_internal.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
 #include "insert.h"

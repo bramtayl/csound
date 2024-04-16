@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include "csoundCore_internal.h"
 #include "aops.h"
+#include "csound_orc_semantics_public.h"
 
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;

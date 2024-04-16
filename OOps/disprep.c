@@ -24,8 +24,8 @@
 #include "csoundCore_internal.h"         /*                      DISPREP.C       */
 #include <math.h>
 #include "cwindow.h"
-#include "cwindow_internal.h"
 #include "disprep.h"
+#include "auxfd.h"
 
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */

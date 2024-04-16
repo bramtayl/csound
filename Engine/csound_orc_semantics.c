@@ -35,6 +35,7 @@
 #include "csound_standard_types.h"
 #include "csound_orc_expressions.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_semantics_public.h"
 
 extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);
@@ -57,7 +58,6 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);
 char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
-void do_baktrace(CSOUND *csound, uint64_t files);
 
 extern int add_udo_definition(CSOUND *csound, char *opname,
                               char *outtypes, char *intypes, int flags);
@@ -66,23 +66,6 @@ int is_reserved(char*);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
-
-char* cs_strdup(CSOUND* csound, char* str) {
-  size_t len;
-  char* retVal;
-
-  if (str == NULL) return NULL;
-
-  len = strlen(str);
-  retVal = csound->Malloc(csound, len + 1);
-
-  if (len > 0) {
-    memcpy(retVal, str, len);
-  }
-  retVal[len] = '\0';
-
-  return retVal;
-}
 
 char* cs_strndup(CSOUND* csound, char* str, size_t size) {
   size_t len;

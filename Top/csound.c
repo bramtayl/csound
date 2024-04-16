@@ -64,6 +64,24 @@
 #include "namedins.h"
 //#include "cs_par_dispatch.h"
 #include "find_opcode.h"
+#include "csound_orc_semantics_public.h"
+#include "musmon.h"
+
+#include "aops_public.h"
+#include "auxfd.h"
+#include "envvar_public.h"
+#include "fgens_public.h"
+#include "insert_public.h"
+#include "libsnd_u.h"
+#include "linevent_public.h"
+#include "lpred_public.h"
+#include "memalloc.h"
+#include "memfiles.h"
+#include "musmon.h"
+#include "namedins_public.h"
+#include "rdscor.h"
+#include "ugens4_public.h"
+#include "utility.h"
 
 #if defined(linux)||defined(__HAIKU__)|| defined(__EMSCRIPTEN__)||defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -74,12 +92,14 @@
 #include "csdebug.h"
 #include "csdebug_internal.h"
 #include <time.h>
-#include "cwindow_internal.h"
+#include "cwindow.h"
 #include "csoundCore_internal.h"
 #include "threadsafe.h"
+#include "linevent_public.h"
+#include "memalloc.h"
 
 extern void allocate_message_queue(CSOUND *csound);
-static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
+void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -91,25 +111,14 @@ static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void reset(CSOUND *);
-static int  csoundPerformKsmpsInternal(CSOUND *csound);
-void csoundTableSetInternal(CSOUND *csound, int table, int index,
-                                   MYFLT value);
-static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
-uint64_t csoundGetKcounter(CSOUND *csound);
-static void set_util_sr(CSOUND *csound, MYFLT sr);
-static void set_util_nchnls(CSOUND *csound, int nchnls);
+int  csoundPerformKsmpsInternal(CSOUND *csound);
+INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 
 extern void cscoreRESET(CSOUND *);
 extern void memRESET(CSOUND *);
-extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
 extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
-extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
-extern int isstrcod(MYFLT );
-extern int fterror(const FGDATA *ff, const char *s, ...);
-PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
-INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name);
 
 extern OENTRY opcodlst_1[];
 
@@ -203,7 +212,7 @@ static void create_opcode_table(CSOUND *csound)
 
 #define MAX_MODULES 64
 
-static void module_list_add(CSOUND *csound, char *drv, char *type){
+void module_list_add(CSOUND *csound, char *drv, char *type){
     MODULE_INFO **modules =
       (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
     if (modules != NULL){
@@ -218,30 +227,30 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
     }
 }
 
-static int csoundGetRandSeed(CSOUND *csound, int which){
+int csoundGetRandSeed(CSOUND *csound, int which) {
     if (which > 1) return csound->randSeed1;
     else return csound->randSeed2;
 }
 
-static char *csoundGetStrsets(CSOUND *csound, long p){
+char *csoundGetStrsets(CSOUND *csound, long p) {
     if (csound->strsets == NULL) return NULL;
     else return csound->strsets[p];
 }
 
-static int csoundGetStrsmax(CSOUND *csound){
+int csoundGetStrsmax(CSOUND *csound){
     return csound->strsmax;
 }
 
-static void csoundGetOParms(CSOUND *csound, OPARMS *p){
+void csoundGetOParms(CSOUND *csound, OPARMS *p) {
     memcpy(p, csound->oparms, sizeof(OPARMS));
 }
 
-static int csoundGetDitherMode(CSOUND *csound){
+int csoundGetDitherMode(CSOUND *csound) {
     return  csound->dither_output;
 }
 
 #include "Opcodes/zak.h"
-static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
+int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     if (zz==NULL) {
@@ -252,7 +261,7 @@ static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     return zz->zklast;
 }
 
-static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
+int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     if (zz==NULL) {
@@ -263,11 +272,11 @@ static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
     return zz->zalast;
 }
 
-static int csoundGetReinitFlag(CSOUND *csound){
+int csoundGetReinitFlag(CSOUND *csound){
     return csound->reinitflag;
 }
 
-static int csoundGetTieFlag(CSOUND *csound){
+int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
@@ -1663,7 +1672,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     return 0;
 }
 
-static int csoundPerformKsmpsInternal(CSOUND *csound)
+int csoundPerformKsmpsInternal(CSOUND *csound)
 {
     int done;
     int returnValue;
@@ -2070,7 +2079,7 @@ PUBLIC void csoundMessageV(CSOUND *csound,
   }
 }
 
-PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
+void csoundMessage(CSOUND *csound, const char *format, ...)
 {
   if(!(csound->oparms->msglevel & CS_NOMSG)) {
     va_list args;
@@ -3985,7 +3994,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     csoundUnlockMutex(pp->mutex_);
 }
 
-static INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
+INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
   return csound->engineState.instrtxtp;
 }
 
@@ -3993,8 +4002,8 @@ uint64_t csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
 
-static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
-static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
+void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
+void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
 
 MYFLT csoundGetA4(CSOUND *csound) { return (MYFLT) csound->A4; }
 

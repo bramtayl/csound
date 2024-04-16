@@ -25,6 +25,7 @@
 #include "interlocks.h"
 #include "pstream.h"
 #include "soundio.h"
+#include "auxfd.h"
 #define MAXOUTS 2
 
 typedef struct dats {

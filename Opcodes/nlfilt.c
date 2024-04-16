@@ -32,6 +32,8 @@
 
 #include "stdopcod.h"
 #include "nlfilt.h"
+#include "rdscor.h"
+#include "csound_orc_semantics_public.h"
 
 typedef struct {
         OPDS    h;

@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"
 #include "csound_orc.h"
 #include <stdlib.h>
+#include "csound_orc_semantics_public.h"
 
 #ifdef USE_DOUBLE
 #  define MYFLT_INT_TYPE int64_t
@@ -43,7 +44,6 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message);
 int csoundReadScoreInternal(CSOUND *csound, const char *message);
 void csoundTableCopyOutInternal(CSOUND *csound, int table, MYFLT *ptable);
 void csoundTableCopyInInternal(CSOUND *csound, int table, MYFLT *ptable);
-void csoundTableSetInternal(CSOUND *csound, int table, int index, MYFLT value);
 int csoundScoreEventInternal(CSOUND *csound, char type,
                              const MYFLT *pfields, long numFields);
 int csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,

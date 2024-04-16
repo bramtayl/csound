@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include "soundio.h"
 #include <math.h>
+#include "rdscor.h"
 
 typedef struct {
     OPDS    h;

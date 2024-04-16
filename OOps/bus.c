@@ -35,6 +35,8 @@
 
 #include "bus.h"
 #include "namedins.h"
+#include "csound_orc_semantics_public.h"
+#include "auxfd.h"
 
 /* For sensing opcodes */
 #if defined(__unix) || defined(__unix__) || defined(__MACH__)

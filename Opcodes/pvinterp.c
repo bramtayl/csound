@@ -28,6 +28,7 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "rdscor.h"
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */

@@ -27,6 +27,8 @@
 #include "csoundCore_internal.h"
 
 #include "cs_par_base.h"
+#include "csound_orc_semantics_public.h"
+
 static int csp_set_exists(struct set_t *set, void *data);
 
 int csp_thread_index_get(CSOUND *csound)

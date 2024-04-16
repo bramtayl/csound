@@ -67,6 +67,7 @@ kamp            ATSinterpread   kfreq
 #include "ugnorman.h"
 #include <ctype.h>
 #include "interlocks.h"
+#include "rdscor.h"
 
 #define ATSA_NOISE_VARIANCE 0.04
 

@@ -32,6 +32,8 @@
 #else
 #include "schedule.h"
 #endif
+#include "rdscor.h"
+#include "musmon.h"
 
 extern void csoundInputMessageInternal(CSOUND *, const char *);
 int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);

@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"         /*                      UGENS1.C        */
 #include "ugens1.h"
 #include <math.h>
+#include "auxfd.h"
 
 #define FHUND (FL(100.0))
 

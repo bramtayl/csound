@@ -31,6 +31,10 @@
 #include <curl/curl.h>
 #include "corfile.h"
 #endif
+#include "rdscor.h"
+#include "envvar.h"
+#include "csound_orc_semantics_public.h"
+#include "insert_public.h"
 
 #define STRSMAX 8
 

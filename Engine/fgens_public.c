@@ -28,13 +28,16 @@
 #include <ctype.h>
 #include "soundio.h"
 #include "cwindow.h"
-#include "cwindow_internal.h"
 #include "cmath.h"
 #include "fgens.h"
 #include "pstream.h"
 #include "pvfileio.h"
 #include <stdlib.h>
 /* #undef ISSTRCOD */
+#include "fgens_public.h"
+#include "insert_public.h"
+#include "libsnd_u.h"
+#include "ugens4_public.h"
 
 static inline int32_t byte_order(void)
 {

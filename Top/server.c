@@ -36,6 +36,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #endif
+#include "csound_orc_semantics_public.h"
 
 typedef struct {
   int port;

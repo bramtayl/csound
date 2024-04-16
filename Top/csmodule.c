@@ -80,6 +80,7 @@
 
 #include "csoundCore_internal.h"
 #include "csmodule.h"
+#include "csound_orc_semantics_public.h"
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>

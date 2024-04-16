@@ -29,6 +29,7 @@
 #include "pvsbasic.h"
 #include "pvfileio.h"
 #include <math.h>
+#include "rdscor.h"
 #define MAXOUTS 16
 
 static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);

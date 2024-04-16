@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
 #include <ctype.h>
+#include "csound_orc_semantics_public.h"
 
 extern void sort(CSOUND*);
 extern void twarp(CSOUND*);

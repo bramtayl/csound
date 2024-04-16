@@ -29,6 +29,7 @@
 #include "csoundCore_internal.h"
 #include "pstream.h"
 #include "pvfileio.h"
+#include "rdscor.h"
 
 #ifdef _DEBUG
 #include <assert.h>

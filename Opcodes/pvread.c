@@ -28,6 +28,7 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "rdscor.h"
 
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"

@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_internal.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *xamp, *xcps, *knh, *ifn, *iphs;
@@ -89,3 +91,5 @@ typedef struct {
         MYFLT   period, num1, num2;
         MYFLT   num3, num4;
 } RANDC;
+
+extern MYFLT intpow1(MYFLT x, int32_t n); /* Binary positive power function */

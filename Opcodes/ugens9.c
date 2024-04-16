@@ -27,6 +27,7 @@
 #include "ugens9.h"
 #include "soundio.h"
 #include <inttypes.h>
+#include "rdscor.h"
 
 static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 {

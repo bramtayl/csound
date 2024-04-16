@@ -30,6 +30,8 @@ int mkstemp(char *);
 #endif
 #include <stdlib.h>
 #include "corfile.h"
+#include "csound_orc_semantics_public.h"
+#include "envvar_public.h"
 
 #if defined(__gnu_linux__) || defined(__MACH__) || defined(_WIN32)
 #  include <sys/types.h>

@@ -22,15 +22,15 @@
 
 #include "csoundCore_internal.h" /*                                      AOPS.C  */
 #include "aops.h"
+#include "aops_public.h"
 #include <math.h>
 #include <time.h>
+#include "memalloc.h"
+#include "insert_public.h"
+#include "fgens_public.h"
+
 
 #define POW2TABSIZI 4096
-#if ULONG_MAX == 18446744073709551615UL
-#  define POW2MAX   (24.0)
-#else
-#  define POW2MAX   (15.0)
-#endif
 
 #define EIPT3       (25.0/3.0)
 #define LOGTWO      (0.69314718055994530942)
@@ -55,20 +55,6 @@ void csound_aops_init_tables(CSOUND *csound)
   /*     POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX)); */
   /* } */
 }
-
-
-MYFLT csoundPow2(CSOUND *csound, MYFLT a)
-{
-  (void)(csound);
-  /* int32_t n; */
-  if (a > POW2MAX) a = POW2MAX;
-  else if (a < -POW2MAX) a = -POW2MAX;
-  return POWER(FL(2.0), a);
-  /* 4096 * 15 */
-  /* n = (int32_t)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI; */
-  /* return ((MYFLT) (1UL << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]); */
-}
-
 
 /*static inline MYFLT pow2(MYFLT a)
   {

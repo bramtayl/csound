@@ -24,9 +24,48 @@
 #ifndef CSOUND_ENVVAR_H
 #define CSOUND_ENVVAR_H
 
+#include <stdio.h>
+
+#include "csound.h"
+#include "soundfile.h"
+#include "sysdep.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if defined(MSVC)
+#define RD_OPTS  _O_RDONLY | _O_BINARY
+#define WR_OPTS  _O_TRUNC | _O_CREAT | _O_WRONLY | _O_BINARY,_S_IWRITE
+#elif defined(_WIN32)
+#define RD_OPTS  O_RDONLY | O_BINARY
+#define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
+#elif defined DOSGCC
+#define RD_OPTS  O_RDONLY | O_BINARY, 0
+#define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
+#else
+#ifndef O_BINARY
+# define O_BINARY (0)
+#endif
+#define RD_OPTS  O_RDONLY | O_BINARY, 0
+#define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
+#endif
+
+typedef struct CSFILE_ {
+    struct CSFILE_  *nxt;
+    struct CSFILE_  *prv;
+    int             type;
+    int             fd;
+    FILE            *f;
+    SNDFILE         *sf;
+    void            *cb;
+    int             async_flag;
+    int             items;
+    int             pos;
+    MYFLT           *buf;
+    int             bufsize;
+    char            fullName[1];
+} CSFILE;
 
   /**
    * Set environment variable 'name' to 'value'.
@@ -103,140 +142,20 @@ extern "C" {
   /** Return just the final component of a full path */
   char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path);
 
-  /**
-   * Search for input file 'filename'.
-   * If the file name specifies full path (it begins with '.', the pathname
-   * delimiter character, or a drive letter and ':' on Windows), that exact
-   * file name is tried without searching.
-   * Otherwise, the file is searched relative to the current directory first,
-   * and if it is still not found, a pathname list that is created the
-   * following way is searched:
-   *   1. if envList is NULL or empty, no directories are searched
-   *   2. envList is parsed as a ';' separated list of environment variable
-   *      names, and all environment variables are expanded and expected to
-   *      contain a ';' separated list of directory names
-   *   2. all directories in the resulting pathname list are searched, starting
-   *      from the last and towards the first one, and the directory where the
-   *      file is found first will be used
-   * The function returns a pointer to the full name of the file if it is
-   * found, and NULL if the file could not be found in any of the search paths,
-   * or an error has occured. The caller is responsible for freeing the memory
-   * pointed to by the return value, by calling mfree().
-   */
-  char *csoundFindInputFile(CSOUND *csound,
-                            const char *filename, const char *envList);
-
-  /**
-   * Search for a location to write file 'filename'.
-   * If the file name specifies full path (it begins with '.', the pathname
-   * delimiter character, or a drive letter and ':' on Windows), that exact
-   * file name is tried without searching.
-   * Otherwise, a pathname list that is created the following way is searched:
-   *   1. if envList is NULL or empty, no directories are searched
-   *   2. envList is parsed as a ';' separated list of environment variable
-   *      names, and all environment variables are expanded and expected to
-   *      contain a ';' separated list of directory names
-   *   2. all directories in the resulting pathname list are searched, starting
-   *      from the last and towards the first one, and the directory that is
-   *      found first where the file can be written to will be used
-   * Finally, if the file cannot be written to any of the directories in the
-   * search paths, writing relative to the current directory is tried.
-   * The function returns a pointer to the full name of the file if a location
-   * suitable for writing the file is found, and NULL if the file cannot not be
-   * written anywhere in the search paths, or an error has occured.
-   * The caller is responsible for freeing the memory pointed to by the return
-   * value, by calling mfree().
-   */
-  char *csoundFindOutputFile(CSOUND *csound,
-                             const char *filename, const char *envList);
-
-  /**
-   * Open a file and return handle.
-   *
-   * CSOUND *csound:
-   *   Csound instance pointer
-   * void *fd:
-   *   pointer a variable of type int, FILE*, or SNDFILE*, depending on 'type',
-   *   for storing handle to be passed to file read/write functions
-   * int type:
-   *   file type, one of the following:
-   *     CSFILE_FD_R:     read file using low level interface (open())
-   *     CSFILE_FD_W:     write file using low level interface (open())
-   *     CSFILE_STD:      use ANSI C interface (fopen())
-   *     CSFILE_SND_R:    read sound file
-   *     CSFILE_SND_W:    write sound file
-   * const char *name:
-   *   file name
-   * void *param:
-   *   parameters, depending on type:
-   *     CSFILE_FD_R:     unused (should be NULL)
-   *     CSFILE_FD_W:     unused (should be NULL)
-   *     CSFILE_STD:      mode parameter (of type char*) to be passed to fopen()
-   *     CSFILE_SND_R:    SF_INFO* parameter for sf_open(), with defaults for
-   *                      raw file; the actual format paramaters of the opened
-   *                      file will be stored in this structure
-   *     CSFILE_SND_W:    SF_INFO* parameter for sf_open(), output file format
-   * const char *env:
-   *   list of environment variables for search path (see csoundFindInputFile()
-   *   for details); if NULL, the specified name is used as it is, without any
-   *   conversion or search.
-   * int csFileType:
-   *   A value from the enumeration CSOUND_FILETYPES (see CsoundCore.h)
-   * int isTemporary:
-   *   1 if this file will be deleted when Csound is finished.
-   *   Otherwise, 0.
-   * return value:
-   *   opaque handle to the opened file, for use with csoundGetFileName() or
-   *   csoundFileClose(), or storing in FDCH.fd.
-   *   On failure, NULL is returned.
-   */
-  void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
-                               const char *name, void *param, const char *env,
-                               int csFileType, int isTemporary);
-
-  /**
-   * Allocate a file handle for an existing file already opened with open(),
-   * fopen(), or sf_open(), for later use with csoundFileClose() or
-   * csoundGetFileName(), or storing in an FDCH structure.
-   * Files registered this way are also
-   * automatically closed by csoundReset().
-   * Parameters and return value are similar to csoundFileOpenithType(), except
-   * fullName is the name that will be returned by a later call to
-   * csoundGetFileName().
-   */
-  void *csoundCreateFileHandle(CSOUND *,
-                               void *fd, int type, const char *fullName);
-
-  /**
-   * Get the full name of a file previously opened with csoundFileOpen().
-   */
-  char *csoundGetFileName(void *fd);
-
-  /**
-   * Close a file previously opened with csoundFileOpen().
-   */
-  int csoundFileClose(CSOUND *, void *fd);
-
   /** Given a file name as string, return full path of directory of file;
    * Note: does not check if file exists
    */
   char *csoundGetDirectoryForPath(CSOUND* csound, const char * path);
 
+  int csoundFindFile_Fd(CSOUND *csound, char **fullName,
+                             const char *filename, int write_mode,
+                             const char *envList);
 
-  void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
-                                     const char *name, void *param,
-                                     const char *env,
-                                     int csFileType, int buffsize,
-                                     int isTemporary);
+  FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
+                                const char *filename, const char *mode,
+                                const char *envList);
 
-  unsigned int csoundReadAsync(CSOUND *csound, void *handle,
-                               MYFLT *buf, int items);
-
-  unsigned int csoundWriteAsync(CSOUND *csound, void *handle,
-                                MYFLT *buf, int items);
-
-  int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence);
-
+  uintptr_t file_iothread(void *p);
 
 #ifdef __cplusplus
 }

@@ -30,6 +30,7 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "rdscor.h"
 
 static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 

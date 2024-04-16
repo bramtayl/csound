@@ -30,6 +30,9 @@
 #include "fout.h"
 #include "soundio.h"
 #include <ctype.h>
+#include "csound_orc_semantics_public.h"
+#include "rdscor.h"
+#include "envvar_public.h"
 
 /* remove a file reference, optionally closing the file */
 

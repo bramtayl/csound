@@ -45,6 +45,7 @@
 #include "pools.h"
 #include "soundfile.h"
 #include "csoundCore_common.h"
+#include "memfiles.h"
 
 #ifdef __cplusplus
 extern "C" {

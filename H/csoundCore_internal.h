@@ -70,6 +70,7 @@
 #include "envvar.h"
 #include "prototyp.h"
 #include "soundfile.h"
+#include "memfiles.h"
 
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)

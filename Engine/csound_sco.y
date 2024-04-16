@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "score_param.h"
+#include "csound_orc_semantics.h"
     extern void csound_scoerror(SCORE_PARM *, void *,
                             CSOUND *, ScoreTree *, const char*);
     extern int csound_scolex(ScoreTree**, CSOUND *, void *);
@@ -228,7 +229,6 @@ lyyerror(YYLTYPE t, char *s, ...)
 
 #endif
 
-extern void do_baktrace(CSOUND *csound, uint64_t files);
 extern char *csound_scoget_text ( void *scanner );
 extern char *csound_scoget_current_pointer(void *yyscanner);
 

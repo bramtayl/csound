@@ -28,6 +28,7 @@
 #include "spectra.h"
 #include "pitch.h"
 #include "uggab.h"
+#include "rdscor.h"
 
 int32_t mute_inst(CSOUND *csound, MUTE *p)
 {

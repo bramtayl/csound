@@ -41,6 +41,7 @@
 #endif
 #include "sfenum.h"
 #include "sfont.h"
+#include "rdscor.h"
 
 #define s2d(x)  *((DWORD *) (x))
 

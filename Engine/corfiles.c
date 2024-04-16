@@ -26,9 +26,9 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "csound_orc_semantics_public.h"
+#include "envvar_public.h"
 
-
-extern int csoundFileClose(CSOUND*, void*);
 CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 
 CORFIL *corfile_create_w(CSOUND *csound)

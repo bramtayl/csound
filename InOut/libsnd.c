@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <inttypes.h>
+#include "libsnd_u.h"
+#include "envvar_public.h"
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>

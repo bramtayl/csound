@@ -32,6 +32,7 @@
 #include "cs_par_orc_semantics.h"
 
 #include "interlocks.h"
+#include "csound_orc_semantics_public.h"
 
 OENTRY* find_opcode(CSOUND *, char *);
 /***********************************************************************

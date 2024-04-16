@@ -25,6 +25,7 @@
 #include "ugens5.h"
 #include <math.h>
 #include <inttypes.h>
+#include "rdscor.h"
 
 /*
  * LPC storage slots

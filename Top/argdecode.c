@@ -26,6 +26,7 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
+#include "csound_orc_semantics_public.h"
 
 static void list_audio_devices(CSOUND *csound, int output);
 static void list_midi_devices(CSOUND *csound, int output);

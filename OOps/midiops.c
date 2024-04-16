@@ -28,6 +28,7 @@
 #include <time.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "arrays.h"
+#include "namedins_public.h"
 
 #define dv127   (FL(1.0)/FL(127.0))
 

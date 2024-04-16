@@ -29,6 +29,9 @@
 #include <ctype.h>
 #include "csoundCore_internal.h"
 #include "corfile.h"
+#include "csound_orc_semantics_public.h"
+#include "memalloc.h"
+
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);

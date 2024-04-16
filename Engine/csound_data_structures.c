@@ -22,6 +22,7 @@
  */
 #include "csoundCore_internal.h"
 #include "csound_data_structures.h"
+#include "csound_orc_semantics_public.h"
 
 #define HASH_LOAD_FACTOR 0.75
 

@@ -32,7 +32,10 @@
 #include "corfile.h"
 
 #include "csdebug.h"
-#include "cwindow_internal.h"
+
+#include "musmon.h"
+#include "cwindow.h"
+#include "rdscor.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG

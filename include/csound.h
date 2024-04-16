@@ -668,6 +668,259 @@ extern "C" {
                                     const char *channelName,
                                     void *channelValuePtr,
                                     const void *channelType);
+ 
+  typedef struct CORFIL {
+    char *body;
+    unsigned int len;
+    unsigned int p;
+  } CORFIL;
+
+  typedef struct {
+    int odebug;
+    int sfread, sfwrite, sfheader, filetyp;
+    int inbufsamps, outbufsamps;
+    int informat, outformat;
+    int sfsampsize;
+    int displays, graphsoff, postscript, msglevel;
+    int Beatmode, oMaxLag;
+    int usingcscore, Linein;
+    int RTevents, Midiin, FMidiin, RMidiin;
+    int ringbell, termifend;
+    int rewrt_hdr, heartbeat, gen01defer;
+    double cmdTempo;
+    float sr_override, kr_override;
+    int nchnls_override, nchnls_i_override;
+    char *infilename, *outfilename;
+    CORFIL *playscore;
+    char *Linename, *Midiname, *FMidiname;
+    char *Midioutname; /* jjk 09252000 - MIDI output device, -Q option */
+    char *FMidioutname;
+    int midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
+    int midiVelocity, midiVelocityAmp;
+    int noDefaultPaths; /* syy - Oct 25, 2006: for disabling relative paths
+                          from files */
+    int numThreads;
+    int syntaxCheckOnly;
+    int useCsdLineCounts;
+    int sampleAccurate; /* switch for score events sample accuracy */
+    int realtime;       /* realtime priority mode  */
+    MYFLT e0dbfs_override;
+    int daemon;
+    double quality; /* for ogg encoding */
+    int ksmps_override;
+    int fft_lib;
+    int echo;
+    MYFLT limiter;
+    float sr_default, kr_default;
+    int mp3_mode;
+  } OPARMS;
+
+  typedef struct monblk {
+    int16 pch;
+    struct monblk *prv;
+  } MONPCH;
+
+  typedef struct dklst {
+    struct dklst *nxtlst;
+    int32 pgmno;
+    /** cnt + keynos */
+    MYFLT keylst[1];
+  } DKLST;
+
+  typedef struct {
+    int notnum[4];
+  } DPEXCL;
+
+  typedef struct {
+    DPEXCL dpexcl[8];
+    /** for keys 25-99 */
+    int exclset[75];
+  } DPARM;
+
+  typedef struct mchnblk {
+    /** most recently received program change */
+    int16 pgmno;
+    /** instrument number assigned to this channel */
+    int16 insno;
+    int16 RegParNo;
+    int16 mono;
+    MONPCH *monobas;
+    MONPCH *monocur;
+    /** list of active notes (NULL: not active) */
+    struct insds *kinsptr[128];
+    /** polyphonic pressure indexed by note number */
+    MYFLT polyaft[128];
+    /** ... with GS vib_rate, stored in c128-c135 */
+    MYFLT ctl_val[136];
+    /** program change to instr number (<=0: ignore) */
+    int16 pgm2ins[128];
+    /** channel pressure (0-127) */
+    MYFLT aftouch;
+    /** pitch bend (-1 to 1) */
+    MYFLT pchbend;
+    /** pitch bend sensitivity in semitones */
+    MYFLT pbensens;
+    /** number of held (sustaining) notes */
+    int16 ksuscnt;
+    /** current state of sustain pedal (0: off) */
+    int16 sustaining;
+    int dpmsb;
+    int dplsb;
+    int datenabl;
+    /** chain of dpgm keylists */
+    DKLST *klists;
+    /** drumset params         */
+    DPARM *dparms;
+  } MCHNBLK;
+
+  typedef struct _cons {
+    void* value; // should be car, but using value
+    struct _cons* next; // should be cdr, but to follow csound
+    // linked list conventions
+  } CONS_CELL;
+
+  struct csvariable;
+  struct cstype;
+  
+  typedef struct cstype {
+      char* varTypeName;
+      char* varDescription;
+      int argtype; // used to denote if allowed as in-arg, out-arg, or both
+      struct csvariable* (*createVariable)(void*, void*);
+      void (*copyValue)(CSOUND* csound, struct cstype* cstype, void* dest, void* src);
+      void (*freeVariableMemory)(void* csound, void* varMem);
+      CONS_CELL* members;
+      int userDefinedType;
+  } CS_TYPE;
+
+  typedef struct oentry {
+    char *opname;
+    uint16 dsblksiz;
+    uint16 flags;
+    uint8_t thread;
+    char *outypes;
+    char *intypes;
+    int (*iopadr)(CSOUND *, void *p);
+    int (*kopadr)(CSOUND *, void *p);
+    int (*aopadr)(CSOUND *, void *p);
+    void *useropinfo; /* user opcode parameters */
+  } OENTRY;
+
+  typedef struct arglst {
+    int count;
+    char *arg[1];
+  } ARGLST;
+
+  typedef struct arg {
+    int type;
+    void *argPtr;
+    int index;
+    char *structPath;
+    struct arg *next;
+  } ARG;
+
+  /**
+  * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
+  */
+  typedef struct text {
+    uint16_t linenum; /* Line num in orch file (currently buggy!)  */
+    uint64_t locn;    /* and location */
+    OENTRY *oentry;
+    char *opcod;    /* Pointer to opcode name in global pool */
+    ARGLST *inlist; /* Input args (pointer to item in name list) */
+    ARGLST *outlist;
+    ARG *inArgs; /* Input args (index into list of values) */
+    unsigned int inArgCount;
+    ARG *outArgs;
+    unsigned int outArgCount;
+    //    char            intype;         /* Type of first input argument (g,k,a,w
+    //    etc) */
+    char pftype; /* Type of output argument (k,a etc) */
+  } TEXT;
+
+  typedef struct _cs_hash_bucket_item {
+      char* key;
+      void* value;
+      struct _cs_hash_bucket_item* next;
+  } CS_HASH_TABLE_ITEM;
+
+  typedef struct _cs_hash_table {
+      int table_size;
+      int count;
+      CS_HASH_TABLE_ITEM** buckets;
+  } CS_HASH_TABLE;
+
+  typedef struct csvarmem {
+      CS_TYPE* varType;
+      MYFLT value;
+  } CS_VAR_MEM;
+
+  typedef struct csvariable {
+      char* varName;
+      CS_TYPE* varType;
+      int memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
+                            Csound uses MYFLT* and pointer arithmetic
+                            to assign var locations */
+      int memBlockIndex;
+      int dimensions;  // used by arrays
+      int refCount;
+      struct csvariable* next;
+      CS_TYPE* subType;
+      void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
+      void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
+      CS_VAR_MEM *memBlock;
+  } CS_VARIABLE;
+
+  /* Csound Variable Pool - essentially a map<string,csvar>
+      CSOUND contains one for global memory, InstrDef and UDODef
+      contain a pool for local memory
+    */
+
+  typedef struct csvarpool {
+      CS_HASH_TABLE* table;
+      CS_VARIABLE* head;
+      CS_VARIABLE* tail;
+      int poolSize;
+      struct csvarpool* parent;
+      int varCount;
+      int synthArgCount;
+  } CS_VAR_POOL;
+
+
+/**
+ * This struct is filled out by otran() at orch parse time.
+ * It is used as a template for instrument events.
+ */
+typedef struct instr {
+  struct op *nxtop;        /* Linked list of instr opcodes */
+  TEXT t;                  /* Text of instrument (same in nxtop) */
+  int pmax, vmax, pextrab; /* Arg count, size of data for all
+                              opcodes in instr */
+  // int     mdepends;               /* Opcode type (i/k/a) */
+  CS_VAR_POOL *varPool;
+
+  //    int     optxtcount;
+  int16 muted;
+  //    int32   localen;
+  int32 opdstot; /* Total size of opds structs in instr */
+  //    int32   *inslist;               /* Only used in parsing (?) */
+  MYFLT *psetdata;            /* Used for pset opcode */
+  struct insds *instance;     /* Chain of allocated instances of
+                                 this instrument */
+  struct insds *lst_instance; /* last allocated instance */
+  struct insds *act_instance; /* Chain of free (inactive) instances */
+                              /* (pointer to next one is INSDS.nxtact) */
+  struct instr *nxtinstxt;    /* Next instrument in orch (num order) */
+  int active;                 /* To count activations for control */
+  int pending_release;        /* To count instruments in release phase */
+  int maxalloc;
+  MYFLT cpuload;                 /* % load this instrumemnt makes */
+  struct opcodinfo *opcode_info; /* UDO info (when instrs are UDOs) */
+  char *insname;                 /* instrument name */
+  int instcnt;                   /* Count number of instances ever */
+  int isNew;                     /* is this a new definition */
+  int nocheckpcnt;               /* Control checks on pcnt */
+} INSTRTXT;
 
   /** @defgroup INSTANTIATION Instantiation
    *
@@ -2568,6 +2821,185 @@ extern "C" {
    */
   PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
+  /** Get number of control blocks elapsed */
+  PUBLIC uint64_t csoundGetKcounter(CSOUND *csound);
+
+  PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...);
+
+  /**
+  * Returns MIDI channel number (0 to 15) for the instrument instance
+  * that called opcode 'p'.
+  * In the case of score notes, -1 is returned.
+  */
+  PUBLIC int csoundGetMidiChannelNumber(void *p);
+
+  /**
+  * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
+  * If the opcode was not called from a MIDI activated instrument
+  * instance, the return value is undefined.
+  */
+  PUBLIC int csoundGetMidiNoteNumber(void *p);
+
+  /**
+  * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
+  * If the opcode was not called from a MIDI activated instrument
+  * instance, the return value is undefined.
+  */
+  PUBLIC int csoundGetMidiVelocity(void *p);
+
+  /**
+  * Returns non-zero if the current note (owning opcode 'p') is releasing.
+  */
+  PUBLIC int csoundGetReleaseFlag(void *p);
+
+  /**
+  * Returns the note-off time in seconds (measured from the beginning of
+  * performance) of the current instrument instance, from which opcode 'p'
+  * was called. The return value may be negative if the note has indefinite
+  * duration.
+  */
+  PUBLIC double csoundGetOffTime(void *p);
+
+  /**
+  * Returns the array of p-fields passed to the instrument instance
+  * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
+  * guaranteed to be available. p2 is measured in seconds from the
+  * beginning of the current section.
+  */
+  PUBLIC MYFLT *csoundGetPFields(void *p);
+
+  /**
+  * Returns the instrument number (p1) for opcode 'p'.
+  */
+  PUBLIC int csoundGetInstrumentNumber(void *p);
+
+  PUBLIC int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart);
+
+  PUBLIC int csoundGetTieFlag(CSOUND *csound);
+
+  PUBLIC int csoundGetReinitFlag(CSOUND *csound);
+
+  /** Current maximum number of strings, accessible through the strset         \
+  and strget opcodes */ 
+  PUBLIC int csoundGetStrsmax(CSOUND *csound);
+
+  PUBLIC char *csoundGetStrsets(CSOUND *csound, long p);
+
+  /**
+  * Returns the number of input arguments for opcode 'p'.
+  */
+  PUBLIC int csoundGetInputArgCnt(void *p);
+
+  /**
+  * Returns the name of input argument 'n' (counting from 0) for opcode 'p'.
+  */
+  PUBLIC char *csoundGetInputArgName(void *p, int n);
+
+  /**
+  * Returns the number of output arguments for opcode 'p'.
+  */
+  PUBLIC int csoundGetOutputArgCnt(void *p);
+
+  /**
+  * Returns the name of output argument 'n' (counting from 0) for opcode 'p'.
+  */
+  PUBLIC char *csoundGetOutputArgName(void *p, int n);
+
+  PUBLIC void csoundTableSetInternal(CSOUND *csound, int table, int index,
+                                   MYFLT value);
+
+  PUBLIC int csoundGetDitherMode(CSOUND *csound);
+
+  PUBLIC void module_list_add(CSOUND *csound, char *drv, char *type);
+
+  /**
+  * Register a function to be called by csoundReset(), in reverse order
+  * of registration, before unloading external modules. The function takes
+  * the Csound instance pointer as the first argument, and the pointer
+  * passed here as 'userData' as the second, and is expected to return zero
+  * on success.
+  * The return value of csoundRegisterResetCallback() is zero on success.
+  */
+  PUBLIC int csoundRegisterResetCallback(CSOUND *, void *userData,
+                                  int (*func)(CSOUND *, void *));
+
+  PUBLIC void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
+
+  /**
+  * Returns the name of the opcode of which the data structure
+  * is pointed to by 'p'.
+  */
+  PUBLIC char *csoundGetOpcodeName(void *p);
+
+  /**
+  * Check system events, yielding cpu time for coopertative multitasking, etc.
+  */
+  PUBLIC int csoundYield(CSOUND *);
+
+  PUBLIC int  csoundPerformKsmpsInternal(CSOUND *csound);
+
+  PUBLIC void set_util_sr(CSOUND *csound, MYFLT sr);
+
+  PUBLIC void set_util_nchnls(CSOUND *csound, int nchnls);
+
+  PUBLIC int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart);
+
+  PUBLIC int csoundErrCnt(CSOUND *);
+
+  /**
+  * Register a function to be called at note deactivation.
+  * Should be called from the initialisation routine of an opcode.
+  * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
+  * is the function to be called, with the same arguments and return
+  * value as in the case of opcode init/perf functions.
+  * The functions are called in reverse order of registration.
+  * Returns zero on success.
+  */
+  PUBLIC int csoundRegisterDeinitCallback(CSOUND *, void *p,
+                                  int (*func)(CSOUND *, void *));
+
+  PUBLIC int csoundGetRandSeed(CSOUND *csound, int which);
+
+  PUBLIC void csoundGetOParms(CSOUND *csound, OPARMS *p);
+
+  /**
+  * Returns a pointer to the MIDI channel structure for the instrument
+  * instance that called opcode 'p'.
+  * In the case of score notes, NULL is returned.
+  */
+  PUBLIC MCHNBLK *csoundGetMidiChannel(void *p);
+
+  /** Returns the CS_TYPE for an opcode's arg pointer */
+
+  PUBLIC CS_TYPE* csoundGetTypeForArg(void* argPtr);
+
+
+  PUBLIC CS_NORETURN CS_PRINTF2  void    csoundDie(CSOUND *, const char *, ...);
+
+  PUBLIC CS_PRINTF2  void    csoundWarning(CSOUND *, const char *, ...);
+
+  PUBLIC CS_PRINTF2  void    csoundDebugMsg(CSOUND *, const char *, ...);
+
+  PUBLIC CS_NORETURN void    csoundLongJmp(CSOUND *, int retval);
+
+  PUBLIC CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
+
+  PUBLIC void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
+
+  PUBLIC void    csoundNotifyFileOpened(CSOUND *, const char *, int, int, int);
+
+  /**
+  * Appends a list of opcodes implemented by external software to Csound's
+  * internal opcode list. The list should either be terminated with an entry
+  * that has a NULL opname, or the number of entries (> 0) should be specified
+  * in 'n'.
+  * Returns zero on success.
+  */
+  PUBLIC int csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int n);
+
+  PUBLIC INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
+
+  PUBLIC INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name);
 
   /** @}*/
 

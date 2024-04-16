@@ -48,6 +48,10 @@
 #include "ugrw1.h"
 #include <math.h>
 #include <ctype.h>
+#include "envvar_public.h"
+#include "insert_public.h"
+#include "rdscor.h"
+#include "csound_orc_semantics_public.h"
 
 /*****************************************************************************/
 /*****************************************************************************/

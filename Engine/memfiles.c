@@ -31,6 +31,8 @@
 #include "namedins.h"
 #include <string.h>
 #include <inttypes.h>
+#include "envvar_public.h"
+#include "insert_public.h"
 
 static int Load_Het_File_(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)

@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"     /*                      CSCORFNS.C      */
 #include "cscore.h"
 #include "corfile.h"
+#include "envvar_public.h"
 
 #define TYP_FREE   0
 #define TYP_EVENT  1

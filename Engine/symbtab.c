@@ -34,6 +34,7 @@
 #include "interlocks.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "csound_orc_semantics_public.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)

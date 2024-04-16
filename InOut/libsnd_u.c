@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#include "libsnd_u.h"
+
 #include "csoundCore_internal.h"
 #include "soundio.h"
 

@@ -25,6 +25,7 @@
 #include "csoundCore_internal.h"
 #include "interlocks.h"
 #include "soundio.h"
+#include "rdscor.h"
 
 typedef struct SNDLOAD_OPCODE_ {
     OPDS    h;

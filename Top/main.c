@@ -27,6 +27,8 @@
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 //#include "cs_par_dispatch.h"
+#include "csound_orc_semantics_public.h"
+#include "libsnd_u.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 CS_NORETURN void    dieu(CSOUND *, char *, ...);

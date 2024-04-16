@@ -30,6 +30,9 @@
 #include "sndinfUG.h"
 #include "pvfileio.h"
 #include "convolve.h"
+#include "rdscor.h"
+#include "envvar_public.h"
+#include "libsnd_u.h"
 
 static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t strin)
 {

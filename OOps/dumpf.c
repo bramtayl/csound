@@ -25,6 +25,8 @@
 #include "dumpf.h"
 #include <ctype.h>
 #include <inttypes.h>
+#include "auxfd.h"
+#include "rdscor.h"
 
 static const int32_t dumpf_format_table[9] = {
   0,

@@ -34,7 +34,7 @@
 #include <math.h>
 #include "csoundCore_internal.h"
 #include "interlocks.h"
-#include "H/fftlib.h"
+#include "fftlib.h"
 
 #ifdef ANDROID
 float crealf(_Complex float);

@@ -39,4 +39,6 @@ typedef struct csstructvar {
   CS_VAR_MEM** members;
 } CS_STRUCT_VAR;
 
+void do_baktrace(CSOUND *, uint64_t);
+
 #endif

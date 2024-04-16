@@ -26,6 +26,9 @@
 #include "diskin2.h"
 #include <math.h>
 #include <inttypes.h>
+#include "auxfd.h"
+#include "rdscor.h"
+#include "envvar_public.h"
 
 typedef struct DISKIN_INST_ {
   CSOUND *csound;

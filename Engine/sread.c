@@ -28,6 +28,7 @@
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
 #include "Engine/score_param.h"
+#include "csound_orc_semantics_public.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */

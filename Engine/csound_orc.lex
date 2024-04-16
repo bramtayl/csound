@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore_internal.h"
+#include "csound_orc_semantics_public.h"
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \

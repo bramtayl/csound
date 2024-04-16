@@ -27,6 +27,7 @@
 #include "csoundCore_internal.h"
 #include "cmath.h"
 #include <math.h>
+#include "insert.h"
 
 int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 {

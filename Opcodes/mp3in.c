@@ -26,6 +26,7 @@
 #include "csoundCore_internal.h"
 #include "interlocks.h"
 #include "mp3dec.h"
+#include "rdscor.h"
 
 
 typedef struct {

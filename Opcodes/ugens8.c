@@ -23,6 +23,7 @@
 
 #include "pvoc.h"         /*      UGENS8.C        */
 #include <math.h>
+#include "rdscor.h"
 
 /* RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"

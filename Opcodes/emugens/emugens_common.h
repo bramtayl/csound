@@ -1,7 +1,7 @@
 #ifndef EMUGENS_COMMON_H
 #define EMUGENS_COMMON_H
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 
 
 #define INITERR(m) (csound->InitError(csound, "%s", m))

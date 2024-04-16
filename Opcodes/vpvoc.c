@@ -28,6 +28,7 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "rdscor.h"
 
 int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {

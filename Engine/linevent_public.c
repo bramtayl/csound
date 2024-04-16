@@ -29,6 +29,8 @@
 #endif
 
 #include "linevent.h"
+#include "musmon.h"
+#include "rdscor.h"
 
 #ifdef PIPES
 # if defined(SGI) || defined(__gnu_linux__) || defined(NeXT) || defined(__MACH__)

@@ -119,7 +119,7 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
     return NOTOK;
 }
 
-static inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power function */
+inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power function */
 {
     MYFLT ans = FL(1.0);
     while (n!=0) {
@@ -128,15 +128,6 @@ static inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power functio
       x = x*x;
     }
     return ans;
-}
-
-MYFLT intpow(MYFLT x, int32_t n)   /* Binary power function */
-{
-    if (n<0) {
-      n = -n;
-      x = FL(1.0)/x;
-    }
-    return intpow1(x, n);
 }
 
 int32_t gbuzz(CSOUND *csound, GBUZZ *p)
