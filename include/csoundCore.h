@@ -45,7 +45,6 @@
 #include "pools.h"
 #include "soundfile.h"
 #include "csoundCore_common.h"
-#include "memfiles.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,7 +62,7 @@ extern "C" {
    * they are required by plugins.
    */
   struct CSOUND_ {
-    CSOUND_PUBLIC_FIELDS
+    int dummy; // need at least one field?
   };
 
 #ifdef __cplusplus

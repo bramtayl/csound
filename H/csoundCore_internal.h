@@ -249,7 +249,6 @@ int csoundIsInitThread(CSOUND *csound);
  * they are required by plugins.
  */
 struct CSOUND_ {
-  CSOUND_PUBLIC_FIELDS
   /* ------- private data (not to be used by hosts or externals) ------- */
   /** @name Private Data
     Private Data in the CSOUND struct to be used internally by the Csound
