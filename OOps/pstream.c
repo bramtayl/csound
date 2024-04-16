@@ -30,6 +30,11 @@
 #include "pstream.h"
 #include "pvfileio.h"
 #include "rdscor.h"
+#include "namedins_public.h"
+#include "fgens_public.h"
+#include "auxfd.h"
+#include "memfiles.h"
+#include "insert_public.h"
 
 #ifdef _DEBUG
 #include <assert.h>
@@ -65,19 +70,19 @@ int32_t fassign_set(CSOUND *csound, FASSIGN *p)
     /* sliding needs to be checked */
     if (p->fsrc->sliding) {
       p->fout->NB = p->fsrc->NB;
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+      csoundAuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
                        &p->fout->frame);
       return OK;
     }
     if (p->fsrc->format < 0){
       p->fout->frame.auxp = p->fsrc->frame.auxp;
       p->fout->frame.size = p->fsrc->frame.size;
-      //csound->Message(csound, Str("fsig = : init\n"));
+      //csoundMessage(csound, Str("fsig = : init\n"));
     }
     else
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+      csoundAuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     p->fout->framecount = 1;
-    //csound->Message(csound, Str("fsig = : init\n"));
+    //csoundMessage(csound, Str("fsig = : init\n"));
     return OK;
 }
 
@@ -89,11 +94,11 @@ int32_t fassign(CSOUND *csound, FASSIGN *p)
     fout = (float *) p->fout->frame.auxp;
     fsrc = (float *) p->fsrc->frame.auxp;
     if (fout == fsrc) {
-      //csound->Message(csound, Str("fsig = : no cpy\n"));
+      //csoundMessage(csound, Str("fsig = : no cpy\n"));
       return OK;
     }
     // if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
-    //return csound->PerfError(csound,&(p->h),
+    //return csoundPerfError(csound,&(p->h),
     //                         Str("fsig = : formats are different.\n"));
     if (p->fsrc->sliding) {
       memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
@@ -125,7 +130,7 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     MYFLT *p_x;
 
     if (UNLIKELY(fs->sliding))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
+      return csoundInitError(csound, Str("Sliding version not yet available"));
     p->overlap = fs->overlap;
     /* a moot question, whether window params are relevant for adsyn?*/
     /* but for now, we validate all params in fsig */
@@ -135,10 +140,10 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     noscs   = N/2 + 1;                     /* max possible */
     n_oscs = (int32_t) *p->n_oscs;    /* user param*/
     if (UNLIKELY(n_oscs <=0))
-      csound->InitError(csound, Str("pvadsyn: bad value for inoscs\n"));
+      csoundInitError(csound, Str("pvadsyn: bad value for inoscs\n"));
     /* remove this when I know how to do it... */
     if (UNLIKELY(fs->format != PVS_AMP_FREQ))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvadsyn: format must be amp-freq (0).\n"));
     p->format = fs->format;
     /* interesting question: could noscs be krate variable?
@@ -149,15 +154,15 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     startbin = (int32_t) *p->ibin;            /* default 0 */
     binoffset = (int32_t) *p->ibinoffset; /* default 1 */
     if (UNLIKELY(startbin < 0 || startbin > noscs))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvsadsyn: ibin parameter out of range.\n"));
     if (UNLIKELY(startbin + n_oscs > noscs))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvsadsyn: ibin + inoscs too large.\n"));
     /* calc final max bin target */
     p->maxosc = startbin + (n_oscs * binoffset);
     if (UNLIKELY(p->maxosc > noscs))
-      return csound->InitError(csound, Str("pvsadsyn: "
+      return csoundInitError(csound, Str("pvsadsyn: "
                               "ibin + (inoscs * ibinoffset) too large."));
 
     p->outptr = 0;
@@ -167,13 +172,13 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
     /* alloc for all oscs;
        in case we can do something with them dynamically, one day */
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->a);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->x);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->y);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->amps);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->lastamps);
-    csound->AuxAlloc(csound, noscs * sizeof(MYFLT),&p->freqs);
-    csound->AuxAlloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
+    csoundAuxAlloc(csound, noscs * sizeof(MYFLT),&p->a);
+    csoundAuxAlloc(csound, noscs * sizeof(MYFLT),&p->x);
+    csoundAuxAlloc(csound, noscs * sizeof(MYFLT),&p->y);
+    csoundAuxAlloc(csound, noscs * sizeof(MYFLT),&p->amps);
+    csoundAuxAlloc(csound, noscs * sizeof(MYFLT),&p->lastamps);
+    csoundAuxAlloc(csound, noscs * sizeof(MYFLT),&p->freqs);
+    csoundAuxAlloc(csound, p->overlap * sizeof(MYFLT),&p->outbuf);
     /* initialize oscbank */
     p_x = (MYFLT *) p->x.auxp;
     for (i=0;i < noscs;i++)
@@ -267,7 +272,7 @@ int32_t pvadsyn(CSOUND *csound, PVADS *p)
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->outbuf.auxp==NULL)) {
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsynth: Not initialised.\n"));
     }
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
@@ -296,7 +301,7 @@ int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
 
     /* make sure fdest is same format */
     if (UNLIKELY(!fsigs_equal(fsrc,p->fdest)))
-      return csound->InitError(csound, Str("pvscross: source and dest signals "
+      return csoundInitError(csound, Str("pvscross: source and dest signals "
                               "must have same format\n"));
     fout->N =  N;
     fout->overlap = p->overlap;
@@ -306,13 +311,13 @@ int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
     //   fout->format = p->fsrc->sliding;
     if (fsrc->sliding) {
       fout->NB = fsrc->NB;
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
+      csoundAuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                        &fout->frame);
       return OK;
     }
     /* setup output signal */
     /* RWD MUST be 32bit */
-    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &fout->frame);
+    csoundAuxAlloc(csound, (N + 2) * sizeof(float), &fout->frame);
     fout->framecount = 1;
     p->lastframe = 0;
     return OK;
@@ -328,15 +333,15 @@ int32_t pvscross(CSOUND *csound, PVSCROSS *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if (UNLIKELY(fout==NULL))
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvscross: not initialised\n"));
 
     /* make sure sigs have same format as output */
     if (UNLIKELY(!fsigs_equal(p->fout,p->fsrc)))
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvscross: mismatch in fsrc format\n"));
     if (UNLIKELY(!fsigs_equal(p->fout,p->fdest)))
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvscross: mismatch in fdest format\n"));
     if (p->fsrc->sliding) {
       CMPLX *fout, *fsrc, *fdest;
@@ -381,12 +386,12 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     char            pvfilnam[MAXNAME];
 
     if (stringname) strNcpy(pvfilnam, ((STRINGDAT*)p->ifilno)->data, MAXNAME-1);
-    else if (csound->ISSTRCOD(*p->ifilno))
+    else if (isstrcod(*p->ifilno))
       strNcpy(pvfilnam, get_arg_string(csound, *p->ifilno), MAXNAME-1);
-    else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
+    else strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
 
     if (UNLIKELY(PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)) {
-      return csound->InitError(csound, Str("Failed to load PVOC-EX file"));
+      return csoundInitError(csound, Str("Failed to load PVOC-EX file"));
     }
     p->ptr = 0;
     p->overlap = pp.overlap;
@@ -400,27 +405,27 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     p->membase = (float*) pp.data;
 
     if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS || p->overlap < 10))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
+      return csoundInitError(csound, Str("Sliding version not yet available"));
     if (UNLIKELY(p->nframes <= 0))
-      return csound->InitError(csound, Str("pvsfread: file is empty!\n"));
+      return csoundInitError(csound, Str("pvsfread: file is empty!\n"));
     /* special case if only one frame - it is an impulse response */
     if (UNLIKELY(p->nframes == 1))
-      return csound->InitError(csound, Str("pvsfread: file has only one frame "
+      return csoundInitError(csound, Str("pvsfread: file has only one frame "
                               "(= impulse response).\n"));
     if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS))
-      return csound->InitError(csound, Str("pvsfread: analysis frame overlap "
+      return csoundInitError(csound, Str("pvsfread: analysis frame overlap "
                               "must be >= ksmps\n"));
     p->blockalign = (p->fftsize+2) * p->chans;
     if (UNLIKELY((*p->ichan) >= p->chans))
-      return csound->InitError(csound, Str("pvsfread: ichan value exceeds "
+      return csoundInitError(csound, Str("pvsfread: ichan value exceeds "
                               "file channel count.\n"));
     if (UNLIKELY((int32_t) (*p->ichan) < 0))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvsfread: ichan cannot be negative.\n"));
 
     N = p->fftsize;
     /* setup output signal */
-    csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+    csoundAuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     /* init sig with first frame from file,
        regardless (always zero amps, but with bin freqs) */
     p->chanoffset = (int32_t) MYFLT2LRND(*p->ichan) * (N + 2);
@@ -460,7 +465,7 @@ int32_t pvsfread(CSOUND *csound, PVSFREAD *p)
     float *fout = (float *) p->fout->frame.auxp;
 
     if (UNLIKELY(fout==NULL))
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsfread: not initialised.\n"));
 
     pmem = (float *) p->membase;
@@ -520,7 +525,7 @@ int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
     p->format  = p->fsrc->format;
     p->fftsize = N;
     if (UNLIKELY(!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE)))
-      return csound->InitError(csound, Str("pvsmaska: "
+      return csoundInitError(csound, Str("pvsmaska: "
                               "signal format must be amp-phase or amp-freq."));
     /* setup output signal */
     p->fout->N =  N;
@@ -530,24 +535,24 @@ int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
     p->fout->format  = p->format;
     p->fout->sliding = p->fsrc->sliding;
     if (p->fsrc->sliding) {
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
+      csoundAuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                        &p->fout->frame);
       p->fout->NB = p->fsrc->NB;
     }
     else
       {
         /* RWD MUST be 32bit */
-        csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+        csoundAuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
         p->fout->framecount = 1;
         p->lastframe = 0;
       }
-    p->maskfunc = csound->FTnp2Finde(csound, p->ifn);
+    p->maskfunc = csoundFTnp2Finde(csound, p->ifn);
     if (UNLIKELY(p->maskfunc==NULL))
       return NOTOK;
 
     /* require at least size of nbins */
     if (UNLIKELY(p->maskfunc->flen + 1 <         nbins))
-      return csound->InitError(csound, Str("pvsmaska: ftable too small.\n"));
+      return csoundInitError(csound, Str("pvsmaska: ftable too small.\n"));
 
     /* clip any negative values in table */
     ftable = p->maskfunc->ftable;
@@ -572,13 +577,13 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
     fsrc = (float *) p->fsrc->frame.auxp;
 
     if (UNLIKELY(fout==NULL))
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsmaska: not initialised\n"));
 
     if (depth < FL(0.0)) {
       /* need the warning: but krate linseg can give below-zeroes incorrectly */
       if (UNLIKELY(!p->nwarned))  {
-        csound->Warning(csound, Str("pvsmaska: negative value for kdepth; "
+        csoundWarning(csound, Str("pvsmaska: negative value for kdepth; "
                      "clipped to zero.\n"));
         p->nwarned = 1;
       }
@@ -586,7 +591,7 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
     }
     if (UNLIKELY(depth > 1.0f)) {
       if (UNLIKELY(!p->pwarned))  {
-        csound->Warning(csound, Str("pvsmaska: kdepth > 1: clipped.\n"));
+        csoundWarning(csound, Str("pvsmaska: kdepth > 1: clipped.\n"));
         p->pwarned = 1;
       }
       depth = 1.0f;
@@ -655,24 +660,24 @@ int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
     p->lastframe = 0;
 
     if (UNLIKELY(!((p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE))))
-      return csound->InitError(csound, Str("pvsftw: signal format must be "
+      return csoundInitError(csound, Str("pvsftw: signal format must be "
                                            "amp-phase or amp-freq.\n"));
     if (UNLIKELY(*p->ifna < 1.0f))
-      return csound->InitError(csound, Str("pvsftw: bad value for ifna.\n"));
+      return csoundInitError(csound, Str("pvsftw: bad value for ifna.\n"));
     if (UNLIKELY(*p->ifnf < 0.0f))                /* 0 = notused */
-      return csound->InitError(csound, Str("pvsftw: bad value for ifnf.\n"));
-    p->outfna = csound->FTnp2Finde(csound, p->ifna);
+      return csoundInitError(csound, Str("pvsftw: bad value for ifnf.\n"));
+    p->outfna = csoundFTnp2Finde(csound, p->ifna);
     if (UNLIKELY(p->outfna==NULL))
       return NOTOK;
     if (UNLIKELY(p->fsrc->sliding))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
+      return csoundInitError(csound, Str("Sliding version not yet available"));
     fsrc = (float *) p->fsrc->frame.auxp;               /* RWD MUST be 32bit */
     /* init table, one presumes with zero amps */
     nbins = p->fftsize/2 + 1;
     flena = p->outfna->flen + 1;
 
     if (UNLIKELY(flena < nbins))
-      return csound->InitError(csound, Str("pvsftw: amps ftable too small.\n"));
+      return csoundInitError(csound, Str("pvsftw: amps ftable too small.\n"));
 
     /* init tables */
     ftablea = p->outfna->ftable;
@@ -681,14 +686,14 @@ int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
 
     /* freq table? */
     if ((int32_t) *p->ifnf >= 1) {
-      p->outfnf = csound->FTnp2Finde(csound, p->ifnf);
+      p->outfnf = csoundFTnp2Finde(csound, p->ifnf);
       if (UNLIKELY(p->outfnf==NULL))
         return NOTOK;
       ftablef = p->outfnf->ftable;
       if (ftablef) {
         flenf = p->outfnf->flen+1;
         if (UNLIKELY(flenf < nbins))
-          return csound->InitError(csound,
+          return csoundInitError(csound,
                                    Str("pvsftw: freqs ftable too small.\n"));
         for (i=0;i < nbins;i++)
           ftablef[i] = fsrc[(i*2) + 1];
@@ -709,15 +714,15 @@ int32_t pvsftw(CSOUND *csound, PVSFTW *p)
     fsrc = (float *) p->fsrc->frame.auxp;
 
     if (UNLIKELY(fsrc==NULL))
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsftw: not initialised\n"));
     if (UNLIKELY(ftablea==NULL))
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsftw: no amps ftable!\n"));
     if (p->outfnf) {
       ftablef = p->outfnf->ftable;
       if (UNLIKELY(ftablef==NULL))
-        return csound->PerfError(csound,&(p->h),
+        return csoundPerfError(csound,&(p->h),
                                  Str("pvsftw: no freqs ftable!\n"));
     }
     nbins = p->fftsize/2 + 1;
@@ -760,28 +765,28 @@ int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
     nbins        = p->fftsize/2 + 1;
 
     if (UNLIKELY(!(p->format==PVS_AMP_FREQ) || (p->format==PVS_AMP_PHASE)))
-      return csound->InitError(csound, Str("pvsftr: signal format must be "
+      return csoundInitError(csound, Str("pvsftr: signal format must be "
                               "amp-phase or amp-freq.\n"));
     /* ifn = 0 = notused */
     if (UNLIKELY(*p->ifna < FL(0.0)))
-      return csound->InitError(csound, Str("pvsftr: bad value for ifna.\n"));
+      return csoundInitError(csound, Str("pvsftr: bad value for ifna.\n"));
     if (UNLIKELY(*p->ifnf < FL(0.0)))
-      return csound->InitError(csound, Str("pvsftr: bad value for ifnf.\n"));
+      return csoundInitError(csound, Str("pvsftr: bad value for ifnf.\n"));
 
     /* if ifna=0; no amps to read; one assumes the user ias changing freqs only,
        otherwise, there is no change!
     */
     if ((int32_t) *p->ifna != 0) {
-      p->infna = csound->FTnp2Finde(csound, p->ifna);
+      p->infna = csoundFTnp2Finde(csound, p->ifna);
       if (UNLIKELY(p->infna==NULL))
         return NOTOK;
       p->ftablea = p->infna->ftable;
       flena = p->infna->flen + 1;
       if (UNLIKELY(flena < nbins))
-        return csound->InitError(csound, Str("pvsftr: amps ftable too small.\n"));
+        return csoundInitError(csound, Str("pvsftr: amps ftable too small.\n"));
     }
     if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS || p->overlap < 10))
-      return csound->InitError(csound, Str("Sliding version not yet available"));
+      return csoundInitError(csound, Str("Sliding version not yet available"));
     fdest = (float *) p->fdest->frame.auxp;             /* RWD MUST be 32bit */
 
     /*** setup first frame ?? */
@@ -791,13 +796,13 @@ int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
 
     /* freq table? */
     if ((int32_t) *p->ifnf >= 1) {
-      p->infnf = csound->FTnp2Finde(csound, p->ifnf);
+      p->infnf = csoundFTnp2Finde(csound, p->ifnf);
       if (UNLIKELY(p->infnf==NULL))
         return NOTOK;
       p->ftablef = p->infnf->ftable;
       flenf = p->infnf->flen+1;
       if (UNLIKELY(flenf < nbins))
-        return csound->InitError(csound, Str("pvsftr: freqs ftable too small.\n"));
+        return csoundInitError(csound, Str("pvsftr: freqs ftable too small.\n"));
       for (i=0;i < nbins;i++)
         fdest[(i*2) + 1] = (float) p->ftablef[i];
 
@@ -814,7 +819,7 @@ int32_t pvsftr(CSOUND *csound, PVSFTR *p)
 
     fdest = (float *) p->fdest->frame.auxp;
     if (UNLIKELY(fdest==NULL))
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsftr: not initialised\n"));
     nbins = p->fftsize/2 + 1;
 

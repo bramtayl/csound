@@ -27,6 +27,7 @@
 #include <time.h>
 #include <inttypes.h>
 #include "libsnd_u.h"
+#include "memalloc.h"
 #include "envvar_public.h"
 
 #ifdef HAVE_SYS_TYPES_H
@@ -169,11 +170,11 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       rewriteheader((void *)STA(outfile));
     switch (O->heartbeat) {
       case 1:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+        csoundMessageS(csound, CSOUNDMSG_REALTIME,
                                  "%c\010", "|/-\\"[csound->nrecs & 3]);
         break;
       case 2:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, ".");
         break;
       case 3:
         {
@@ -183,12 +184,12 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s",  s);
+            csoundMessageS(csound, CSOUNDMSG_REALTIME, "%s",  s);
           }
         }
         break;
       case 4:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", "\a");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "%s", "\a");
         break;
     }
 }
@@ -223,11 +224,11 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       rewriteheader(STA(outfile));
     switch (O->heartbeat) {
       case 1:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+        csoundMessageS(csound, CSOUNDMSG_REALTIME,
                                  "%c\010", "|/-\\"[csound->nrecs & 3]);
         break;
       case 2:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, ".");
         break;
       case 3:
         {
@@ -237,12 +238,12 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+            csoundMessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
           }
         }
         break;
       case 4:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "\a");
         break;
     }
 }
@@ -277,11 +278,11 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       rewriteheader(STA(outfile));
     switch (O->heartbeat) {
       case 1:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+        csoundMessageS(csound, CSOUNDMSG_REALTIME,
                                  "%c\010", "|/-\\"[csound->nrecs & 3]);
         break;
       case 2:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, ".");
         break;
       case 3:
         {
@@ -291,12 +292,12 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+            csoundMessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
           }
         }
         break;
       case 4:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "\a");
         break;
     }
 }
@@ -329,11 +330,11 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       rewriteheader(STA(outfile));
     switch (O->heartbeat) {
       case 1:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+        csoundMessageS(csound, CSOUNDMSG_REALTIME,
                                  "%c\010", "|/-\\"[csound->nrecs & 3]);
         break;
       case 2:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, ".");
         break;
       case 3:
         {
@@ -343,12 +344,12 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s",  s);
+            csoundMessageS(csound, CSOUNDMSG_REALTIME, "%s",  s);
           }
         }
         break;
       case 4:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s",  "\a");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "%s",  "\a");
         break;
     }
 }
@@ -381,11 +382,11 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       rewriteheader(STA(outfile));
     switch (O->heartbeat) {
       case 1:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME,
+        csoundMessageS(csound, CSOUNDMSG_REALTIME,
                                  "%c\010", "|/-\\"[csound->nrecs & 3]);
         break;
       case 2:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, ".");
         break;
       case 3:
         {
@@ -395,12 +396,12 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
-            csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
+            csoundMessageS(csound, CSOUNDMSG_REALTIME, "%s", s);
           }
         }
         break;
       case 4:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "\a");
         break;
     }
 }
@@ -470,7 +471,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     int     isfd = 0;   /* stdin */
 
     if(csound->inchnls < 1)
-       csound->Die(csound,
+       csoundDie(csound,
                  Str("error: cannot run input audio with nchnls_i=0"));
 
 
@@ -478,7 +479,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     STA(inbufrem) = (uint32) 0;    /* start with empty buffer */
     sfname = O->infilename;
     if (UNLIKELY(sfname == NULL || sfname[0] == '\0'))
-      csound->Die(csound, Str("error: no input file name"));
+      csoundDie(csound, Str("error: no input file name"));
 
     if (strcmp(sfname, "stdin") == 0) {
       STA(pipdevin) = 1;
@@ -546,12 +547,12 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     }
     /* chk the hdr codes  */
     if (sfinfo.samplerate != (int) MYFLT2LRND(csound->esr)) {
-      csound->Warning(csound, Str("audio_in %s has sr = %d, orch sr = %d"),
+      csoundWarning(csound, Str("audio_in %s has sr = %d, orch sr = %d"),
                               sfname, (int) sfinfo.samplerate,
                               (int) MYFLT2LRND(csound->esr));
     }
     if (sfinfo.channels != csound->inchnls) {
-      csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls_i"),
+      csoundWarning(csound, Str("audio_in %s has %d chnls, orch %d chnls_i"),
                               sfname, (int) sfinfo.channels, csound->inchnls);
     }
     /* Do we care about the format?  Can assume float?? */
@@ -567,16 +568,16 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
  inset:
     /* calc inbufsize reqd */
     STA(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(MYFLT));
-    STA(inbuf) = (MYFLT*) csound->Calloc(csound,
+    STA(inbuf) = (MYFLT*) mcalloc(csound,
                                          STA(inbufsiz)); /* alloc inbuf space */
     if (STA(pipdevout) == 2) {
-       csound->Message(csound,
+       csoundMessage(csound,
                       Str("reading %d sample blks of %lu-bit floats from %s\n"),
                       O->inbufsamps * O->sfsampsize,
                       (unsigned long) sizeof(MYFLT)*8, sfname);
     }
     else {
-       csound->Message(csound,
+       csoundMessage(csound,
                       Str("reading %d-byte blks of %s from %s (%s)\n"),
                       O->inbufsamps * (int) sfsampsize(FORMAT2SF(O->informat)),
                       getstrformat(O->informat), sfname, type2string(fileType));
@@ -701,7 +702,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
           strcpy(fmt_name, "IRCAM");
           O->filetyp = TYP_IRCAM;
         }
-        csound->Message(csound, Str("Output file type changed to %s "
+        csoundMessage(csound, Str("Output file type changed to %s "
                                     "for use in pipe\n"), fmt_name);
       }
     }
@@ -777,7 +778,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
           strcpy(fmt_name, "IRCAM");
           O->filetyp = TYP_IRCAM;
         }
-        csound->Message(csound, Str("Output file type changed to %s "
+        csoundMessage(csound, Str("Output file type changed to %s "
                                     "for use in pipe\n"), fmt_name);
         sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
         STA(outfile) = sflib_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
@@ -808,7 +809,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
  #ifdef SNDFILE_MP3
     // VL: setting bitrate to constant improves quality
     if(O->filetyp == TYP_MPEG) {
-      csound->Message(csound, "Setting MP3 bitrate to %s\n", O->mp3_mode ? "variable" : "constant" );;
+      csoundMessage(csound, "Setting MP3 bitrate to %s\n", O->mp3_mode ? "variable" : "constant" );;
       sf_command(STA(outfile), SFC_SET_BITRATE_MODE,
                  &(O->mp3_mode), sizeof(int));
     }
@@ -880,23 +881,23 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     O->sfsampsize = (int) sfsampsize(FORMAT2SF(O->outformat));
     /* calc outbuf size & alloc bufspace */
     STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
-    STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
+    STA(outbufp)   = STA(outbuf) = mmalloc(csound, STA(outbufsiz));
     if (STA(pipdevout) == 2) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("writing %d sample blks of %lu-bit floats to %s\n"),
                       O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
                       STA(sfoutname));
 
     }
     else {
-      csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
+      csoundMessage(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), STA(sfoutname));
 
     if (O->sfheader == 0)
-      csound->Message(csound, Str(" (raw)\n"));
+      csoundMessage(csound, Str(" (raw)\n"));
     else
-      csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+      csoundMessage(csound, " (%s)\n", type2string(O->filetyp));
     }
     STA(osfopen)   = 1;
     STA(outbufrem) = O->outbufsamps;
@@ -959,20 +960,20 @@ void sfcloseout(CSOUND *csound)
 
  report:
     if (STA(pipdevout) == 2) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       "%"PRIi32" %d %s%lu%s%s\n",
                       csound->nrecs, O->outbufsamps, Str("sample blks of "),
                       (unsigned long)sizeof(MYFLT)*8,Str("-bit floats written to "),
                       STA(sfoutname));
     }
     else {
-      csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
+      csoundMessage(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
                       getstrformat(O->outformat), STA(sfoutname));
       if (O->sfheader == 0)
-        csound->Message(csound, Str(" (raw)\n"));
+        csoundMessage(csound, Str(" (raw)\n"));
       else
-        csound->Message(csound, " (%s)\n", type2string(O->filetyp));
+        csoundMessage(csound, " (%s)\n", type2string(O->filetyp));
       
     }
     STA(osfopen) = 0;
@@ -983,20 +984,20 @@ void sfcloseout(CSOUND *csound)
 
 static void sndwrterr(CSOUND *csound, int nret, int nput)
 {
-    csound->ErrorMsg(csound,
+    csoundErrorMsg(csound,
                      Str("soundfile write returned bytecount of %d, not %d"),
                      nret, nput);
-    csound->ErrorMsg(csound,
+    csoundErrorMsg(csound,
                      Str("(disk may be full...\n closing the file ...)"));
     STA(outbufrem) = csound->oparms->outbufsamps;  /* consider buf is flushed */
     sfcloseout(csound);                           /* & try to close the file */
-    csound->Die(csound, Str("\t... closed\n"));
+    csoundDie(csound, Str("\t... closed\n"));
 }
 
 void sfnopenout(CSOUND *csound)
 {
     alloc_globals(csound);
-    csound->Message(csound, Str("not writing to sound disk\n"));
+    csoundMessage(csound, Str("not writing to sound disk\n"));
     
     /* init counter, though not writing */
     STA(outbufrem) = csound->oparms->outbufsamps;
@@ -1071,9 +1072,9 @@ void iotranset(CSOUND *csound)
       return;
     }
     STA(inbufsiz)  = (unsigned int) (O->inbufsamps * (int) sizeof(MYFLT));
-    STA(inbuf)     = (MYFLT*) csound->Calloc(csound, STA(inbufsiz));
+    STA(inbuf)     = (MYFLT*) mcalloc(csound, STA(inbufsiz));
     STA(outbufsiz) = (unsigned int) (O->outbufsamps * (int) sizeof(MYFLT));
-    STA(outbuf)    = (MYFLT*) csound->Calloc(csound, STA(outbufsiz));
+    STA(outbuf)    = (MYFLT*) mcalloc(csound, STA(outbufsiz));
     STA(outbufp)   = STA(outbuf);
     O->sfread      = 1;
     O->sfwrite     = 1;

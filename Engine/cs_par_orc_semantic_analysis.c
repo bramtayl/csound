@@ -32,6 +32,7 @@
 #include "cs_par_orc_semantics.h"
 
 #include "interlocks.h"
+#include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 
 OENTRY* find_opcode(CSOUND *, char *);
@@ -48,7 +49,7 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name);
 static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
 {
     INSTR_SEMANTICS *instr =
-      csound->Malloc(csound, sizeof(INSTR_SEMANTICS));
+      mmalloc(csound, sizeof(INSTR_SEMANTICS));
     memset(instr, 0, sizeof(INSTR_SEMANTICS));
     memcpy(instr->hdr, INSTR_SEMANTICS_HDR, HDR_LEN);
     instr->name = name;
@@ -82,7 +83,7 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
 
 /*       h = current; */
 /*       current = current->next; */
-/*       csound->Free(csound, h); */
+/*       mfree(csound, h); */
 /*     } */
 /*     current = csound->instCurr; */
 /*     while (current != NULL) { */
@@ -93,7 +94,7 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
 
 /*       h = current; */
 /*       current = current->next; */
-/*       csound->Free(csound, h); */
+/*       mfree(csound, h); */
 /*     } */
 
 /*     csound->instCurr = NULL; */
@@ -125,22 +126,22 @@ void sanitize(CSOUND*csound)
 }
 void csp_orc_sa_print_list(CSOUND *csound)
 {
-    csound->Message(csound, "Semantic Analysis\n");
+    csoundMessage(csound, "Semantic Analysis\n");
     INSTR_SEMANTICS *current = csound->instRoot;
     while (current != NULL) {
-      csound->Message(csound, "(%p)Instr: %s\n", current, current->name);
-      csound->Message(csound, "  read(%p): ", current->read);
+      csoundMessage(csound, "(%p)Instr: %s\n", current, current->name);
+      csoundMessage(csound, "  read(%p): ", current->read);
       csp_set_print(csound, current->read);
 
-      csound->Message(csound, "  write:(%p) ", current->write);
+      csoundMessage(csound, "  write:(%p) ", current->write);
       csp_set_print(csound, current->write);
 
-      csound->Message(csound, "  read_write(%p): ", current->read_write);
+      csoundMessage(csound, "  read_write(%p): ", current->read_write);
       csp_set_print(csound, current->read_write);
 
       current = current->next;
     }
-    csound->Message(csound, "Semantic Analysis Ends\n");
+    csoundMessage(csound, "Semantic Analysis Ends\n");
 }
 
 void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
@@ -148,11 +149,11 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
                                            struct set_t *read)
 {
     if (UNLIKELY(csound->instCurr == NULL)) {
-      csound->DebugMsg(csound,
+      csoundDebugMsg(csound,
                       "Add global read, write lists without any instruments\n");
     }
     else if (UNLIKELY(write == NULL  || read == NULL)) {
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("Invalid NULL parameter set to add to global read, "
                       "write lists\n"));
     }
@@ -167,11 +168,11 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
                                            struct set_t *read)
 {
     if (UNLIKELY(csound->instCurr == NULL)) {
-      csound->DebugMsg(csound,
+      csoundDebugMsg(csound,
                       "Add global read, write lists without any instruments\n");
     }
     else if (UNLIKELY(write == NULL  || read == NULL)) {
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("Invalid NULL parameter set to add to global read, "
                       "write lists\n"));
     }
@@ -199,11 +200,11 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
 void csp_orc_sa_global_write_add_list(CSOUND *csound, struct set_t *set)
 {
     if (UNLIKELY(csound->instCurr == NULL)) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("Add a global write_list without any instruments\n"));
     }
     else if (UNLIKELY(set == NULL)) {
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("Invalid NULL parameter set to add to a "
                       "global write_list\n"));
     }
@@ -221,11 +222,11 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
 {
     if (csound->instCurr == NULL) {
       if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound,
+        csoundMessage(csound,
                         "add a global read_list without any instruments\n");
     }
     else if (UNLIKELY(set == NULL)) {
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("Invalid NULL parameter set to add to a "
                       "global read_list\n"));
     }
@@ -260,7 +261,7 @@ static void csp_orc_sa_interlocksf(CSOUND *csound, int code, char *name)
       //      printf("code&qq=%4x msglevel = %4x bit=%4x\n",
       //   code&_QQ, csound->oparms_.msglevel, csound->oparms_.msglevel&CS_NOQQ );
       if (UNLIKELY((code&_QQ) && !(csound->oparms_.msglevel&CS_NOQQ))) {
-        csound->Message(csound, Str("opcode %s deprecated\n"), name);
+        csoundMessage(csound, Str("opcode %s deprecated\n"), name);
       }
     }
 }
@@ -321,8 +322,8 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
       }
       
 //      if (UNLIKELY(x->type != T_INSTLIST)) {
-//        csound->DebugMsg(csound,"type %d not T_INSTLIST\n", x->type);
-//        csound->Die(csound, Str("Not a proper list of ints"));
+//        csoundDebugMsg(csound,"type %d not T_INSTLIST\n", x->type);
+//        csoundDie(csound, Str("Not a proper list of ints"));
 //      }
       csp_orc_sa_instr_add(csound, x->left->value->lexeme);
       x = x->right;
@@ -398,7 +399,7 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
 void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
 {
     if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "Performing csp analysis\n");
+      csoundMessage(csound, "Performing csp analysis\n");
 
     TREE *current = root;
     TREE *temp;
@@ -406,7 +407,7 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
     while (current != NULL) {
       switch (current->type) {
       case INSTR_TOKEN:
-        if (PARSER_DEBUG) csound->Message(csound, "Instrument found\n");
+        if (PARSER_DEBUG) csoundMessage(csound, "Instrument found\n");
 
         temp = current->left;
 
@@ -420,7 +421,7 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
 
         break;
       case UDO_TOKEN:
-        if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
+        if (PARSER_DEBUG) csoundMessage(csound, "UDO found\n");
 
         csp_orc_analyze_tree(csound, current->right);
 
@@ -433,7 +434,7 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
         break;
       default:
         if (UNLIKELY(PARSER_DEBUG))
-          csound->Message(csound,
+          csoundMessage(csound,
                           "Statement: %s\n", current->value->lexeme);
 
         if (current->left != NULL) {
@@ -454,6 +455,6 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
 
     }
 
-    if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "[End csp analysis]\n");
+    if (UNLIKELY(PARSER_DEBUG)) csoundMessage(csound, "[End csp analysis]\n");
 
 }

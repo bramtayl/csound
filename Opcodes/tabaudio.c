@@ -24,6 +24,9 @@
 #include "csoundCore_internal.h"
 #include "interlocks.h"
 #include "soundio.h"
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 typedef struct {
     OPDS    h;
@@ -106,7 +109,7 @@ static uintptr_t write_tab(void* pp)
     //printf("t=%p size=%d ff=%p\n", t, size, ff);
     if (sflib_writef_MYFLT(ff, t, size) != size) {
       sflib_close(ff);
-      csound->PerfError(csound, h,
+      csoundPerfError(csound, h,
                            Str("tabaudio: failed to write data %d"),size);
       *ans = -FL(1.0);
     }
@@ -118,7 +121,7 @@ static uintptr_t write_tab(void* pp)
 int on_reset_audio(CSOUND *csound, void *pp)
 {
     SAVE_THREAD *p =  (SAVE_THREAD *) pp;
-    csound->JoinThread(p->thread);
+    csoundJoinThread(p->thread);
     return 0;
 }
 
@@ -134,8 +137,8 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
       int32_t  skip = MYFLT2LRND(*p->beg);
       int32_t  end = MYFLT2LRND(*p->end);
 
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
-        return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g"), *p->itab);
+      if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->itab)) == NULL)) {
+        return csoundPerfError(csound, &(p->h), Str("tabaudio: No table %g"), *p->itab);
       }
       *p->kans = FL(0.0);
       t = ftp->ftable + skip;
@@ -143,7 +146,7 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
       if (end<=0) size -= skip;
       else size = end - skip;
       if (UNLIKELY(size<0 || size>ftp->flenfrms))
-        return csound->PerfError(csound, &(p->h), Str("ftudio: ilegal size"));
+        return csoundPerfError(csound, &(p->h), Str("ftudio: ilegal size"));
       memset(&sfinfo, 0, sizeof(SFLIB_INFO));
       if (format >= 51)
         sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
@@ -160,34 +163,34 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
       sfinfo.channels = ftp->nchanls;
       ff = sflib_open(p->file->data, SFM_WRITE, &sfinfo);
       if (ff==NULL)
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                                  Str("tabaudio: failed to open file %s"),
                                  p->file->data);
       if (*p->sync==FL(0.0)) {  /* write in perf thread */
         if ((n=sflib_writef_MYFLT(ff, t, size)) != size) {
           printf("%s\n", sflib_strerror(ff));
           sflib_close(ff);
-          return csound->PerfError(csound, &(p->h),
+          return csoundPerfError(csound, &(p->h),
                                    Str("tabaudio: failed to write data %d %d"),
                                    n,size);
         }
         sflib_close(ff);
       }
       else {                    /* Use a helper thread */
-        SAVE_THREAD *q = (SAVE_THREAD*)csound->Malloc(csound, sizeof(SAVE_THREAD));
+        SAVE_THREAD *q = (SAVE_THREAD*)mmalloc(csound, sizeof(SAVE_THREAD));
         q->t = t;
         q->size = size;
         q->ff = ff;
         q->ans = p->kans;
         q->csound = csound;
         q->h = &(p->h);
-        if ((q->thread = csound->CreateThread(write_tab, (void*)q))==NULL) {
+        if ((q->thread = csoundCreateThread(write_tab, (void*)q))==NULL) {
           OPDS * i = q->h;
           free(q);
-          return csound->PerfError(csound, i,
+          return csoundPerfError(csound, i,
                                    Str("Error creating thread"));
         }
-        csound->RegisterResetCallback(csound, (void*)q, on_reset_audio);
+        csoundRegisterResetCallback(csound, (void*)q, on_reset_audio);
         /* if (fork() == 0) { */
         /*   ff = sflib_open(p->file->data, SFM_WRITE, &sfinfo); */
         /*   if (ff==NULL) { */
@@ -221,8 +224,8 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
     int32_t  skip = MYFLT2LRND(*p->beg);
     int32_t  end = MYFLT2LRND(*p->end);
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
-      return csound->InitError(csound, Str("tabaudio: No table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->itab)) == NULL)) {
+      return csoundInitError(csound, Str("tabaudio: No table"));
     }
     *p->kans = FL(0.0);
     t = ftp->ftable + skip;
@@ -230,7 +233,7 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
     if (end<=0) size -= skip;
     else size = end - skip;
     if (UNLIKELY(size<0 || size>ftp->flenfrms))
-      return csound->InitError(csound, Str("ftudio: ilegal size"));
+      return csoundInitError(csound, Str("ftudio: ilegal size"));
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     if (format >= 51)
       sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
@@ -248,12 +251,12 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
 
     ff = sflib_open(p->file->data, SFM_WRITE, &sfinfo);
     if (ff==NULL)
-      return csound->InitError(csound, Str("tabaudio: failed to open file %s"),
+      return csoundInitError(csound, Str("tabaudio: failed to open file %s"),
                                p->file->data);
     if ((n=sflib_writef_MYFLT(ff, t, size)) != size) {
       printf("%s\n", sflib_strerror(ff));
       sflib_close(ff);
-      return csound->InitError(csound, Str("tabaudio: failed to write data: %s"),
+      return csoundInitError(csound, Str("tabaudio: failed to write data: %s"),
                                sflib_strerror(ff));
     }
     *p->kans = FL(1.0);

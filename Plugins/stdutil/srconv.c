@@ -49,6 +49,11 @@
 #include <math.h>
 #include <ctype.h>
 
+#include "libsnd_u.h"
+#include "memalloc.h"
+#include "envvar_public.h"
+#include "utility.h"
+
 #define IBUF    (4096)
 #define IBUF2   (IBUF/2)
 #define OBUF    (4096)
@@ -72,24 +77,24 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
     sflib_write_MYFLT(outfd, out_buf, length);
     (*block)++;
     if (oparms->rewrt_hdr)
-      csound->rewriteheader((struct SNDFILE *)outfd);
+      rewriteheader((struct SNDFILE *)outfd);
     switch (oparms->heartbeat) {
       case 1:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
                                                      "|/-\\"[*block & 3]);
         break;
       case 2:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, ".");
         break;
       case 3:
         {
           int n;
-          csound->MessageS(csound, CSOUNDMSG_REALTIME, "%d%n", *block, &n);
-          while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\010");
+          csoundMessageS(csound, CSOUNDMSG_REALTIME, "%d%n", *block, &n);
+          while (n--) csoundMessageS(csound, CSOUNDMSG_REALTIME, "\010");
         }
         break;
       case 4:
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "\007");
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "\007");
     }
     return length;
 }
@@ -98,7 +103,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch,
                               OPARMS *oparms)
 {
     if (oparms->outformat) {
-      csound->Warning(csound, Str("Sound format -%c has been overruled by -%c"),
+      csoundWarning(csound, Str("Sound format -%c has been overruled by -%c"),
                               outformch, c);
     }
     switch (c) {
@@ -131,7 +136,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch,
       break;
     default:
       oparms->outformat = 0;
-      csound->ErrorMsg(csound, Str("srconv: unknown outout format '%c'\n"), c);
+      csoundErrorMsg(csound, Str("srconv: unknown outout format '%c'\n"), c);
       return outformch; /* do nothing */
     };
     return c;
@@ -139,7 +144,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch,
 
 static void dieu(CSOUND *csound, char *s)
 {
-    csound->ErrorMsg(csound, "srconv: %s", s);
+    csoundErrorMsg(csound, "srconv: %s", s);
     usage(csound);
 }
 
@@ -226,7 +231,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     O.outformat = AE_SHORT;
     /* csound->e0dbfs = csound->dbfs_to_float = FL(1.0);*/
 
-    if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
+    if ((envoutyp = csoundGetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
         O.filetyp = TYP_AIFF;
       else if (strcmp(envoutyp, "WAV") == 0)
@@ -254,12 +259,12 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (strcmp(O.outfilename, "stdin") == 0) {
-              csound->ErrorMsg(csound, "%s", Str("-o cannot be stdin"));
+              csoundErrorMsg(csound, "%s", Str("-o cannot be stdin"));
               return -1;
             }
 #if defined(_WIN32)
             if (strcmp(O.outfilename, "stdout") == 0) {
-              csound->ErrorMsg(csound, "%s", Str("stdout audio not supported"));
+              csoundErrorMsg(csound, "%s", Str("stdout audio not supported"));
               return -1;
             }
 #endif
@@ -308,18 +313,18 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           case 'P':
             FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
-            csound->sscanf(s,"%lf", &P);
+            cs_sscanf(s,"%lf", &P);
 #else
-            csound->sscanf(s,"%f", &P);
+            cs_sscanf(s,"%f", &P);
 #endif
             while (*++s);
             break;
           case 'r':
             FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
-            csound->sscanf(s,"%lf", &Rout);
+            cs_sscanf(s,"%lf", &Rout);
 #else
-            csound->sscanf(s,"%f", &Rout);
+            cs_sscanf(s,"%f", &Rout);
 #endif
             while (*++s);
             break;
@@ -330,7 +335,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             while ((*s++)) {}; s--;
             break;
           default:
-            csound->Message(csound, Str("Looking at %c\n"), c);
+            csoundMessage(csound, Str("Looking at %c\n"), c);
             usage(csound);    /* this exits with error */
             return -1;
           }
@@ -338,22 +343,22 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       }
       else if (infile == NULL) {
         infile = --s;
-        csound->Message(csound, Str("Infile set to %s\n"), infile);
+        csoundMessage(csound, Str("Infile set to %s\n"), infile);
       }
       else {
-        csound->Message(csound, Str("End with %s\n"), s);
+        csoundMessage(csound, Str("End with %s\n"), s);
         usage(csound);
         return -1;
       }
     }
     if (infile == NULL) {
-      csound->Message(csound, "%s", Str("No input given\n"));
+      csoundMessage(csound, "%s", Str("No input given\n"));
       usage(csound);
       return -1;
     }
-    if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
+    if ((inf = SAsndgetset(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) == NULL) {
-      csound->ErrorMsg(csound, Str("error while opening %s"), infile);
+      csoundErrorMsg(csound, Str("error while opening %s"), infile);
       return -1;
     }
     if (Rin == FL(0.0))
@@ -380,15 +385,15 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */
-      (void) csound->CreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
+      (void) csoundCreateFileHandle(csound, &tvfp, CSFILE_STD, bfile);
       if (UNLIKELY(fscanf(tvfp, "%d", &tvlen) != 1))
-        csound->Message(csound, "%s", Str("Read failure\n"));
+        csoundMessage(csound, "%s", Str("Read failure\n"));
       if (UNLKELY(tvlen <= 0)) {
             strNcpy(err_msg, Str("srconv: tvlen <= 0 "), 256);
             goto err_rtn_msg;
        }
-      fxval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
-      fyval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
+      fxval = (MYFLT*) mmalloc(csound, tvlen * sizeof(MYFLT));
+      fyval = (MYFLT*) mmalloc(csound, tvlen * sizeof(MYFLT));
       i0 = fxval;
       i1 = fyval;
       for (i = 0; i < tvlen; i++, i0++, i1++) {
@@ -433,15 +438,15 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     }
     /* This is not right *********  */
     if (P != FL(0.0)) {
-      csound->SetUtilSr(csound,Rin);
+      set_util_sr(csound,Rin);
     }
     if (P == FL(0.0)) {
-      csound->SetUtilSr(csound,Rout);
+      set_util_sr(csound,Rout);
     }
 
     if (O.outformat == 0)
       O.outformat = AE_SHORT;//p->format;
-    O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
+    O.sfsampsize = sfsampsize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
       O.sfheader = 0;
       O.rewrt_hdr = 0;
@@ -472,22 +477,22 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       //printf("filetyp=%x outformat=%x\n", O.filetyp, O.outformat);
       sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
       if (strcmp(O.outfilename, "stdout") != 0) {
-        name = csound->FindOutputFile(csound, O.outfilename, "SFDIR");
+        name = csoundFindOutputFile(csound, O.outfilename, "SFDIR");
         if (name == NULL) {
           snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
           goto err_rtn_msg;
         }
         outfd = sflib_open(name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
-          csound->NotifyFileOpened(csound, name,
-                                   csound->type2csfiletype(O.filetyp,
+          csoundNotifyFileOpened(csound, name,
+                                   type2csfiletype(O.filetyp,
                                                            O.outformat),
                                    1, 0);
         else {
           snprintf(err_msg, 256, Str("libsndfile error: %s\n"), sflib_strerror(NULL));
           goto err_rtn_msg;
         }
-        csound->Free(csound, name);
+        mfree(csound, name);
       }
       else
         outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 1);
@@ -496,18 +501,18 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */
-      (void) csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
+      (void) csoundCreateFileHandle(csound, &outfd, CSFILE_SND_W,
                                       O.outfilename);
       sflib_command(outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
-    csound->SetUtilSr(csound, (MYFLT)p->sr);
-    csound->SetUtilNchnls(csound, Chans = p->nchanls);
+    set_util_sr(csound, (MYFLT)p->sr);
+    set_util_nchnls(csound, Chans = p->nchanls);
 
     outbufsiz = OBUF * O.sfsampsize;                   /* calc outbuf size */
-    csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
-                    outbufsiz, csound->getstrformat(O.outformat),
+    csoundMessage(csound, Str("writing %d-byte blks of %s to %s"),
+                    outbufsiz, getstrformat(O.outformat),
                     O.outfilename);
-    csound->Message(csound, " (%s)\n", csound->type2string(O.filetyp));
+    csoundMessage(csound, " (%s)\n", type2string(O.filetyp));
 
  /* this program performs arbitrary sample-rate conversion
     with high fidelity.  the method is to step through the
@@ -537,7 +542,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     invRin  =  FL(1.0) / Rin;
 
     /* make window: the window is the product of a kaiser and a sin(x)/x */
-    window = (float*) csound->Calloc(csound, (size_t) (M + 2) * sizeof(float));
+    window = (float*) mcalloc(csound, (size_t) (M + 2) * sizeof(float));
     WinLen = (M-1)/2;
     window += WinLen;
     wLen = (M/2 - L) / L;
@@ -576,20 +581,20 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     nextIn jumps back to the beginning, and the old values
     are written over. */
 
-    input = (MYFLT*) csound->Calloc(csound, (size_t) IBUF * sizeof(MYFLT));
+    input = (MYFLT*) mcalloc(csound, (size_t) IBUF * sizeof(MYFLT));
 
  /* set up output buffer:  nextOut always points to the next empty
     word in the output buffer.  If the buffer is full, then
     it is flushed, and nextOut jumps back to the beginning. */
 
-    output = (MYFLT*) csound->Calloc(csound, (size_t) OBUF * sizeof(MYFLT));
+    output = (MYFLT*) mcalloc(csound, (size_t) OBUF * sizeof(MYFLT));
     nextOut = output;
 
  /* initialization: */
 
-    nread = csound->getsndin(csound, inf, input, IBUF2, p);
+    nread = getsndin(csound, inf, input, IBUF2, p);
     for(i=0; i < nread; i++)
-       input[i] *= 1.0/csound->Get0dBFS(csound);
+       input[i] *= 1.0/csoundGet0dBFS(csound);
     nMax = (long)(input_dur * p->sr);
     nextIn = input + nread;
     for (i = nread; i < IBUF2; i++)
@@ -639,14 +644,14 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           n++;
           m++;
           if ((Chans * (m + wLen + 1)) >= mMax) {
-            if (!csound->CheckEvents(csound))
-              csound->LongJmp(csound, 1);
+            if (!csoundYield(csound))
+              csoundLongJmp(csound, 1);
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->getsndin(csound, inf, nextIn, IBUF2, p);
+            nread = getsndin(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
-               input[i] *= 1.0/csound->Get0dBFS(csound);
+               input[i] *= 1.0/csoundGet0dBFS(csound);
             nextIn += nread;
             if (nread < IBUF2)
               nMax = n + wLen + (nread / Chans) + 1;
@@ -699,14 +704,14 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           n++;
           m++;
           if ((Chans * (m + wLen + 1)) >= mMax) {
-            if (!csound->CheckEvents(csound))
-              csound->LongJmp(csound, 1);
+            if (!csoundYield(csound))
+              csoundLongJmp(csound, 1);
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->getsndin(csound, inf, nextIn, IBUF2, p);
+            nread = getsndin(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
-               input[i] *= 1.0/csound->Get0dBFS(csound);
+               input[i] *= 1.0/csoundGet0dBFS(csound);
             nextIn += nread;
             if (nread < IBUF2)
               nMax = n + wLen + (nread / Chans) + 1;
@@ -746,13 +751,13 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     }
     nread = nextOut - output;
     writebuffer(csound, output, &block, outfd, nread, &O);
-    csound->Message(csound, "\n\n");
+    csoundMessage(csound, "\n\n");
     if (O.ringbell)
-      csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
+      csoundMessageS(csound, CSOUNDMSG_REALTIME, "\a");
     return 0;
 
  err_rtn_msg:
-    csound->ErrorMsg(csound, err_msg);
+    csoundErrorMsg(csound, err_msg);
     return -1;
 }
 #else
@@ -764,7 +769,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 static int srconv(CSOUND *csound, int argc, char **argv)
 {
   (void) argc;
-    csound->Message(csound, "%s",
+    csoundMessage(csound, "%s",
                     Str("Do not use srconv but the src_conv program\n"));
 #ifndef MSVC
     return execv("src_conv", argv);
@@ -808,7 +813,7 @@ static void usage(CSOUND *csound)
     int i = -1;
 
     while (usage_txt[++i] != NULL)
-      csound->Message(csound, "%s\n", Str(usage_txt[i]));
+      csoundMessage(csound, "%s\n", Str(usage_txt[i]));
 }
 
 static double ino(double x)
@@ -863,9 +868,9 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 
 int srconv_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "srconv", srconv);
+    int retval = csoundAddUtility(csound, "srconv", srconv);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "srconv",
+      retval = csoundSetUtilityDescription(csound, "srconv",
                                              Str("Sample rate conversion"));
     }
     return retval;

@@ -26,6 +26,10 @@
 #include "csdl.h"
 #include "interlocks.h"
 #include <math.h>
+#include "fftlib.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 /*
 ** Data structures holding the load/unload information
@@ -249,20 +253,20 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     p->partSize = MYFLT2LRND(*(p->iPartLen));
     if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
       // Must be a power of 2 at least as large as 4
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("liveconv: invalid impulse response "
                                    "partition length"));
     }
 
     /* Find and assign the function table numbered iFTNum */
-    ftp = csound->FTnp2Finde(csound, p->iFTNum);
+    ftp = csoundFTnp2Finde(csound, p->iFTNum);
     if (UNLIKELY(ftp == NULL))
       return NOTOK; /* ftfind should already have printed the error message */
 
     /* Calculate the total length  */
     n = (int32_t) ftp->flen;
     if (UNLIKELY(n <= 0)) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("liveconv: invalid length, or insufficient"
                                    " IR data for convolution"));
     }
@@ -278,7 +282,7 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
 
     nBytes = buf_bytes_alloc(p->partSize, p->nPartitions);
     if (nBytes != (int32_t) p->auxData.size)
-      csound->AuxAlloc(csound, (int32) nBytes, &(p->auxData));
+      csoundAuxAlloc(csound, (int32) nBytes, &(p->auxData));
 
     /*
     ** From here on is initialization of data
@@ -298,8 +302,8 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     p->cnt = 0;
     p->rbCnt = 0;
 
-    p->fwdsetup = csound->RealFFT2Setup(csound, (p->partSize << 1), FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound, (p->partSize << 1), FFT_INV);
+    p->fwdsetup = csoundRealFFT2Setup(csound, (p->partSize << 1), FFT_FWD);
+    p->invsetup = csoundRealFFT2Setup(csound, (p->partSize << 1), FFT_INV);
 
     /* clear IR buffer to zero */
     memset(p->IR_Data, 0, n*sizeof(MYFLT));
@@ -335,7 +339,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
     /* Only continue if initialized */
     if (UNLIKELY(p->initDone <= 0)) goto err1;
 
-    ftp = csound->FTnp2Finde(csound, p->iFTNum);
+    ftp = csoundFTnp2Finde(csound, p->iFTNum);
     nSamples = p->partSize;   /* Length of partition */
                               /* Pointer to a partition of the ring buffer */
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);
@@ -431,7 +435,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
             p->IR_Data[n + k] = FL(0.0);
 
           /* calculate FFT (replace in the same buffer) */
-          csound->RealFFT2(csound, p->fwdsetup, &(p->IR_Data[n]));
+          csoundRealFFT2(csound, p->fwdsetup, &(p->IR_Data[n]));
 
         }
         else if (load_ptr->status == UNLOADING) {
@@ -467,7 +471,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
         rBuf[i] = FL(0.0);
 
       /* calculate FFT of input */
-      csound->RealFFT2(csound, p->fwdsetup, rBuf);
+      csoundRealFFT2(csound, p->fwdsetup, rBuf);
 
       /* update ring buffer position */
       p->rbCnt++;
@@ -484,7 +488,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
                            nSamples, p->nPartitions, rBufPos);
 
       /* inverse FFT */
-      csound->RealFFT2(csound, p->invsetup, p->tmpBuf);
+      csoundRealFFT2(csound, p->invsetup, p->tmpBuf);
 
       /*
       ** Copy IFFT result to output buffer
@@ -501,7 +505,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
     return OK;
 
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              "%s", Str("liveconv: not initialised"));
 }
 

@@ -23,7 +23,9 @@
 
 #include "csoundCore_internal.h"
 #include "csound_orc.h"
+#include "linevent_public.h"
 #include <stdlib.h>
+#include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 
 #ifdef USE_DOUBLE
@@ -89,11 +91,11 @@ void allocate_message_queue(CSOUND *csound) {
   if (csound->msg_queue == NULL) {
     int i;
     csound->msg_queue = (message_queue_t **)
-      csound->Calloc(csound, sizeof(message_queue_t*)*API_MAX_QUEUE);
+      mcalloc(csound, sizeof(message_queue_t*)*API_MAX_QUEUE);
     for (i = 0; i < API_MAX_QUEUE; i++) {
       csound->msg_queue[i] =
         (message_queue_t*)
-        csound->Calloc(csound, sizeof(message_queue_t));
+        mcalloc(csound, sizeof(message_queue_t));
     }
   }
 }
@@ -116,8 +118,8 @@ void *message_enqueue(CSOUND *csound, int32_t message, char *args,
                                            API_MAX_QUEUE)];
     msg->message = message;
     if(msg->args != NULL)
-      csound->Free(csound, msg->args);
-    msg->args = (char *)csound->Calloc(csound, argsiz);
+      mfree(csound, msg->args);
+    msg->args = (char *)mcalloc(csound, argsiz);
     memcpy(msg->args, args, argsiz);
     rtn = &msg->rtn;
     csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wput,
@@ -608,7 +610,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
     }
 
     if (strlen(string) + 1 > (unsigned int) size) {
-      if (stringdat->data!=NULL) csound->Free(csound,stringdat->data);
+      if (stringdat->data!=NULL) mfree(csound,stringdat->data);
       stringdat->data = cs_strdup(csound, string);
       stringdat->size = strlen(string) + 1;
       //set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
@@ -660,9 +662,9 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
 
 
     if (f->frame == NULL) {
-      f->frame = csound->Calloc(csound, sizeof(float)*(fin->N+2));
+      f->frame = mcalloc(csound, sizeof(float)*(fin->N+2));
     } else if (f->N < fin->N) {
-      f->frame = csound->ReAlloc(csound, f->frame, sizeof(float)*(fin->N+2));
+      f->frame = mrealloc(csound, f->frame, sizeof(float)*(fin->N+2));
     }
 
     memcpy(f, fin, sizeof(PVSDATEXT)-sizeof(float *));

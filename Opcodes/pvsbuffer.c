@@ -24,6 +24,9 @@
 #include "interlocks.h"
 
 #include "pstream.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 typedef struct {
   PVSDAT  header;
@@ -53,9 +56,9 @@ static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     FSIG_HANDLE **phandle = NULL;
 
     if (UNLIKELY(p->fin->sliding))
-      return csound->InitError(csound, Str("SDFT case not implemented yet"));
+      return csoundInitError(csound, Str("SDFT case not implemented yet"));
     if (p->handmem.auxp == NULL)
-      csound->AuxAlloc(csound, sizeof(FSIG_HANDLE), &p->handmem);
+      csoundAuxAlloc(csound, sizeof(FSIG_HANDLE), &p->handmem);
     p->handle = (FSIG_HANDLE *) p->handmem.auxp;
     p->handle->header.N = N = p->fin->N;
     p->handle->header.overlap = hop = p->fin->overlap;
@@ -66,7 +69,7 @@ static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->nframes = p->handle->frames = (*p->len) * CS_ESR/hop;
     if (p->buffer.auxp == NULL ||
         p->buffer.size < sizeof(float) * (N + 2) * p->nframes)
-      csound->AuxAlloc(csound, (N + 2) * sizeof(float) * p->nframes, &p->buffer);
+      csoundAuxAlloc(csound, (N + 2) * sizeof(float) * p->nframes, &p->buffer);
     else
       memset(p->buffer.auxp, 0, (N + 2) * sizeof(float) * p->nframes);
 
@@ -75,18 +78,18 @@ static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     p->handle->data = (float *)  p->buffer.auxp;
 
 
-    while ((phandle = (FSIG_HANDLE **)csound->QueryGlobalVariable(csound,varname))
+    while ((phandle = (FSIG_HANDLE **)csoundQueryGlobalVariable(csound,varname))
           != NULL)
       if (p->handle == *phandle) break;
       else snprintf(varname, 32, "::buffer%d", ++i);
 
     if (phandle == NULL) {
-     csound->CreateGlobalVariable(csound, varname, sizeof(FSIG_HANDLE *));
-     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
-     /*csound->Message(csound, "%p -> %p \n", p->handle, phandle); */
+     csoundCreateGlobalVariable(csound, varname, sizeof(FSIG_HANDLE *));
+     phandle = (FSIG_HANDLE **) csoundQueryGlobalVariable(csound,varname);
+     /*csoundMessage(csound, "%p -> %p \n", p->handle, phandle); */
     if (phandle == NULL)
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("error... could not create global var for handle\n"));
     else
       *phandle = p->handle;
@@ -142,10 +145,10 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     char varname[32];
 
     snprintf(varname, 32, "::buffer%d", (int32_t)(*p->hptr));
-    /* csound->Message(csound, "%s:\n", varname); */
-    phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
+    /* csoundMessage(csound, "%s:\n", varname); */
+    phandle = (FSIG_HANDLE **) csoundQueryGlobalVariable(csound,varname);
     if (phandle == NULL)
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("error... could not read handle from "
                                    "global variable\n"));
     else
@@ -171,7 +174,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
     if (p->fout->frame.auxp == NULL ||
          p->fout->frame.size < sizeof(float) * (N + 2))
-          csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
+          csoundAuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
 
     p->fout->sliding = 0;
     p->scnt = p->fout->overlap;
@@ -192,9 +195,9 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
    if (*p->hptr != p->optr) {
      char varname[32];
      snprintf(varname, 32, "::buffer%d", (int32_t)(*p->hptr));
-     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
+     phandle = (FSIG_HANDLE **) csoundQueryGlobalVariable(csound,varname);
      if (phandle == NULL)
-       csound->PerfError(csound, &(p->h),
+       csoundPerfError(csound, &(p->h),
                          Str("error... could not read handle "
                              "from global variable\n"));
      else
@@ -244,7 +247,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
 
    return OK;
  err1:
-   return csound->PerfError(csound, &(p->h),
+   return csoundPerfError(csound, &(p->h),
                              Str("Invalid buffer handle"));
   }
 
@@ -263,9 +266,9 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     if (*p->hptr != p->optr){
       char varname[32];
       snprintf(varname, 32, "::buffer%d", (int32_t)(*p->hptr));
-      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
+      phandle = (FSIG_HANDLE **) csoundQueryGlobalVariable(csound,varname);
       if (phandle == NULL)
-        csound->PerfError(csound, &(p->h),
+        csoundPerfError(csound, &(p->h),
                           Str("error... could not read handle from "
                               "global variable\n"));
       else
@@ -280,15 +283,15 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     if (p->scnt >= overlap) {
       float *frame1, *frame2;
       frames = handle->frames-1;
-      ftab = csound->FTnp2Finde(csound, p->strt);
+      ftab = csoundFTnp2Finde(csound, p->strt);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, &(p->h),
+        csoundPerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
-      ftab = csound->FTnp2Finde(csound, p->end);
+      ftab = csoundFTnp2Finde(csound, p->end);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, &(p->h),
+        csoundPerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab2 = ftab->ftable;
@@ -318,7 +321,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     p->scnt += CS_KSMPS;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("Invalid buffer handle"));
   }
 

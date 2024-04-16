@@ -31,6 +31,7 @@
 #include "csoundCore_internal.h"
 #include "score_param.h"
 #include "csound_scoparse.h"
+#include "memalloc.h"
 
 #define YYSTYPE MYFLT
 #define YYLTYPE SCOTOKEN
@@ -135,7 +136,7 @@ ${CPPX}         { return T_CPP; }
                   return (STRING_TOKEN); }
 
 {STRCONSTe}     { lvalp = make_string(csound, yytext);
-                  csound->Message(csound,
+                  csoundMessage(csound,
                           Str("unterminated string found on line %d >>%s<<\n"),
                           csound_scoget_lineno(yyscanner),
                           yytext);

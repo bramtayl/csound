@@ -103,6 +103,8 @@
 #include "csoundCore_internal.h"
 #include "midiops.h"
 #include "midifile.h"
+#include "memalloc.h"
+#include "insert_public.h"
 
 #define MGLOB(x) (csound->midiGlobals->x)
 
@@ -124,24 +126,24 @@ void MidiOpen(CSOUND *csound)
     OPARMS  *O = csound->oparms;
     int     err;
     /* First set up buffers. */
-    p->Midevtblk = (MEVENT*) csound->Calloc(csound, sizeof(MEVENT));
+    p->Midevtblk = (MEVENT*) mcalloc(csound, sizeof(MEVENT));
     p->sexp = 0;
     /* Then open device... */
     if (O->Midiin) {
       if (p->MidiInOpenCallback == NULL)
-        csound->Die(csound, Str(" *** no callback for opening MIDI input"));
+        csoundDie(csound, Str(" *** no callback for opening MIDI input"));
       if (p->MidiReadCallback == NULL)
-        csound->Die(csound, Str(" *** no callback for reading MIDI data"));
+        csoundDie(csound, Str(" *** no callback for reading MIDI data"));
       err = p->MidiInOpenCallback(csound, &(p->midiInUserData), O->Midiname);
       if (err != 0) {
-        csound->Die(csound, Str(" *** error opening MIDI in device: %d (%s)"),
+        csoundDie(csound, Str(" *** error opening MIDI in device: %d (%s)"),
                             err, csoundExternalMidiErrorString(csound, err));
       }
     }
     /* and file. */
     if (O->FMidiin && O->FMidiname != NULL) {
       if (csoundMIDIFileOpen(csound, O->FMidiname) != 0)
-        csound->Die(csound, Str("Failed to load MIDI file."));
+        csoundDie(csound, Str("Failed to load MIDI file."));
     }
 }
 
@@ -166,7 +168,7 @@ static void sustsoff(CSOUND *csound, MCHNBLK *chn)
       }
     }
     if (chn->ksuscnt)
-      csound->Message(csound, Str("sustain count still %d\n"), chn->ksuscnt);
+      csoundMessage(csound, Str("sustain count still %d\n"), chn->ksuscnt);
     chn->ksuscnt = 0;
 }
 
@@ -221,7 +223,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
           n <= csound->engineState.maxinsno &&  /* if corresp instr exists  */
           csound->engineState.instrtxtp[n] != NULL) {   /* assign as insno  */
         chn->insno = n;                         /* else ignore prog. change */
-        csound->Message(csound, Str("midi channel %d now using instr %d\n"),
+        csoundMessage(csound, Str("midi channel %d now using instr %d\n"),
                         mep->chan + 1, chn->insno);
       }
       break;
@@ -264,7 +266,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
           case 99: ctl = TVA_RIS;         break;
           case 100:ctl = TVA_DEC;         break;
           case 102:ctl = TVA_RLS;         break;
-          default: csound->Message(csound, Str("unknown NPRN lsb %d\n"), lsb);
+          default: csoundMessage(csound, Str("unknown NPRN lsb %d\n"), lsb);
             goto err;
           }
           fval = (MYFLT) (mep->dat2 - 64);
@@ -273,7 +275,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
         else {
           if (msb < 24 || msb == 25 || msb == 27 ||
               msb > 31 || lsb < 25  || lsb > 87)
-            csound->Message(csound,
+            csoundMessage(csound,
                             Str("unknown drum param nos, msb %d lsb %d\n"),
                             (int) msb, (int) lsb);
           else {
@@ -290,7 +292,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
               fval = xx + *fp;                /* optionally map */
               chn->ctl_val[parnum] = fval;        /* VL: 07.09.20 store it? */
             }
-            csound->Message(csound, Str("CHAN %d DRUMKEY %d not in keylst, "
+            csoundMessage(csound, Str("CHAN %d DRUMKEY %d not in keylst, "
                                         "PARAM %d NOT UPDATED\n"),
                                     (int) mep->chan + 1, (int) lsb, (int) msb);
           }
@@ -312,7 +314,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
     special:
       if (n < 121) {          /* for ctrlr 111, 112, ... chk inexclus lists */
         if ((csound->oparms->msglevel & 7) == 7)
-          csound->Message(csound, Str("ctrl %d has no exclus list\n"), (int) n);
+          csoundMessage(csound, Str("ctrl %d has no exclus list\n"), (int) n);
         break;
       }
       /* 121 == RESET ALL CONTROLLERS */
@@ -326,7 +328,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
-          chn->monobas = (MONPCH *)csound->Calloc(csound, (long)sizeof(MONPCH) * 8);
+          chn->monobas = (MONPCH *)mcalloc(csound, (long)sizeof(MONPCH) * 8);
           mnew = chn->monobas;  mend = mnew + 8;
           do {
             mnew->pch = -1;
@@ -336,13 +338,13 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       }
       else if (n == 127) {                      /* POLY mode */
         if (chn->monobas != NULL) {
-          csound->Free(csound, (char *)chn->monobas);
+          mfree(csound, (char *)chn->monobas);
           chn->monobas = NULL;
         }
         chn->mono = 0;
       }
       else
-        csound->Message(csound, Str("chnl mode msg %d not implemented\n"), n);
+        csoundMessage(csound, Str("chnl mode msg %d not implemented\n"), n);
       break;
     case AFTOUCH_TYPE:
       chn->aftouch = mep->dat1;                 /* chanl (all-key) Press */
@@ -357,11 +359,11 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       case 3:
         break;
       default:
-        csound->Die(csound, Str("unrecognised sys_common type %d"), mep->chan);
+        csoundDie(csound, Str("unrecognised sys_common type %d"), mep->chan);
       }
       break;
     default:
-      csound->Die(csound, Str("unrecognised message type %d"), mep->type);
+      csoundDie(csound, Str("unrecognised message type %d"), mep->type);
     }
 }
 
@@ -383,7 +385,7 @@ void m_chn_init_all(CSOUND *csound)
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
       csound->m_chnbp[chan] =
-        chn = (MCHNBLK*) csound->Calloc(csound, sizeof(MCHNBLK));
+        chn = (MCHNBLK*) mcalloc(csound, sizeof(MCHNBLK));
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
       if (csound->engineState.instrtxtp &&
@@ -401,9 +403,9 @@ void m_chn_init_all(CSOUND *csound)
         chn->pgm2ins[n] = (int16) (n + 1);
       if (csound->oparms->Midiin || csound->oparms->FMidiin) {
         if (chn->insno < 0)
-          csound->Message(csound, Str("midi channel %d is muted\n"), chan + 1);
+          csoundMessage(csound, Str("midi channel %d is muted\n"), chan + 1);
         //else
-        //  csound->Message(csound, Str("midi channel %d using instr %d\n"),
+        //  csoundMessage(csound, Str("midi channel %d using instr %d\n"),
         //                  chan + 1, chn->insno);
       }
     }
@@ -418,20 +420,20 @@ int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls)
     MEVENT   mev;
 
     if (chan < 0 || chan > 15)
-      return csound->InitError(csound, Str("illegal channel number"));
+      return csoundInitError(csound, Str("illegal channel number"));
     chn = csound->m_chnbp[chan];
     if (insno <= 0) {
       chn->insno = -1;
-      csound->Message(csound, Str("MIDI channel %d muted\n"), chan + 1);
+      csoundMessage(csound, Str("MIDI channel %d muted\n"), chan + 1);
     }
     else {
       if (insno > csound->engineState.maxinsno ||
           csound->engineState.instrtxtp[insno] == NULL) {
-        csound->Message(csound, Str("Insno = %d\n"), insno);
-        return csound->InitError(csound, Str("unknown instr"));
+        csoundMessage(csound, Str("Insno = %d\n"), insno);
+        return csoundInitError(csound, Str("unknown instr"));
       }
       chn->insno = (int16) insno;
-      csound->Message(csound, Str("chnl %d using instr %d\n"),
+      csoundMessage(csound, Str("chnl %d using instr %d\n"),
                               chan + 1, chn->insno);
       /* check for program change: will override massign if enabled */
       if (chn->pgmno >= 0) {
@@ -520,7 +522,7 @@ int sensMidi(CSOUND *csound)
           case 7:                       /* system reset         */
             goto nxtchr;
           default:
-            csound->Message(csound, Str("undefined sys-realtime msg %x\n"), c);
+            csoundMessage(csound, Str("undefined sys-realtime msg %x\n"), c);
             goto nxtchr;
           }
         else {                          /* sys_non-realtime status: */
@@ -538,7 +540,7 @@ int sensMidi(CSOUND *csound)
           case 6:                       /* tune request         */
             goto nxtchr;
           default:
-            csound->Message(csound, Str("undefined sys_common msg %x\n"), c);
+            csoundMessage(csound, Str("undefined sys_common msg %x\n"), c);
             p->datreq = 32767;          /* waste any data following */
             p->datcnt = 0;
             goto nxtchr;

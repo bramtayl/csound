@@ -23,6 +23,8 @@
 
 #include "csdl.h"
 #include <math.h>
+#include "fgens_public.h"
+#include "insert_public.h"
 
 typedef struct {
         OPDS    h;
@@ -65,7 +67,7 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, Str("metro:init phase truncation"));
+        csoundWarning(csound, Str("metro:init phase truncation"));
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
     }
     p->flag=1;
@@ -125,7 +127,7 @@ static int32_t metro2_set(CSOUND *csound, METRO2 *p)
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, Str("metro2:init phase truncation"));
+        csoundWarning(csound, Str("metro2:init phase truncation"));
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
       p->curphs2 = (MYFLT)phs - (MYFLT)longphs + 1.0 - (MYFLT)swng;
     }
@@ -194,8 +196,8 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     */
 
     FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
-      return csound->InitError(csound, Str("splitrig: incorrect table number"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->ifn)) == NULL)) {
+      return csoundInitError(csound, Str("splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->numouts =  p->INOCOUNT-4;
@@ -242,7 +244,7 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
     FUNC *ftp;
     MYFLT *table;
     uint32_t j;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))  return NOTOK;
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->ifn)) == NULL))  return NOTOK;
     table = p->table = ftp->ftable;
     p->numParm = p->INOCOUNT-2; /* ? */
     for (j = 0; j < ftp->flen; j+= p->numParm) {

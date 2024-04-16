@@ -340,12 +340,12 @@ bool csound_setup(BelaContext* context, void* p) {
     csound->SetHostData((void*)context);
     csound->SetHostImplementedAudioIO(1, 0);
     csound->SetHostImplementedMIDIIO(1);
-    csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
-    csound->SetExternalMidiReadCallback(ReadMidiData);
-    csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
-    csound->SetExternalMidiOutOpenCallback(OpenMidiOutDevice);
-    csound->SetExternalMidiWriteCallback(WriteMidiData);
-    csound->SetExternalMidiOutCloseCallback(CloseMidiOutDevice);
+    csoundSetExternalMidiInOpenCallback(OpenMidiInDevice);
+    csoundSetExternalMidiReadCallback(ReadMidiData);
+    csoundSetExternalMidiInCloseCallback(CloseMidiInDevice);
+    csoundSetExternalMidiOutOpenCallback(OpenMidiOutDevice);
+    csoundSetExternalMidiWriteCallback(WriteMidiData);
+    csoundSetExternalMidiOutCloseCallback(CloseMidiOutDevice);
     /* set up digi opcodes */
     if (csnd::plugin<DigiIn>((csnd::Csound*)csound->GetCsound(), "digiInBela", "k", "i", csnd::thread::ik) != 0)
         printf("Warning: could not add digiInBela k-rate opcode\n");
@@ -380,7 +380,7 @@ bool csound_setup(BelaContext* context, void* p) {
         printf("Error: Csound could not compile CSD file.\n");
         return false;
     }
-    csData->blocksize = csound->GetKsmps();
+    csData->blocksize = csoundGetKsmps();
     if (context->audioFrames % csData->blocksize) {
         fprintf(stderr,
                 "Warning: Csound's ksmps (%d) and Bela's periodSize (%u) differ and the latter is not a multiple of "
@@ -394,16 +394,16 @@ bool csound_setup(BelaContext* context, void* p) {
 
     /* set up the channels */
     for (unsigned int i = 0; i < csData->channel.size(); i++) {
-        csData->channel[i].samples.resize(csound->GetKsmps());
+        csData->channel[i].samples.resize(csoundGetKsmps());
         csData->channel[i].name << "analogIn" << i;
     }
 
     for (unsigned int i = 0; i < csData->ochannel.size(); i++) {
-        csData->ochannel[i].samples.resize(csound->GetKsmps());
+        csData->ochannel[i].samples.resize(csoundGetKsmps());
         csData->ochannel[i].name << "analogOut" << i;
     }
 
-    csData->schannel.samples.resize(csound->GetKsmps());
+    csData->schannel.samples.resize(csoundGetKsmps());
     csData->schannel.name << "scope";
     csData->scope.setup(1, context->audioSampleRate);
 
@@ -421,10 +421,10 @@ void csound_render(BelaContext* context, void* p) {
         int res = csData->res;
         unsigned int n;
         Csound* csound = csData->csound;
-        MYFLT scal = csound->Get0dBFS();
+        MYFLT scal = csoundGet0dBFS();
         MYFLT* audioIn = csound->GetSpin();
         MYFLT* audioOut = csound->GetSpout();
-        int nchnls = csound->GetNchnls();
+        int nchnls = csoundGetNchnls();
         int nchnls_i = csound->GetNchnlsInput();
         unsigned int chns = (unsigned int)nchnls < context->audioOutChannels ? nchnls : context->audioOutChannels;
         unsigned int ichns = (unsigned int)nchnls_i < context->audioInChannels ? nchnls_i : context->audioInChannels;
@@ -447,7 +447,7 @@ void csound_render(BelaContext* context, void* p) {
                     csound->SetChannel(channel[i].name.str().c_str(), channel[i].samples.data());
 
                 /* run csound */
-                if ((res = csound->PerformKsmps()) == 0) {
+                if ((res = csoundPerformKsmpsInternal()) == 0) {
                     count = 0;
                     counti = 0;
                     blockframes = 0;

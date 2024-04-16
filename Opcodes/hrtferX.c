@@ -57,6 +57,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include "hrtferx.h"
+#include "fftlib.h"
+#include "insert_public.h"
 
 /* This array transferred here so as to be declared once.  Belongs to
    the structure of the HRTF data really in 3Dug.h */
@@ -77,7 +79,7 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
         /* first check if orchestra's sampling rate is compatible with HRTF
            measurement's */
     if (UNLIKELY(CS_ESR != SAMP_RATE)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                   Str("Orchestra sampling rate is not compatible with HRTF.\n"
                       "Should be %d...exiting."), SAMP_RATE);
       return NOTOK; /* not reached */
@@ -88,13 +90,13 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
       //filename[MAXNAME-1] = '\0';
     }
     else {
-      csound->Message(csound, Str("\nLast argument must be the string "
+      csoundMessage(csound, Str("\nLast argument must be the string "
                                   "'HRTFcompact' ...correcting.\n"));
       strNcpy(filename, "HRTFcompact", MAXNAME); /* for safety */
     }
 
     if ((mfp = p->mfp) == NULL)
-      mfp = csound->ldmemfile2withCB(csound, filename, CSFTYPE_HRTF, NULL);
+      mfp = ldmemfile2withCB(csound, filename, CSFTYPE_HRTF, NULL);
     p->mfp = mfp;
     p->fpbegin = (int16*) mfp->beginp;
     bytrev_test = 0x1234;
@@ -223,7 +225,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
         /* fpindex should now point to first azimuth at requested el_index */
         /* now get to first value of requested azimuth */
     if (az_index == 0) {
-   /* csound->Message(csound, "in az_index == 0\n"); */
+   /* csoundMessage(csound, "in az_index == 0\n"); */
       //numskip = 0;
     }
     else {
@@ -240,7 +242,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
     }
     {
       MYFLT scaleFac;
-      scaleFac = csound->GetInverseRealFFTScale(csound, BUF_LEN) / FL(256.0);
+      scaleFac = csoundGetInverseRealFFTScale(csound, BUF_LEN) / FL(256.0);
       scaleFac /= FL(32768.0);
       /* copy int16 buffers into float buffers */
       for (i=0; i<FILT_LEN; i++) {
@@ -256,8 +258,8 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
         /**************
         FFT xl and xr here
         ***************/
-    csound->RealFFT(csound, xl, BUF_LEN);
-    csound->RealFFT(csound, xr, BUF_LEN);
+    csoundRealFFT(csound, xl, BUF_LEN);
+    csoundRealFFT(csound, xr, BUF_LEN);
 
         /* If azimuth called for right side of head, use left side
            measurements and flip output channels.
@@ -328,15 +330,15 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
               /* pad x to BUF_LEN with zeros for Moore FFT */
         for (i = FILT_LEN; i <  BUF_LEN; i++)
           x[i] = FL(0.0);
-        csound->RealFFT(csound, x, BUF_LEN);
+        csoundRealFFT(csound, x, BUF_LEN);
 
               /* complex multiplication, y = hrtf_data * x */
-        csound->RealFFTMult(csound, yl, hrtf_data.left, x, BUF_LEN, FL(1.0));
-        csound->RealFFTMult(csound, yr, hrtf_data.right, x, BUF_LEN, FL(1.0));
+        csoundRealFFTMult(csound, yl, hrtf_data.left, x, BUF_LEN, FL(1.0));
+        csoundRealFFTMult(csound, yr, hrtf_data.right, x, BUF_LEN, FL(1.0));
 
               /* convolution is the inverse FFT of above result (yl,yr) */
-        csound->InverseRealFFT(csound, yl, BUF_LEN);
-        csound->InverseRealFFT(csound, yr, BUF_LEN);
+        csoundInverseRealFFT(csound, yl, BUF_LEN);
+        csoundInverseRealFFT(csound, yr, BUF_LEN);
             /* overlap-add the results */
         for (i = 0; i < FILT_LENm1; i++) {
           yl[i] += bl[i];
@@ -438,7 +440,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("hrtfer: not initialised"));
 }
 

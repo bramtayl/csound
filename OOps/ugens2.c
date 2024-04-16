@@ -24,6 +24,8 @@
 #include "csoundCore_internal.h" /*                              UGENS2.C        */
 #include "ugens2.h"
 #include <math.h>
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
 /* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x                          */
@@ -46,7 +48,7 @@ int32_t phsset(CSOUND *csound, PHSOR *p)
     int32_t  longphs;
     if ((phs = *p->iphs) >= FL(0.0)) {
       if (UNLIKELY((longphs = (int32_t)phs))) {
-        csound->Warning(csound, Str("init phase truncation\n"));
+        csoundWarning(csound, Str("init phase truncation\n"));
       }
       p->curphs = phs - (MYFLT)longphs;
     }
@@ -59,7 +61,7 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
     int32_t  longphs;
     if ((phs = *p->iphs) >= FL(0.0)) {
       if (UNLIKELY((longphs = (int32_t)phs))) {
-        csound->Warning(csound, Str("init phase truncation\n"));
+        csoundWarning(csound, Str("init phase truncation\n"));
       }
       p->curphs = phs - (MYFLT)longphs;
     }
@@ -211,7 +213,7 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
 
 static int32_t itblchk(CSOUND *csound, TABLE *p)
 {
-    if (UNLIKELY((p->ftp = csound->FTnp2Finde(csound, p->xfn)) == NULL))
+    if (UNLIKELY((p->ftp = csoundFTnp2Finde(csound, p->xfn)) == NULL))
       return NOTOK;
 
     /* Although TABLE has an integer variable for the table number
@@ -236,7 +238,7 @@ static int32_t itblchk(CSOUND *csound, TABLE *p)
 
     if (UNLIKELY((p->offset = p->xbmul * *p->ixoff) < FL(0.0) ||
                  p->offset > p->ftp->flen)) {
-      return csound->InitError(csound, Str("Offset %f < 0 or > tablelength"),
+      return csoundInitError(csound, Str("Offset %f < 0 or > tablelength"),
                                        p->offset);
     }
 
@@ -286,12 +288,12 @@ static int32_t ptblchk(CSOUND *csound, TABLE *p)
 int32_t tblset(CSOUND *csound, TABLE *p)
 {
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
-      const char  *opname = csound->GetOpcodeName(p);
+      const char  *opname = csoundGetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
       if (UNLIKELY(CS_KSMPS == 1))
-        csound->Warning(csound, msg, opname);
+        csoundWarning(csound, msg, opname);
       else {
-        return csound->InitError(csound, msg, opname);
+        return csoundInitError(csound, msg, opname);
       }
     }
     p->h.iopadr = (SUBR) itblchk;
@@ -303,12 +305,12 @@ int32_t tblset(CSOUND *csound, TABLE *p)
 int32_t tblsetkt(CSOUND *csound, TABLE *p)
 {
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
-      const char  *opname = csound->GetOpcodeName(p);
+      const char  *opname = csoundGetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
       if (UNLIKELY(CS_KSMPS == 1))
-        csound->Warning(csound, msg, opname);
+        csoundWarning(csound, msg, opname);
       else {
-        return csound->InitError(csound, msg, opname);
+        return csoundInitError(csound, msg, opname);
       }
     }
     p->h.iopadr = (SUBR) ptblchk;
@@ -476,7 +478,7 @@ int32_t ktable(CSOUND *csound, TABLE   *p)
     *p->rslt = *(ftp->ftable + indx);
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("table(krate): not initialised"));
 }
 
@@ -536,7 +538,7 @@ int32_t tablefn(CSOUND *csound, TABLE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("table: not initialised"));
 }
 
@@ -629,7 +631,7 @@ int32_t ktabli(CSOUND *csound, TABLE   *p)
     *p->rslt = v1 + (v2 - v1) * fract;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("tablei(krate): not initialised"));
 }
 
@@ -721,7 +723,7 @@ int32_t ktabl3(CSOUND *csound, TABLE   *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("table3(krate): not initialised"));
 }
 
@@ -802,7 +804,7 @@ int32_t tabli(CSOUND *csound, TABLE   *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("tablei: not initialised"));
 }
 
@@ -876,7 +878,7 @@ int32_t tabl3(CSOUND *csound, TABLE *p)     /* Like tabli but cubic interpolatio
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("table3: not initialised"));
 }
 
@@ -923,7 +925,7 @@ static int32_t ftkrchk(CSOUND *csound, TABLE *p)
          * Return 0 to tell calling function not to proceed with a or
          * k rate operations. */
 
-      if (UNLIKELY((p->ftp = csound->FTFindP(csound, p->xfn) ) == NULL)) {
+      if (UNLIKELY((p->ftp = csoundFTFindP(csound, p->xfn) ) == NULL)) {
         return NOTOK;
       }
 
@@ -953,11 +955,11 @@ static int32_t ftkrchk(CSOUND *csound, TABLE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("k rate function table no. %f < 1"),
                              *p->xfn);
  err2:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("Offset %f < 0 or > tablelength"),
                              p->offset);
 }
@@ -1006,10 +1008,10 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 {
     FUNC        *ftp;
 
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftp = csoundFTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     if (UNLIKELY(*p->idur <= FL(0.0))) {
-      /*csound->Warning(csound, Str("duration < zero\n"));*/
+      /*csoundWarning(csound, Str("duration < zero\n"));*/
       p->phs = MAXLEN-1;
     }
     else p->phs = 0;
@@ -1046,7 +1048,7 @@ int32_t kosc1(CSOUND *csound, OSCIL1 *p)
     p->dcnt = dcnt;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil1(krate): not initialised"));
 }
 
@@ -1081,14 +1083,14 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil1i(krate): not initialised"));
 }
 
 int32_t oscnset(CSOUND *csound, OSCILN *p)
 {
     FUNC        *ftp;
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Finde(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->inc = ftp->flen * *p->ifrq * csound->onedsr;
       p->index = FL(0.0);
@@ -1141,7 +1143,7 @@ int32_t osciln(CSOUND *csound, OSCILN *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("osciln: not initialised"));
 }
 
@@ -1188,13 +1190,13 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
        fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
       return OK;
       }
-    else return csound->InitError(csound, Str("array size not pow-of-two\n"));
+    else return csoundInitError(csound, Str("array size not pow-of-two\n"));
 }
 
 int32_t oscset(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp;
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
@@ -1218,7 +1220,7 @@ int32_t koscil(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil(krate): not initialised"));
 }
 
@@ -1254,7 +1256,7 @@ int32_t osckk(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil: not initialised"));
 }
 
@@ -1290,7 +1292,7 @@ int32_t oscka(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil: not initialised"));
 }
 
@@ -1323,7 +1325,7 @@ int32_t oscak(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil: not initialised"));
 }
 
@@ -1358,7 +1360,7 @@ int32_t oscaa(CSOUND *csound, OSC *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil: not initialised"));
 }
 
@@ -1381,7 +1383,7 @@ int32_t koscli(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscili(krate): not initialised"));
 }
 
@@ -1416,7 +1418,7 @@ int32_t osckki(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscili: not initialised"));
 }
 
@@ -1456,7 +1458,7 @@ int32_t osckai(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscili: not initialised"));
 }
 
@@ -1492,7 +1494,7 @@ int32_t oscaki(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscili: not initialised"));
 }
 
@@ -1531,7 +1533,7 @@ int32_t oscaai(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscili: not initialised"));
 }
 
@@ -1572,7 +1574,7 @@ int32_t koscl3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil3(krate): not initialised"));
 }
 
@@ -1631,7 +1633,7 @@ int32_t osckk3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil3: not initialised"));
 }
 
@@ -1687,7 +1689,7 @@ int32_t oscka3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil3: not initialised"));
 }
 
@@ -1740,7 +1742,7 @@ int32_t oscak3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil3: not initialised"));
 }
 
@@ -1795,6 +1797,6 @@ int32_t oscaa3(CSOUND *csound, OSC   *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("oscil3: not initialised"));
 }

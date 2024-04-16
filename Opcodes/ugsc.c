@@ -25,6 +25,9 @@
 
 #include "stdopcod.h"
 #include "ugsc.h"
+#include "memalloc.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 /* svfilter.c
  *
@@ -213,7 +216,7 @@ static int32_t resonzset(CSOUND *csound, RESONZ *p)
     int32_t scaletype;
     p->scaletype = scaletype = (int32_t)*p->iscl;
     if (UNLIKELY(UNLIKELY(scaletype && scaletype != 1 && scaletype != 2))) {
-      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+      return csoundInitError(csound, Str("illegal reson iscl value, %f"),
                                (float)*p->iscl);
     }
     if (!(*p->istor))
@@ -362,8 +365,8 @@ static int32_t phaser1set(CSOUND *csound, PHASER1 *p)
     if (*p->istor == FL(0.0) || p->auxx.auxp == NULL ||
         (int32_t)p->auxx.size<nBytes || p->auxy.auxp == NULL ||
         (int32_t)p->auxy.size<nBytes) {
-      csound->AuxAlloc(csound, nBytes, &p->auxx);
-      csound->AuxAlloc(csound, nBytes, &p->auxy);
+      csoundAuxAlloc(csound, nBytes, &p->auxx);
+      csoundAuxAlloc(csound, nBytes, &p->auxy);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
       p->ynm1 = (MYFLT *) p->auxy.auxp;
     }
@@ -372,15 +375,15 @@ static int32_t phaser1set(CSOUND *csound, PHASER1 *p)
       void    *tmp1, *tmp2;
       size_t  oldSize1 = (size_t) p->auxx.size;
       size_t  oldSize2 = (size_t) p->auxy.size;
-      tmp1 = csound->Malloc(csound, oldSize1 + oldSize2);
+      tmp1 = mmalloc(csound, oldSize1 + oldSize2);
       tmp2 = (char*) tmp1 + (int32_t) oldSize1;
       memcpy(tmp1, p->auxx.auxp, oldSize1);
       memcpy(tmp2, p->auxy.auxp, oldSize2);
-      csound->AuxAlloc(csound, nBytes, &p->auxx);
-      csound->AuxAlloc(csound, nBytes, &p->auxy);
+      csoundAuxAlloc(csound, nBytes, &p->auxx);
+      csoundAuxAlloc(csound, nBytes, &p->auxy);
       memcpy(p->auxx.auxp, tmp1, oldSize1);
       memcpy(p->auxy.auxp, tmp2, oldSize2);
-      csound->Free(csound, tmp1);
+      mfree(csound, tmp1);
       p->xnm1 = (MYFLT *) p->auxx.auxp;
       p->ynm1 = (MYFLT *) p->auxy.auxp;
     }
@@ -442,7 +445,7 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
 
     p->modetype = modetype = (int32_t)*p->mode;
     if (UNLIKELY(UNLIKELY(modetype && modetype != 1 && modetype != 2))) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("Phaser mode must be either 1 or 2"));
     }
     loop = p->loop = (int32_t) MYFLT2LONG(*p->order);
@@ -451,8 +454,8 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
         (int32_t)(p->aux1.size)<(int32_t)(loop*sizeof(MYFLT)) ||
         (int32_t)(p->aux2.size)< (int32_t)(loop*sizeof(MYFLT))) {
 
-      csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux1);
-      csound->AuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux2);
+      csoundAuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux1);
+      csoundAuxAlloc(csound, (size_t)loop*sizeof(MYFLT), &p->aux2);
       p->nm1 = (MYFLT *) p->aux1.auxp;
       p->nm2 = (MYFLT *) p->aux2.auxp;
     }
@@ -509,7 +512,7 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
         else {
           freq = kbf * kk;
           kk *= ksep;
-          //freq = kbf * csound->intpow(ksep,(int32_t)j);
+          //freq = kbf * intpow(ksep,(int32_t)j);
         }
         /* Note similarities of following equations to
          * equations in resonr/resonz. The 2nd-order
@@ -739,7 +742,7 @@ static OENTRY localops[] =
 
 int32_t ugsc_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

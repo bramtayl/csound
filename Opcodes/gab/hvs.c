@@ -17,8 +17,11 @@
 */
 
 //#include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "interlocks.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 
 /* -------------------------------------------------------------------- */
@@ -60,24 +63,24 @@ static int32_t hvs1_set(CSOUND *csound, HVS1 *p)
 {
     FUNC        *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No out table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iOutTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No out table"));
     p->outTable = ftp->ftable;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No positions table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iPositionsTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No positions table"));
     p->posTable = ftp->ftable;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No snap table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iSnapTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No snap table"));
     p->snapTable = ftp->ftable;
     if (UNLIKELY(*p->inumPointsX < 2 ))
-      return csound->InitError(csound, Str("hvs1: a line segment must be "
+      return csoundInitError(csound, Str("hvs1: a line segment must be "
                                            "delimited by 2 points at least"));
 
     if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iConfigTab)) == NULL))
-        return csound->InitError(csound, Str("hvs: no config table"));
+      if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iConfigTab)) == NULL))
+        return csoundInitError(csound, Str("hvs: no config table"));
       p->outTable = ftp->ftable;
       p->iconfFlag = 1;
     }
@@ -147,24 +150,24 @@ static int32_t hvs2_set(CSOUND *csound, HVS2 *p)
 {
     FUNC        *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No out table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iOutTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No out table"));
     p->outTable = ftp->ftable;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No positions table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iPositionsTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No positions table"));
     p->posTable = ftp->ftable;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No snap table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iSnapTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No snap table"));
     p->snapTable = ftp->ftable;
     if (UNLIKELY(*p->inumlinesX < 2 || *p->inumlinesY < 2))
-      return csound->InitError(csound, Str("hvs2: a square area must be "
+      return csoundInitError(csound, Str("hvs2: a square area must be "
                                            "delimited by 2 lines at least"));
 
     if (*p->iConfigTab == 0)
       p->iconfFlag = 0;
     else {
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iConfigTab)) == NULL))
-        return csound->InitError(csound, Str("hvs: no config table"));
+      if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iConfigTab)) == NULL))
+        return csoundInitError(csound, Str("hvs: no config table"));
       p->outTable = ftp->ftable;
       p->iconfFlag = 1;
     }
@@ -247,25 +250,25 @@ static int32_t hvs3_set(CSOUND *csound, HVS3 *p)
 {
     FUNC        *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iOutTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No out table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iOutTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No out table"));
     p->outTable = ftp->ftable;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iPositionsTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No positions table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iPositionsTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No positions table"));
     p->posTable = ftp->ftable;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->iSnapTab)) == NULL))
-      return csound->InitError(csound, Str("hvs: No snap table"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->iSnapTab)) == NULL))
+      return csoundInitError(csound, Str("hvs: No snap table"));
     p->snapTable = ftp->ftable;
     if (UNLIKELY(*p->inumlinesX < 2 || *p->inumlinesY < 2))
-      return csound->InitError(csound, Str("hvs3: a square area must be "
+      return csoundInitError(csound, Str("hvs3: a square area must be "
                                            "delimited by 2 lines at least"));
 
 
     if (LIKELY(*p->iConfigTab == 0))
       p->iconfFlag = 0;
     else {
-      if ((ftp = csound->FTnp2Find(csound, p->iConfigTab)) == NULL)
-        return csound->InitError(csound, Str("hvs: no config table"));
+      if ((ftp = csoundFTnp2Find(csound, p->iConfigTab)) == NULL)
+        return csoundInitError(csound, Str("hvs: no config table"));
       p->outTable = ftp->ftable;
       p->iconfFlag = 1;
     }
@@ -394,22 +397,22 @@ static int32_t vphaseseg_set(CSOUND *csound, VPSEG *p)
     nsegs = p->nsegs =((p->INCOUNT-3) >> 1);    /* count segs & alloc if nec */
 
     if ((segp = (TSEG2 *) p->auxch.auxp) == NULL) {
-      csound->AuxAlloc(csound, (int64_t)(nsegs+1)*sizeof(TSEG2), &p->auxch);
+      csoundAuxAlloc(csound, (int64_t)(nsegs+1)*sizeof(TSEG2), &p->auxch);
       p->cursegp = segp = (TSEG2 *) p->auxch.auxp;
       //(segp+nsegs)->cnt = MAXPOS;
     }
     argp = p->argums;
-    if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL))
-      return csound->InitError(csound,
+    if (UNLIKELY((nxtfunc = csoundFTnp2Find(csound, *argp++)) == NULL))
+      return csoundInitError(csound,
                                Str("vphaseseg: the first function is "
                                    "invalid or missing"));
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ioutfunc)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ioutfunc)) != NULL)) {
       p->vector = ftp->ftable;
       p->elements = (int32_t) *p->ielements;
     }
-    else return csound->InitError(csound, Str("Failed to find ftable"));
+    else return csoundInitError(csound, Str("Failed to find ftable"));
     if (UNLIKELY(p->elements > (int32_t)ftp->flen))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("vphaseseg: invalid num. of elements"));
     /* vector = p->vector; */
     /* flength = p->elements; */
@@ -426,8 +429,8 @@ static int32_t vphaseseg_set(CSOUND *csound, VPSEG *p)
       segp++;                 /* init each seg ..  */
       curfunc = nxtfunc;
       dur = **argp++;
-      if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL))
-        return csound->InitError(csound,
+      if (UNLIKELY((nxtfunc = csoundFTnp2Find(csound, *argp++)) == NULL))
+        return csoundInitError(csound,
                                  Str("vphaseseg: function invalid or missing"));
       if (LIKELY(dur > 0.0f)) {
         durtot+=dur;
@@ -513,7 +516,7 @@ OENTRY hvs_localops[] = {
 
 int32_t hvs_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(hvs_localops[0]),
+    return csoundAppendOpcodes(csound, &(hvs_localops[0]),
                                  (int32_t) (sizeof(hvs_localops) / sizeof(OENTRY)));
 }
 

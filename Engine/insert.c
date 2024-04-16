@@ -39,6 +39,7 @@
 #include "namedins_public.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "fgens_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
 
@@ -120,7 +121,7 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
     if (UNLIKELY(csound->oparms->odebug)) {
     csound->op = csound->ids->optext->t.oentry->opname;
-      csound->Message(csound, "init %s:\n", csound->op);
+      csoundMessage(csound, "init %s:\n", csound->op);
     }
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
@@ -144,7 +145,7 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
          (csound->ids->iopadr != (SUBR) rireturn)){
     csound->op = csound->ids->optext->t.oentry->opname;
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "reinit %s:\n", csound->op);
+      csoundMessage(csound, "reinit %s:\n", csound->op);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
   csound->mode = 0;
@@ -177,7 +178,7 @@ uintptr_t event_insert_thread(void *p) {
  if(csound->oparms_.msglevel){
   if(csound->message_string_queue == NULL)
     csound->message_string_queue = (message_string_queue_t *)
-      csound->Calloc(csound, QUEUESIZ*sizeof(message_string_queue_t));
+      mcalloc(csound, QUEUESIZ*sizeof(message_string_queue_t));
   mess = csound->message_string_queue;
   if(csound->csoundMessageStringCallback)
     csoundMessageStringCallback = csound->csoundMessageStringCallback;
@@ -273,17 +274,17 @@ void putop(CSOUND *csound, TEXT *tp)
   if ((n = tp->outlist->count) != 0) {
     nn = 0;
     while (n--)
-      csound->Message(csound, "%s\t", tp->outlist->arg[nn++]);
+      csoundMessage(csound, "%s\t", tp->outlist->arg[nn++]);
   }
   else
-    csound->Message(csound, "\t");
-  csound->Message(csound, "%s\t", tp->opcod);
+    csoundMessage(csound, "\t");
+  csoundMessage(csound, "%s\t", tp->opcod);
   if ((n = tp->inlist->count) != 0) {
     nn = 0;
     while (n--)
-      csound->Message(csound, "%s\t", tp->inlist->arg[nn++]);
+      csoundMessage(csound, "%s\t", tp->inlist->arg[nn++]);
   }
-  csound->Message(csound, "\n");
+  csoundMessage(csound, "\n");
 }
 
 static void set_xtratim(CSOUND *csound, INSDS *ip)
@@ -329,10 +330,10 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if (UNLIKELY(O->odebug)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
-        csound->Message(csound, Str("activating instr %s at %"PRIi64"\n"),
+        csoundMessage(csound, Str("activating instr %s at %"PRIi64"\n"),
                       name, csound->icurTime);
     else
-        csound->Message(csound, Str("activating instr %d at %"PRIi64"\n"),
+        csoundMessage(csound, Str("activating instr %d at %"PRIi64"\n"),
                       insno, csound->icurTime);
   }
   csound->inerrcnt = 0;
@@ -342,9 +343,9 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if (UNLIKELY(tp->muted == 0)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
-      csound->Warning(csound, Str("Instrument %s muted\n"), name);
+      csoundWarning(csound, Str("Instrument %s muted\n"), name);
     else
-      csound->Warning(csound, Str("Instrument %d muted\n"), insno);
+      csoundWarning(csound, Str("Instrument %d muted\n"), insno);
     return 0;
   }
   if (tp->cpuload > FL(0.0)) {
@@ -384,9 +385,9 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
+          csoundErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
         else
-          csound->ErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
+          csoundErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew=0;
@@ -459,7 +460,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   fep = &newevtp->p[0];
 
   if (UNLIKELY(O->odebug))
-    csound->Message(csound, "psave beg at %p\n", (void*) flp);
+    csoundMessage(csound, "psave beg at %p\n", (void*) flp);
   if (n > newevtp->pcnt) n = newevtp->pcnt; /* IV - Oct 20 2002 */
   for (i = 1; i < n + 1; i++) {
     CS_VAR_MEM* pfield = pfields + i;
@@ -474,7 +475,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
   }
   if (UNLIKELY(O->odebug))
-    csound->Message(csound, "   ending at %p\n", (void*) flp);
+    csoundMessage(csound, "   ending at %p\n", (void*) flp);
 
   if (O->Beatmode)
     ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
@@ -528,7 +529,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
 
 #ifdef BETA
   if (UNLIKELY(O->odebug))
-    csound->Message(csound, "In insert:  %d %lf %lf\n",
+    csoundMessage(csound, "In insert:  %d %lf %lf\n",
                     __LINE__, ip->p3.value, ip->offtim); /* *********** */
 #endif
   if (ip->p3.value > FL(0.0) && ip->offtim > 0.0) { /* if still finite time, */
@@ -547,7 +548,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     }
 #ifdef BETA
     if (UNLIKELY(O->odebug))
-      csound->Message(csound,
+      csoundMessage(csound,
                       "Calling schedofftim line %d; offtime= %lf (%lf)\n",
                       __LINE__, ip->offtim, ip->offtim*csound->ekr);
 #endif
@@ -566,9 +567,9 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if (UNLIKELY(O->odebug)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
-      csound->Message(csound, Str("instr %s now active:\n"), name);
+      csoundMessage(csound, Str("instr %s now active:\n"), name);
     else
-      csound->Message(csound, Str("instr %d now active:\n"), insno);
+      csoundMessage(csound, Str("instr %d now active:\n"), insno);
     showallocs(csound);
   }
   if (newevtp->pinstance != NULL) {
@@ -632,9 +633,9 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   if (UNLIKELY(O->odebug)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
-      csound->Message(csound, Str("MIDI activating instr %s\n"), name);
+      csoundMessage(csound, Str("MIDI activating instr %s\n"), name);
     else
-      csound->Message(csound, Str("MIDI activating instr %d\n"), insno);
+      csoundMessage(csound, Str("MIDI activating instr %d\n"), insno);
   }
   csound->inerrcnt = 0;
   ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
@@ -643,9 +644,9 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
-        csound->Message(csound, Str("new MIDI alloc for instr %s:\n"), name);
+        csoundMessage(csound, Str("new MIDI alloc for instr %s:\n"), name);
       else
-        csound->Message(csound, Str("new MIDI alloc for instr %d:\n"), insno);
+        csoundMessage(csound, Str("new MIDI alloc for instr %d:\n"), insno);
     }
     instance(csound, insno);
     tp->isNew = 0;
@@ -657,7 +658,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ip->insno = (int16) insno;
 
   if (UNLIKELY(O->odebug))
-    csound->Message(csound, "Now %d active instr %d\n", tp->active, insno);
+    csoundMessage(csound, "Now %d active instr %d\n", tp->active, insno);
   if (UNLIKELY((prvp = *ipp) != NULL)) {          /*   if key currently activ */
     csoundWarning(csound,
                   Str("MIDI note overlaps with key %d on same channel"),
@@ -726,7 +727,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     pfield->value = value;
 
     if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
-      csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
+      csoundMessage(csound, "  midiKey:         pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
     if (pmax < pfield_index) pmax = pfield_index;
@@ -741,7 +742,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     pfield->value = value;
 
     if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
-      csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
+      csoundMessage(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
     if (pmax < pfield_index) pmax = pfield_index;
@@ -753,7 +754,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     value = value / FL(12.0) + FL(3.0);
     pfield->value = value;
     if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
-      csound->Message(csound, "  midiKeyOct:      pfield: %3d  value: %3d\n",
+      csoundMessage(csound, "  midiKeyOct:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
     if (pmax < pfield_index) pmax = pfield_index;
@@ -770,7 +771,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     value = octave + fraction;
     pfield->value = value;
     if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
-      csound->Message(csound, "  midiKeyPch:      pfield: %3d  value: %3d\n",
+      csoundMessage(csound, "  midiKeyPch:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
     if (pmax < pfield_index) pmax = pfield_index;
@@ -781,7 +782,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     MYFLT value = (MYFLT) ip->m_veloc;
     pfield->value = value;
     if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
-      csound->Message(csound, "  midiVelocity:    pfield: %3d  value: %3d\n",
+      csoundMessage(csound, "  midiVelocity:    pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
     if (pmax < pfield_index) pmax = pfield_index;
@@ -794,7 +795,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     value = value * csound->e0dbfs;
     pfield->value = value;
     if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
-      csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %.3f\n",
+      csoundMessage(csound, "  midiVelocityAmp: pfield: %3d  value: %.3f\n",
                       pfield_index, pfield->value);
     }
     if (pmax < pfield_index) pmax = pfield_index;
@@ -802,7 +803,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   if (pmax > 0) {
     int i;
     if (csound->currevent == NULL) {
-      evt = (EVTBLK *) csound->Calloc(csound, sizeof(EVTBLK));
+      evt = (EVTBLK *) mcalloc(csound, sizeof(EVTBLK));
       csound->currevent = evt;
     }
     else evt = csound->currevent;
@@ -827,9 +828,9 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   if (UNLIKELY(O->odebug)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
-      csound->Message(csound, Str("instr %s now active:\n"), name);
+      csoundMessage(csound, Str("instr %s now active:\n"), name);
     else
-      csound->Message(csound, Str("instr %d now active:\n"), insno);
+      csoundMessage(csound, Str("instr %d now active:\n"), insno);
     showallocs(csound);
   }
   return 0;
@@ -840,7 +841,7 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
   INSTRTXT *txtp;
   INSDS   *p;
 
-  csound->Message(csound, "insno\tinstanc\tnxtinst\tprvinst\tnxtact\t"
+  csoundMessage(csound, "insno\tinstanc\tnxtinst\tprvinst\tnxtact\t"
                   "prvact\tnxtoff\tactflg\tofftim\n");
   for (txtp = &(csound->engineState.instxtanchor);
        txtp != NULL;
@@ -852,7 +853,7 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
        * and now on all platforms (JPff)
        */
       do {
-        csound->Message(csound, "%d\t%p\t%p\t%p\t%p\t%p\t%p\t%d\t%3.1f\n",
+        csoundMessage(csound, "%d\t%p\t%p\t%p\t%p\t%p\t%p\t%d\t%3.1f\n",
                         (int) p->insno, (void*) p,
                         (void*) p->nxtinstance, (void*) p->prvinstance,
                         (void*) p->nxtact, (void*) p->prvact,
@@ -873,7 +874,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
     /* the following comparisons must match those in sensevents() */
 #ifdef BETA
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound,"schedofftim: %lf %lf %f\n",
+      csoundMessage(csound,"schedofftim: %lf %lf %f\n",
                       ip->offtim, csound->icurTime/csound->esr,
                       csound->curTime_inc);
 
@@ -888,7 +889,7 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
     }
 #ifdef BETA
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound,"schedofftim: %lf %lf %lf\n", ip->offtim,
+      csoundMessage(csound,"schedofftim: %lf %lf %lf\n", ip->offtim,
                       (csound->icurTime + (0.505 * csound->ksmps))/csound->esr,
                       csound->ekr*((csound->icurTime +
                                     (0.505 * csound->ksmps))/csound->esr));
@@ -937,9 +938,9 @@ static void deact(CSOUND *csound, INSDS *ip)
   if (UNLIKELY(csound->oparms->odebug)) {
     char *name = csound->engineState.instrtxtp[ip->insno]->insname;
     if (UNLIKELY(name))
-      csound->Message(csound, Str("removed instance of instr %s\n"), name);
+      csoundMessage(csound, Str("removed instance of instr %s\n"), name);
     else
-      csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
+      csoundMessage(csound, Str("removed instance of instr %d\n"), ip->insno);
   }
   /* IV - Oct 24 2002: ip->prvact may be NULL, so need to check */
   if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL) {
@@ -960,7 +961,7 @@ static void deact(CSOUND *csound, INSDS *ip)
 
 int kill_instance(CSOUND *csound, KILLOP *p) {
   if (LIKELY(*p->inst)) xturnoff(csound, (INSDS *) ((uintptr_t)*p->inst));
-  else csound->Warning(csound, Str("instance not valid\n"));
+  else csoundWarning(csound, Str("instance not valid\n"));
   return OK;
 }
 
@@ -1010,7 +1011,7 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
     set_xtratim(csound, ip);
 #ifdef BETA
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
+      csoundMessage(csound, "Calling schedofftim line %d\n", __LINE__);
 #endif
     schedofftim(csound, ip);
   }
@@ -1071,7 +1072,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
         if (!ip->actflg) {
           cnt++;
           if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
-            csound->Free(csound, ip->opcod_iobufs);   /* IV - Nov 10 2002 */
+            mfree(csound, ip->opcod_iobufs);   /* IV - Nov 10 2002 */
           if (ip->fdchp != NULL)
             fdchclose(csound, ip);
           if (ip->auxchp != NULL)
@@ -1080,7 +1081,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
           if ((nxtip = ip->nxtinstance) != NULL)
             nxtip->prvinstance = prvip;
           *prvnxtloc = nxtip;
-          csound->Free(csound, (char *)ip);
+          mfree(csound, (char *)ip);
         }
         else {
           prvip = ip;
@@ -1124,7 +1125,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
   }
   if (UNLIKELY(cnt)) {
     if(csound->oparms->msglevel ||csound->oparms->odebug)
-     csound->Message(csound, Str("inactive allocs returned to freespace\n"));
+     csoundMessage(csound, Str("inactive allocs returned to freespace\n"));
   }
 }
 
@@ -1143,14 +1144,14 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
                                           off extratime instances */
           && ip->p1.value == p1) {
         if (UNLIKELY(csound->oparms->odebug))
-          csound->Message(csound, "turning off inf copy of instr %d\n",
+          csoundMessage(csound, "turning off inf copy of instr %d\n",
                           insno);
         xturnoff(csound, ip);
         return;                       /*      turn it off  */
       }
     } while ((ip = ip->nxtinstance) != NULL);
   }
-  csound->Message(csound,
+  csoundMessage(csound,
                   Str("could not find playing instr %f\n"),
                   p1);
 }
@@ -1249,9 +1250,9 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
       (pfield + n)->value = ch.d;
       argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
       if (str_cnt == 0)
-        p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
+        p->ip->strarg = mcalloc(csound, strlen(argstr)+1);
       else
-        p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
+        p->ip->strarg = mrealloc(csound, p->ip->strarg,
                                         len+strlen(argstr)+1);
       strcpy(p->ip->strarg + len, argstr);
       len += strlen(argstr)+1;
@@ -1274,9 +1275,9 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
       (pfield + n)->value = ch.d;
       argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
       if (str_cnt == 0)
-        p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
+        p->ip->strarg = mcalloc(csound, strlen(argstr)+1);
       else
-        p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
+        p->ip->strarg = mrealloc(csound, p->ip->strarg,
                                         len+strlen(argstr)+1);
       strcpy(p->ip->strarg + len, argstr);
       len += strlen(argstr)+1;
@@ -1381,7 +1382,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     instno = inm->instno;
     tp = csound->engineState.instrtxtp[instno];
     if (tp == NULL)
-      return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
+      return csoundInitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                instno, inm->name);
     /* set local ksmps if defined by user */
     /* VL: 9.2.22 we are disabling this unused and confusing feature of 
@@ -1407,7 +1408,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       /* if none was found, allocate a new instance */
       tp = csound->engineState.instrtxtp[instno];
       if (tp == NULL) {
-        return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
+        return csoundInitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                  instno, inm->name);
       }
       if (!tp->act_instance)
@@ -1415,7 +1416,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       lcurip = tp->act_instance;            /* use free instance, and */
       tp->act_instance = lcurip->nxtact;    /* remove from chain      */
       if (lcurip->opcod_iobufs==NULL)
-        return csound->InitError(csound, "Broken redefinition of UDO %d (UDO %s)\n",
+        return csoundInitError(csound, "Broken redefinition of UDO %d (UDO %s)\n",
                                  instno, inm->name);
       lcurip->actflg++;                     /*    and mark the instr active */
       tp->active++;
@@ -1543,7 +1544,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       p->h.opadr = (SUBR) useropcd2;
     }
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
+      csoundMessage(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
                       lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
     return OK;
 }
@@ -1730,7 +1731,7 @@ void beatexpire(CSOUND *csound, double beat)
         csound->frstoff = ip->nxtoff; /* update turnoff list */
 #ifdef BETA
         if (UNLIKELY(csound->oparms->odebug))
-          csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
+          csoundMessage(csound, "Calling schedofftim line %d\n", __LINE__);
 #endif
         schedofftim(csound, ip);
         goto strt;                    /* and start again */
@@ -1741,8 +1742,8 @@ void beatexpire(CSOUND *csound, double beat)
     while ((ip = ip->nxtoff) != NULL && ip->offbet <= beat);
     csound->frstoff = ip;
     if (UNLIKELY(csound->oparms->odebug)) {
-      csound->Message(csound, "deactivated all notes to beat %7.3f\n", beat);
-      csound->Message(csound, "frstoff = %p\n", (void*) csound->frstoff);
+      csoundMessage(csound, "deactivated all notes to beat %7.3f\n", beat);
+      csoundMessage(csound, "frstoff = %p\n", (void*) csound->frstoff);
     }
   }
 }
@@ -1767,7 +1768,7 @@ void timexpire(CSOUND *csound, double time)
         csound->frstoff = ip->nxtoff; /* update turnoff list */
 #ifdef BETA
         if (UNLIKELY(csound->oparms->odebug))
-          csound->Message(csound, "Calling schedofftim line %d\n", __LINE__);
+          csoundMessage(csound, "Calling schedofftim line %d\n", __LINE__);
 #endif
         schedofftim(csound, ip);
 
@@ -1780,8 +1781,8 @@ void timexpire(CSOUND *csound, double time)
     while ((ip = ip->nxtoff) != NULL && ip->offtim <= time);
     csound->frstoff = ip;
     if (UNLIKELY(csound->oparms->odebug)) {
-      csound->Message(csound, "deactivated all notes to time %7.3f\n", time);
-      csound->Message(csound, "frstoff = %p\n", (void*) csound->frstoff);
+      csoundMessage(csound, "deactivated all notes to time %7.3f\n", time);
+      csoundMessage(csound, "frstoff = %p\n", (void*) csound->frstoff);
     }
   }
 }
@@ -2357,7 +2358,7 @@ static void instance(CSOUND *csound, int insno)
   /* alloc new space,  */
   pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM);
   ip =
-    (INSDS*) csound->Calloc(csound,
+    (INSDS*) mcalloc(csound,
                             (size_t) pextent + tp->varPool->poolSize +
                             (tp->varPool->varCount *
                              CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET)) +
@@ -2387,7 +2388,7 @@ static void instance(CSOUND *csound, int insno)
     OPCODINFO* info = tp->opcode_info;
     size_t pcnt = sizeof(OPCOD_IOBUFS) +
       sizeof(MYFLT*) * (info->inchns + info->outchns);
-    ip->opcod_iobufs = (void*) csound->Malloc(csound, pcnt);
+    ip->opcod_iobufs = (void*) mmalloc(csound, pcnt);
   }
 
   /* gbloffbas = csound->globalVarPool; */
@@ -2399,7 +2400,7 @@ static void instance(CSOUND *csound, int insno)
     (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
   opdslim = nxtopds + tp->opdstot;
   if (UNLIKELY(odebug))
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
                     insno, ip, lclbas, nxtopds);
   optxt = (OPTXT*) tp;
@@ -2428,7 +2429,7 @@ static void instance(CSOUND *csound, int insno)
     }
 
     if (UNLIKELY(odebug))
-      csound->Message(csound, Str("op (%s) allocated at %p\n"),
+      csoundMessage(csound, Str("op (%s) allocated at %p\n"),
                       ep->opname, opds);
     opds->optext = optxt;                     /* set common headata */
     opds->insdshead = ip;
@@ -2463,7 +2464,7 @@ static void instance(CSOUND *csound, int insno)
         opds->opadr = ep->kopadr;             /*      krate or    */
       /* else opds->opadr = ep->aopadr;          /\*      arate       *\/ */
       if (UNLIKELY(odebug))
-        csound->Message(csound, "opadr = %p\n", (void*) opds->opadr);
+        csoundMessage(csound, "opadr = %p\n", (void*) opds->opadr);
       if (UNLIKELY(opds->opadr == NULL))
         csoundDie(csound, Str("null opadr"));
     }
@@ -2512,7 +2513,7 @@ static void instance(CSOUND *csound, int insno)
         fltp = &(pfield->value);
       }
       else {
-        csound->Message(csound, Str("FIXME: Unhandled out-arg type: %d\n"),
+        csoundMessage(csound, Str("FIXME: Unhandled out-arg type: %d\n"),
                         arg->type);
         fltp = NULL;
       }
@@ -2574,7 +2575,7 @@ static void instance(CSOUND *csound, int insno)
                             findLabelMemOffset(csound, tp, (char*)arg->argPtr));
       }
       else {
-        csound->Message(csound, Str("FIXME: instance unexpected arg: %d\n"),
+        csoundMessage(csound, Str("FIXME: instance unexpected arg: %d\n"),
                         arg->type);
       }
     }
@@ -2609,7 +2610,7 @@ int prealloc_(CSOUND *csound, AOP *p, int instname)
       n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                              (*p->b == FL(0.0) ? 0 : 1));
     else {
-      if (csound->ISSTRCOD(*p->r))
+      if (isstrcod(*p->r))
         n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
                                (*p->b == FL(0.0) ? 0 : 1));
       else n = *p->r;
@@ -2642,7 +2643,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
   INSTRTXT  *txtp;
 
   if (IS_STR_ARG(p->insno))
-    n = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
+    n = strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   else
     n = (int) (*p->insno + FL(0.5));
 
@@ -2657,22 +2658,22 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
     if (UNLIKELY(active->actflg)) { /* Can only remove non-active instruments */
       char *name = csound->engineState.instrtxtp[n]->insname;
       if (name)
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("Instrument %s is still active"), name);
       else
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("Instrument %d is still active"), n);
     }
 #if 0
     if (active->opcod_iobufs && active->insno > csound->engineState.maxinsno)
-      csound->Free(csound, active->opcod_iobufs);        /* IV - Nov 10 2002 */
+      mfree(csound, active->opcod_iobufs);        /* IV - Nov 10 2002 */
 #endif
     if (active->fdchp != NULL)
       fdchclose(csound, active);
     if (active->auxchp != NULL)
       auxchfree(csound, active);
     free_instr_var_memory(csound, active);
-    csound->Free(csound, active);
+    mfree(csound, active);
     active = nxt;
   }
   csound->engineState.instrtxtp[n] = NULL;
@@ -2685,10 +2686,10 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
       txtp->nxtinstxt = ip->nxtinstxt;
       while (t) {
         OPTXT *s = t->nxtop;
-        csound->Free(csound, t);
+        mfree(csound, t);
         t = s;
       }
-      csound->Free(csound, ip);
+      mfree(csound, ip);
       return OK;
     }
   return NOTOK;

@@ -32,6 +32,7 @@
 #include "interlocks.h"
 #include <assert.h>
 #include <math.h>
+#include "insert_public.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -105,7 +106,7 @@ static int32_t ibformenc(CSOUND * csound, AMBIC * p)
     case 16:
       return OK;
     default:
-      return csound->InitError
+      return csoundInitError
         (csound, Str("The numbers of input and output arguments are not valid."));
   }
 }
@@ -113,7 +114,7 @@ static int32_t ibformenc(CSOUND * csound, AMBIC * p)
 static int32_t ibformenc_a(CSOUND * csound, AMBICA * p)
 {
     if (UNLIKELY(p->tabout->data==NULL || p->tabout->dimensions!=1))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("array not initialised in ambibformenc1"));
 
     /* All we do in here is police our parameters. */
@@ -123,7 +124,7 @@ static int32_t ibformenc_a(CSOUND * csound, AMBICA * p)
     case 16:
       return OK;
     default:
-      return csound->InitError
+      return csoundInitError
         (csound, Str("The numbers of input and output arguments are not valid."));
   }
 }
@@ -295,11 +296,11 @@ ibformdec(CSOUND * csound, AMBID * p) {
     if (UNLIKELY(p->INOCOUNT != 1 + 4 &&
                  p->INOCOUNT != 1 + 9 &&
                  p->INOCOUNT != 1 + 16)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("The number of input arguments is not valid."));
     }
     else if (UNLIKELY(*(p->isetup) < 1 || *(p->isetup) > 5)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("The isetup value should be between 1 and 5."));
     }
     else {
@@ -325,7 +326,7 @@ ibformdec(CSOUND * csound, AMBID * p) {
         return OK;
       }
       else {
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("The output channel count does not"
                                      " match the isetup value."));
       }
@@ -685,18 +686,18 @@ static int32_t
 ibformdec_a(CSOUND * csound, AMBIDA * p) {
     int32_t dim;
     if (p->tabout->data==NULL || p->tabout->dimensions!=1)
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("bformdec1 output array not initialised"));
     dim = p->tabin->sizes[0];
     /* All we do in here is police our parameters. */
     if (UNLIKELY(dim != 4 &&
                  dim != 9 &&
                  dim != 16)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("The number of input arguments is not valid."));
     }
     else if (UNLIKELY(*(p->isetup) < 1 || *(p->isetup) > 5)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("The isetup value should be between 1 and 5."));
     }
     else {
@@ -723,7 +724,7 @@ ibformdec_a(CSOUND * csound, AMBIDA * p) {
         return OK;
       }
       else {
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("The output channel count does not"
                                      " match the isetup value."));
       }

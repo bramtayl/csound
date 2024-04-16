@@ -29,6 +29,13 @@
 #include "pvoc.h"
 #include <math.h>
 #include "rdscor.h"
+#include "namedins_public.h"
+#include "memalloc.h"
+#include "fftlib.h"
+#include "fgens_public.h"
+#include "auxfd.h"
+#include "memfiles.h"
+#include "insert_public.h"
 
 int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {
@@ -39,7 +46,7 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
     int32    flength;
 
     if (UNLIKELY(!(p->INCOUNT & 1))) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("incomplete number of input arguments"));
     }
 
@@ -52,18 +59,18 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL ||
         p->auxch.size<(nsegs+1)*sizeof(TSEG)) {
-      csound->AuxAlloc(csound, (size_t)(nsegs+1)*sizeof(TSEG), &p->auxch);
+      csoundAuxAlloc(csound, (size_t)(nsegs+1)*sizeof(TSEG), &p->auxch);
       p->cursegp = segp = (TSEG *) p->auxch.auxp;
       (segp+nsegs)->cnt = MAXPOS;
     }
     argp = p->argums;
-    if (UNLIKELY((nxtfunc = csound->FTnp2Finde(csound, *argp++)) == NULL))
+    if (UNLIKELY((nxtfunc = csoundFTnp2Finde(csound, *argp++)) == NULL))
         return NOTOK;
     flength = nxtfunc->flen;
     p->outfunc =
-      (FUNC*) csound->Calloc(csound, sizeof(FUNC));
+      (FUNC*) mcalloc(csound, sizeof(FUNC));
     p->outfunc->ftable =
-      (MYFLT*)csound->Calloc(csound, (1 + flength) * sizeof(MYFLT));
+      (MYFLT*)mcalloc(csound, (1 + flength) * sizeof(MYFLT));
     p->outfunc->flen = nxtfunc->flen;
     p->outfunc->lenmask = nxtfunc->lenmask;
     p->outfunc->lobits = nxtfunc->lobits;
@@ -77,7 +84,7 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
         segp++;                 /* init each seg ..  */
         curfunc = nxtfunc;
         dur = **argp++;
-        if (UNLIKELY((nxtfunc = csound->FTnp2Finde(csound, *argp++)) == NULL))
+        if (UNLIKELY((nxtfunc = csoundFTnp2Finde(csound, *argp++)) == NULL))
           return OK;
         if (LIKELY(dur > FL(0.0))) {
                 segp->d = dur * CS_EKR;
@@ -123,7 +130,7 @@ int32_t ktableseg(CSOUND *csound, TABLESEG *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csoundPerfError(csound, &(p->h), "%s",
                              Str("tableseg: not initialised"));
 }
 
@@ -152,7 +159,7 @@ int32_t ktablexseg(CSOUND *csound, TABLESEG *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csoundPerfError(csound, &(p->h), "%s",
                              Str("tablexseg: not initialised"));
 }
 
@@ -175,22 +182,22 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
     if (*p->isegtab == FL(0.0))
       p->tableseg = p->pp->tbladr;
     else {
-      csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
+      csoundAuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
       p->tableseg = (TABLESEG*) p->auxtab.auxp;
       if (UNLIKELY((p->tableseg->outfunc =
-                    csound->FTnp2Find(csound, p->isegtab)) == NULL)) {
-        return csound->InitError(csound, "%s%f",
+                    csoundFTnp2Find(csound, p->isegtab)) == NULL)) {
+        return csoundInitError(csound, "%s%f",
                                  Str("vpvoc: Could not find ifnmagctrl table "),
                                  *p->isegtab);
       }
     }
     if (UNLIKELY(p->tableseg == NULL))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("vpvoc: associated tableseg not found"));
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (PVDATASIZE + PVFFTSIZE * 3 + PVWINLEN) * sizeof(MYFLT),
                        &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
@@ -201,35 +208,35 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
       p->window = fltp;
     }
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->ifilno))
+      if (isstrcod(*p->ifilno))
         strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
-      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      else strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
-    if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
-      return csound->InitError(csound, Str("VPVOC cannot load %s"), pvfilnam);
+    if (UNLIKELY(PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
+      return csoundInitError(csound, Str("VPVOC cannot load %s"), pvfilnam);
 
     p->frSiz = pp.fftsize;
     frInc    = pp.overlap;
     chans    = pp.chans;
     p->asr   = pp.srate;
     if (UNLIKELY(p->asr != CS_ESR)) {                /* & chk the data */
-      csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
+      csoundWarning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
                               pvfilnam, p->asr, CS_ESR);
     }
     if (UNLIKELY(p->frSiz > PVFRAMSIZE)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("PVOC frame %ld bigger than %ld in %s"),
                                (long) p->frSiz, (long) PVFRAMSIZE, pvfilnam);
     }
     if (UNLIKELY(p->frSiz < 128)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("PVOC frame %ld seems too small in %s"),
                                (long) p->frSiz, pvfilnam);
     }
     if (UNLIKELY(chans != 1)) {
-      return csound->InitError(csound, Str("%d chans (not 1) in PVOC file %s"),
+      return csoundInitError(csound, Str("%d chans (not 1) in PVOC file %s"),
                                        (int32_t) chans, pvfilnam);
     }
     /* Check that pv->frSiz is a power of two too ? */
@@ -245,7 +252,7 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
   */
     p->scale = (MYFLT) pp.fftsize * FL(0.5);
-    p->scale *= csound->GetInverseRealFFTScale(csound, pp.fftsize);
+    p->scale *= csoundGetInverseRealFFTScale(csound, pp.fftsize);
     /* 2*incr/OPWLEN scales down for win ovlp, windo'd 1ce (but 2ce?) */
     /* 1/frSiz is the required scale down before (i)FFT */
     p->prFlg = 1;    /* true */
@@ -257,7 +264,7 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
     /*   p->lastPhase[i] = FL(0.0); */
     /* } */
     if (UNLIKELY((OPWLEN / 2 + 1) > PVWINLEN)) {
-      return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
+      return csoundInitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
                                        CS_KSMPS, (OPWLEN / 2 + 1),
                                        PVWINLEN, pvfilnam);
@@ -270,7 +277,7 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
     /*   p->outBuf[i] = FL(0.0); */
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
     if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
-        csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
+        csoundAuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
     return OK;
 }
 
@@ -319,7 +326,7 @@ int32_t vpvoc(CSOUND *csound, VPVOC *p)
       frIndx = (MYFLT)p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csoundWarning(csound, Str("PVOC ktimpnt truncated to last frame"));
       }
     }
 
@@ -344,7 +351,7 @@ int32_t vpvoc(CSOUND *csound, VPVOC *p)
       /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
       if (UNLIKELY(specwp < 0))
-        csound->Warning(csound, Str("PVOC debug: one frame gets through\n"));
+        csoundWarning(csound, Str("PVOC debug: one frame gets through\n"));
       if (specwp > 0)
         PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
 
@@ -377,16 +384,16 @@ int32_t vpvoc(CSOUND *csound, VPVOC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("vpvoc: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("PVOC timpnt < 0"));
 }
 

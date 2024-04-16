@@ -22,12 +22,16 @@
 #include "csdl.h"
 #include "interlocks.h"
 #include "pstream.h"
+#include "memalloc.h"
+#include "csound_orc_semantics_public.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 /**    
  stackops: copyright (C) 2006 Istvan Varga
 */
 static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    CS_TYPE *cs_type = csoundGetTypeForArg(arg);
     if (strcmp("S", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -36,7 +40,7 @@ static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
 }
 
 static int32_t ASIG_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    CS_TYPE *cs_type = csoundGetTypeForArg(arg);
     if (strcmp("a", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -97,7 +101,7 @@ static CS_NOINLINE void fsg_assign(CSOUND *csound,
                                 PVSDAT *fdst, const PVSDAT *fsrc)
 {
   if (UNLIKELY(fsrc->frame.auxp == NULL)) {
-      csound->ErrorMsg(csound, "%s",
+      csoundErrorMsg(csound, "%s",
                        Str("fsig = : source signal is not initialised"));
       return;
   }
@@ -108,7 +112,7 @@ static CS_NOINLINE void fsg_assign(CSOUND *csound,
     fdst->format = fsrc->format;
     if (fdst->frame.auxp == NULL ||
         fdst->frame.size != (uint32_t)((fdst->N + 2L) * sizeof(float)))
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (fdst->N + 2L) * (int64_t) sizeof(float), &(fdst->frame));
     if (fdst->framecount != fsrc->framecount) {
       memcpy((float*) fdst->frame.auxp, (float*) fsrc->frame.auxp,
@@ -127,7 +131,7 @@ static CS_NOINLINE int32_t csoundStack_Error(void *p, const char *msg)
     CSOUND  *csound;
 
     csound = ((OPDS*) p)->insdshead->csound;
-    csound->ErrorMsg(csound, "%s: %s", csound->GetOpcodeName(p), msg);
+    csoundErrorMsg(csound, "%s: %s", csoundGetOpcodeName(p), msg);
 
     return NOTOK;
 }
@@ -168,13 +172,13 @@ static CS_NOINLINE CsoundArgStack_t *csoundStack_AllocGlobals(CSOUND *csound,
       stackSize = 16777200;
     nBytes = csoundStack_Align((int32_t) sizeof(CsoundArgStack_t));
     nBytes += stackSize;
-    if (UNLIKELY(csound->CreateGlobalVariable(csound,
+    if (UNLIKELY(csoundCreateGlobalVariable(csound,
                                               "csArgStack", (size_t) nBytes)
                  != 0)) {
-      csound->ErrorMsg(csound, "%s", Str("Error allocating argument stack"));
+      csoundErrorMsg(csound, "%s", Str("Error allocating argument stack"));
       return NULL;
     }
-    pp = (CsoundArgStack_t*) csound->QueryGlobalVariable(csound, "csArgStack");
+    pp = (CsoundArgStack_t*) csoundQueryGlobalVariable(csound, "csArgStack");
     pp->curBundle = (CsoundArgStack_t*) NULL;
     pp->dataSpace =
         (void*) ((char*) pp
@@ -189,7 +193,7 @@ static CS_NOINLINE CsoundArgStack_t *csoundStack_GetGlobals(CSOUND *csound)
 {
     CsoundArgStack_t  *pp;
 
-    pp = (CsoundArgStack_t*) csound->QueryGlobalVariable(csound, "csArgStack");
+    pp = (CsoundArgStack_t*) csoundQueryGlobalVariable(csound, "csArgStack");
     if (pp == NULL)
       pp = csoundStack_AllocGlobals(csound, 32768);
     return pp;
@@ -204,10 +208,10 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
 
     csound = ((OPDS*) p)->insdshead->csound;
     if (!isOutput) {
-      argCnt = csound->GetInputArgCnt(p);
+      argCnt = csoundGetInputArgCnt(p);
     }
     else {
-      argCnt = csound->GetOutputArgCnt(p);
+      argCnt = csoundGetOutputArgCnt(p);
     }
     if (UNLIKELY(argCnt > 31))
       return csoundStack_Error(p, "too many arguments");
@@ -226,9 +230,9 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
       else {
         const char  *argName;
         if (!isOutput)
-          argName = csound->GetInputArgName(p, i);
+          argName = csoundGetInputArgName(p, i);
         else
-          argName = csound->GetOutputArgName(p, i);
+          argName = csoundGetOutputArgName(p, i);
         if (argName != (char*) 0 &&
             (argName[0] == (char) 'k' ||
              (argName[0] == (char) 'g' && argName[1] == (char) 'k') ||
@@ -288,17 +292,17 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
 
 static int32_t stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 {
-    if (UNLIKELY(csound->QueryGlobalVariable(csound, "csArgStack") != NULL))
-      return csound->InitError(csound, "%s", Str("the stack is already allocated"));
+    if (UNLIKELY(csoundQueryGlobalVariable(csound, "csArgStack") != NULL))
+      return csoundInitError(csound, "%s", Str("the stack is already allocated"));
     csoundStack_AllocGlobals(csound, (int32_t) (*(p->iStackSize) + 0.5));
     return OK;
 }
 
 static int32_t notinit_opcode_stub_perf(CSOUND *csound, void *p)
 {
-    return csound->PerfError(csound, &(((STACK_OPCODE*)p)->h),
+    return csoundPerfError(csound, &(((STACK_OPCODE*)p)->h),
                              Str("%s: not initialised"),
-                             csound->GetOpcodeName(p));
+                             csoundGetOpcodeName(p));
 }
 
 static int32_t push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
@@ -388,8 +392,8 @@ static int32_t push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
               src = ((STRINGDAT*) p->args[i])->data;
               ans = ((STRINGDAT**)(char*) bp +
                      (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
-              dst = (STRINGDAT*) csound->Malloc(csound, sizeof(STRINGDAT));
-              dst->data = csound->Strdup(csound, src);
+              dst = (STRINGDAT*) mmalloc(csound, sizeof(STRINGDAT));
+              dst->data = cs_strdup(csound, src);
               dst->size = strlen(src) + 1;
               *ans = dst;
               /* printf("***dst = %p %p %d, \"%s\"\n", */
@@ -494,17 +498,17 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
               /* printf("***string: %p\nbp=%p Off = %x\n", ans, bp, curOffs); */
               /* printf("***string: %p->%s\n", str, dst->data); */
               if (str==NULL)
-                return csound->InitError(csound, "pop of strings broken");
+                return csoundInitError(csound, "pop of strings broken");
               if (str->size>dst->size) {
-                csound->Free(csound,dst->data);
-                dst->data = csound->Strdup(csound, str->data);
+                mfree(csound,dst->data);
+                dst->data = cs_strdup(csound, str->data);
                 dst->size = strlen(dst->data)+1;
               }
               else {
                 strcpy((char*) dst->data, str->data);
               }
-              csound->Free(csound,str->data);
-              csound->Free(csound,str);
+              mfree(csound,str->data);
+              mfree(csound,str);
               *ans = NULL;
             }
             break;

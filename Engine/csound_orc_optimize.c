@@ -24,14 +24,16 @@
 
 #include "csoundCore_internal.h"
 #include "csound_orc.h"
+#include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+
 extern void print_tree(CSOUND *csound, char*, TREE *l);
 extern void delete_tree(CSOUND *csound, TREE *l);
 
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
 {
     TREE *ans;
-    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+    ans = (TREE*)mmalloc(csound, sizeof(TREE));
     if (UNLIKELY(ans == NULL)) exit(1);
     ans->type = T_FUNCTION;
     ans->value = make_token(csound, fname);
@@ -163,10 +165,10 @@ static inline int same_type(char *var, char ty)
 //            printf("passes test2\n");
 //            print_tree(csound, "optimise assignment\n", current);
 //          }
-//          csound->Free(csound, current->left->value);
+//          mfree(csound, current->left->value);
 //          current->left->value = nxt->left->value;
 //          current->next = nxt->next;
-//          csound->Free(csound,nxt);
+//          mfree(csound,nxt);
 //          if (PARSER_DEBUG1) print_tree(csound, "change to\n", current);
 //        }
 //      }
@@ -255,11 +257,11 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           current->type = NUMBER_TOKEN;
           current->value->fvalue = lval;
           snprintf(buf, 60, "%.20g", lval);
-          csound->Free(csound, current->value->lexeme);
+          mfree(csound, current->value->lexeme);
           current->value->lexeme = cs_strdup(csound, buf);
-          csound->Free(csound, current->left);
-          csound->Free(csound, current->right->value);
-          csound->Free(csound, current->right);
+          mfree(csound, current->left);
+          mfree(csound, current->right->value);
+          mfree(csound, current->right);
           current->right = current->left = NULL;
         }
         else                    /* X op 0 */
@@ -280,7 +282,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->value = current->left->value;
                 current->right = current->left->right;
                 current->left = current->left->left;
-                csound->Free(csound, tmp);
+                mfree(csound, tmp);
                 //print_tree(csound, "X op 0 -> X\n", current);
               }
               break;
@@ -352,7 +354,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                   current->value = current->left->value;
                   current->right = current->left->right;
                   current->left = current->left->left;
-                  csound->Free(csound, tmp);
+                  mfree(csound, tmp);
                   //print_tree(csound, "X op 1 -> X\n", current);
                 }
               }
@@ -412,9 +414,9 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           current->type = NUMBER_TOKEN;
           current->value->fvalue = lval;
           snprintf(buf, 60, "%.20g", lval);
-          csound->Free(csound, current->value->lexeme);
+          mfree(csound, current->value->lexeme);
           current->value->lexeme = cs_strdup(csound, buf);
-          csound->Free(csound, current->right);
+          mfree(csound, current->right);
           current->right = NULL;
         }
         break;

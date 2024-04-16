@@ -31,9 +31,13 @@
 #include <math.h>
 #include "cwindow.h"
 #include "arrays.h"
+#include "memalloc.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /* #undef CS_KSMPS */
-/* #define CS_KSMPS     (csound->GetKsmps(csound)) */
+/* #define CS_KSMPS     (csoundGetKsmps(csound)) */
 
 /* Order of interpolation of scanning */
 /* Either 1, 2 (linear), 3 (cubic) or 4 (quadratic) */
@@ -55,13 +59,13 @@
 static int32_t scsnu_initw(CSOUND *csound, PSCSNU *p)
 {
     int len = p->len*sizeof(MYFLT);
-    FUNC *fi = csound->FTnp2Find(csound,  p->i_init);
+    FUNC *fi = csoundFTnp2Find(csound,  p->i_init);
     if (UNLIKELY(fi == NULL)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                "%s", Str("scanu: Could not find ifnnit ftable"));
     }
     if (UNLIKELY((int32_t)fi->flen != p->len))
-      return csound->InitError(csound, "%s", Str("scanu: Init table has bad size"));
+      return csoundInitError(csound, "%s", Str("scanu: Init table has bad size"));
     p->fi = fi;
     memcpy(p->x0, fi->ftable, len);
     memcpy(p->x1, fi->ftable, len);
@@ -90,8 +94,8 @@ static int32_t scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT wgt)
     /* Get table */
     //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
     if (fi == NULL)
-    if (UNLIKELY((fi = csound->FTnp2Find(csound, &tab)) == NULL)) {
-      return csound->InitError(csound,
+    if (UNLIKELY((fi = csoundFTnp2Find(csound, &tab)) == NULL)) {
+      return csoundInitError(csound,
                                "%s", Str("scanu: Could not find ifninit ftable"));
     }
     p->fi = fi;
@@ -141,11 +145,11 @@ static int32_t listrm(CSOUND *csound, PSCSNU *p)
     struct scsn_elem *q = NULL;
     struct scsn_elem *i = (struct scsn_elem *) pp->scsn_list;
 
-    csound->Message(csound, "remove from scsn_list\n");
+    csoundMessage(csound, "remove from scsn_list\n");
     while (1) {
       if (UNLIKELY(i == NULL)) {
 
-        csound->ErrorMsg(csound,
+        csoundErrorMsg(csound,
                          "%s", Str("Eek ... scan synthesis id was not found"));
         return NOTOK;
       }
@@ -158,7 +162,7 @@ static int32_t listrm(CSOUND *csound, PSCSNU *p)
       q->next = i->next;
     else
       pp->scsn_list = (void*) i->next;
-    csound->Free(csound, i);
+    mfree(csound, i);
     return OK;
 }
 #endif
@@ -175,13 +179,13 @@ static void listadd(SCANSYN_GLOBALS *pp, PSCSNU *p)
         return;
       }
     }
-    i = (struct scsn_elem *) csound->Calloc(csound, sizeof(struct scsn_elem));
+    i = (struct scsn_elem *) mcalloc(csound, sizeof(struct scsn_elem));
     i->id = p->id;
     i->p = p;
     i->next = (struct scsn_elem *) pp->scsn_list;
     pp->scsn_list = (void*) i;
 #if 0
-    csound->RegisterDeinitCallback(csound, p, (int32_t (*)(CSOUND*, void*)) listrm);
+    csoundRegisterDeinitCallback(csound, p, (int32_t (*)(CSOUND*, void*)) listrm);
 #endif
 }
 
@@ -194,7 +198,7 @@ static PSCSNU *listget(CSOUND *csound, int32_t id)
     pp = scansyn_getGlobals(csound);
     i = (struct scsn_elem *) pp->scsn_list;
     if (UNLIKELY(i == NULL)) {
-      csound->ErrorMsg(csound, "%s", Str("scans: No scan synthesis net specified"));
+      csoundErrorMsg(csound, "%s", Str("scans: No scan synthesis net specified"));
       return NULL;
     }
     while (1) {
@@ -202,7 +206,7 @@ static PSCSNU *listget(CSOUND *csound, int32_t id)
         break;
       i = i->next;
       if (UNLIKELY(i == NULL)){
-        csound->ErrorMsg(csound, "%s",
+        csoundErrorMsg(csound, "%s",
                          Str("Eek ... scan synthesis id was not found"));
         return NULL;
       }
@@ -225,8 +229,8 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     //printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
     
     /* Mass */
-    if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_m)) == NULL)) {
-      return csound->InitError(csound,
+    if (UNLIKELY((f = csoundFTnp2Find(csound, p->i_m)) == NULL)) {
+      return csoundInitError(csound,
                                "%s", Str("scanu: Could not find ifnmass table"));
     }
     len = p->len = f->flen;
@@ -234,24 +238,24 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     // printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
 
     /* Centering */
-    if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_c)) == NULL)) {
-      return csound->InitError(csound,
+    if (UNLIKELY((f = csoundFTnp2Find(csound, p->i_c)) == NULL)) {
+      return csoundInitError(csound,
                                "%s", Str("scanu: Could not find ifncentr table"));
     }
     if (UNLIKELY(f->flen != len))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("scanu: Parameter tables should all "
                                    "have the same length"));
     p->c = f->ftable;
     //printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
 
     /* Damping */
-    if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_d)) == NULL)) {
-      return csound->InitError(csound,
+    if (UNLIKELY((f = csoundFTnp2Find(csound, p->i_d)) == NULL)) {
+      return csoundInitError(csound,
                                "%s", Str("scanu: Could not find ifndamp table"));
     }
     if (UNLIKELY(f->flen != len))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("scanu: Parameter tables should all "
                                    "have the same length"));
     p->d = f->ftable;
@@ -263,8 +267,8 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 
       // printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
       /* Get the table */
-      if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
-        return csound->InitError(csound,
+      if (UNLIKELY((f = csoundFTnp2Find(csound, p->i_f)) == NULL)) {
+        return csoundInitError(csound,
                                  "%s %p", Str("scanu: Could not find ifndisplace table"), p->i_f);
       }
       //printf("**** p->i_f i_m = %p %g %g %g\n",p, p->i_f, p->i_m, p->i_c);
@@ -272,12 +276,12 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
      /* Check that the size is good */
       if (UNLIKELY(f->flen < len*len)) {
         // printf("len = %d len*len = %d flen = %d\n", len, len*len, f->flen);
-        return csound->InitError(csound, "%s",
+        return csoundInitError(csound, "%s",
                                  Str("scanu: Spring matrix is too small"));
       }
 
       /* Setup an easier addressing scheme */
-      csound->AuxAlloc(csound, len*len * sizeof(MYFLT), &p->aux_f);
+      csoundAuxAlloc(csound, len*len * sizeof(MYFLT), &p->aux_f);
       p->f = (MYFLT*)p->aux_f.auxp;
       for (i = 0 ; i != len ; i++) {
         for (j = 0 ; j != len ; j++)
@@ -287,9 +291,9 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 
 /* Make buffers to hold data */
 #if PHASE_INTERP == 3
-    csound->AuxAlloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
+    csoundAuxAlloc(csound, 6*len*sizeof(MYFLT), &p->aux_x);
 #else
-    csound->AuxAlloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
+    csoundAuxAlloc(csound, 5*len*sizeof(MYFLT), &p->aux_x);
 #endif
     p->x0 = (MYFLT*)p->aux_x.auxp;
     p->x1 = p->x0 + len;
@@ -309,8 +313,8 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 #endif
     /* Setup display window */
     if (*p->i_disp) {
-      p->win = csound->Calloc(csound, sizeof(WINDAT));
-      csound->dispset(csound, (WINDAT*)p->win, p->x1, len,
+      p->win = mcalloc(csound, sizeof(WINDAT));
+      dispset(csound, (WINDAT*)p->win, p->x1, len,
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
@@ -377,18 +381,18 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       else if ((res=scsnu_initw(csound, p))!=OK) return res;
     }
     if (*p->i_disp)
-      csound->display(csound, p->win); /* *********************** */
+      display(csound, p->win); /* *********************** */
 
     /* Velocity gets presidential treatment */
     {
       uint32_t i;
-      FUNC *f = csound->FTnp2Find(csound, p->i_v);
+      FUNC *f = csoundFTnp2Find(csound, p->i_v);
       if (UNLIKELY(f == NULL)) {
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  "%s", Str("scanu: Could not find ifnvel table"));
       }
       if (UNLIKELY(f->flen != len)) {
-        return csound->InitError(csound, "%s",
+        return csoundInitError(csound, "%s",
                                  Str("scanu: Parameter tables should "
                                      "all have the same length"));
       }
@@ -398,11 +402,11 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Cache update rate over to local structure */
     if (*p->i_rate<=FL(0.0) || *p->i_rate>FL(1.0)) { //suspect value
-      csound->Message(csound, "%s", Str("i_rate parameter out of range\n"));
+      csoundMessage(csound, "%s", Str("i_rate parameter out of range\n"));
       p->rate = 0;
     }
     else
-      p->rate = (int32_t)(*p->i_rate * csound->GetSr(csound));
+      p->rate = (int32_t)(*p->i_rate * csoundGetSr(csound));
 
       /* Initialize index */
     p->idx = 0;
@@ -410,7 +414,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* External force index */
     p->exti = 0;
 
-    //csound->display(csound, p->win); /* ********************** */
+    //display(csound, p->win); /* ********************** */
 
     pp = scansyn_getGlobals(csound);
     p->pp = pp;
@@ -419,7 +423,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     if (pp->ewin == NULL) {
       uint32_t i;
       MYFLT arg =  PI_F/(len-1);
-      pp->ewin = (MYFLT*) csound->Calloc(csound, len * sizeof(MYFLT));
+      pp->ewin = (MYFLT*) mcalloc(csound, len * sizeof(MYFLT));
       for (i = 0 ; i != len-1 ; i++)
         pp->ewin[i] = SQRT(SIN(arg*i));
       pp->ewin[i] = FL(0.0); /* You get NaN otherwise */
@@ -428,8 +432,8 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Throw data into list or use table */
     p->id = (int32_t) *p->i_id;
     if (p->id < 0) {
-      if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < (int32_t)len)) {
-        return csound->InitError(csound, "%s", Str("scanu: invalid id table"));
+      if (UNLIKELY(csoundGetTable(csound, &(p->out), -(p->id)) < (int32_t)len)) {
+        return csoundInitError(csound, "%s", Str("scanu: invalid id table"));
       }
     }
     else {
@@ -496,7 +500,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
         int32_t i, j;
         scsnu_hammer(csound, p, *p->k_x, *p->k_y);
         if (*p->i_disp)
-          csound->display(csound, p->win); /* *********************** */
+          display(csound, p->win); /* *********************** */
         for (i = 0 ; i != len ; i++) {
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
@@ -507,7 +511,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
                                 /* And push feedback */
           //scsnu_hammer(csound, p, *p->k_x, *p->k_y);
           //if (*p->i_disp)
-          //  csound->display(csound, p->win); /* *********************** */
+          //  display(csound, p->win); /* *********************** */
                                 /* Estimate acceleration */
           if (p->revised) {
             MYFLT kf = *p->k_f;
@@ -550,7 +554,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
         /* Reset index and display the state */
         idx = 0;
         if (*p->i_disp)
-          csound->display(csound, p->win);
+          display(csound, p->win);
       }
       if (p->id<0) { /* Write to ftable */
         int32_t i;
@@ -573,7 +577,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
     p->exti = exti;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              "%s", Str("scanu: not initialised"));
 }
 
@@ -608,9 +612,9 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     p->p = listget(csound, (int32_t) *p->i_id);
 
     /* Get trajectory matrix */
-    t = csound->FTnp2Find(csound, p->i_trj);
+    t = csoundFTnp2Find(csound, p->i_trj);
     if (UNLIKELY(t == NULL)) {
-      return csound->InitError(csound, "%s", Str("scans: Could not find "
+      return csoundInitError(csound, "%s", Str("scans: Could not find "
                                           "the ifntraj table"));
     }
     if (oscil_interp<1 || oscil_interp>4) oscil_interp = 4;
@@ -619,12 +623,12 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     /* Check that trajectory is within bounds */
     for (i = 0 ; i != p->tlen ; i++)
       if (UNLIKELY(t->ftable[i] < 0 || t->ftable[i] >= p->p->len))
-        return csound->InitError(csound, "%s",
+        return csoundInitError(csound, "%s",
                                  Str("vermp: Trajectory table includes "
                                      "values out of range"));
     /* Allocate memory and pad to accomodate interpolation */
                               /* Note that the 4 here is a hack -- jpff */
-    csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32_t), &p->aux_t);
+    csoundAuxAlloc(csound, (p->tlen + 4)*sizeof(int32_t), &p->aux_t);
     p->t = (int32_t*)p->aux_t.auxp + (int32_t)(oscil_interp-1)/2;
     /* Fill 'er up */
     for (i = 0 ; i != p->tlen ; i++)
@@ -637,7 +641,7 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*(1.0/csound->GetSr(csound));
+    p->fix = (MYFLT)p->tlen*(1.0/csoundGetSr(csound));
     return OK;
 }
 
@@ -752,7 +756,7 @@ static int32_t scsnmap(CSOUND *csound, PSCSNMAP *p)
     PSCSNU *pp = p->p;
     int32 which = (int32)*p->k_which;
     if (which>=pp->len|| which<0)
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("scan map %d out of range [0,%d]\n"),
                                which, pp->len);
     *p->k_pos = *p->k_pamp * pp->x0[which];
@@ -766,7 +770,7 @@ static int32_t scsnsmap(CSOUND *csound, PSCSNMAP *p)
     PSCSNU *pp = p->p;
     int32 which = (int32)*p->k_which;
     if (which>=pp->len|| which<0)
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("scan map %d out of range [0,%d]\n"),
                                which, pp->len);
  
@@ -825,7 +829,7 @@ static OENTRY localops[] =
 
 static int32_t scansyn_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

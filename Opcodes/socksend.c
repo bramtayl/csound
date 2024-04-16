@@ -40,6 +40,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include "memalloc.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 
@@ -93,12 +97,12 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csoundInitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->ff = (int32_t)(*p->format);
     p->bsize = bsize = (int32_t) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
-    /*   return csound->InitError(csound,
+    /*   return csoundInitError(csound,
          Str("The buffersize must be <= %d samples " */
     /*                                        "to fit in a udp-packet."), */
     /*                            (int32_t) (MTU / sizeof(MYFLT))); */
@@ -109,11 +113,11 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
 #if defined(_WIN32) && !defined(__CYGWIN__)
     if (p->sock == SOCKET_ERROR) {
       err = WSAGetLastError();
-      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+      csoundInitError(csound, Str("socket failed with error: %ld\n"), err);
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csoundInitError(csound, Str("creating socket"));
     }
 #endif
     /* create server address: where we want to send to and clear it out */
@@ -132,7 +136,7 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     /* create a buffer to write the interleaved audio to  */
     if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
+      csoundAuxAlloc(csound, (bsize * bwidth), &p->aux);
     else {
       memset(p->aux.auxp, 0, bwidth * bsize);
     }
@@ -159,7 +163,7 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                             sizeof(p->server_addr)) == SOCKET_ERROR)) {
-          return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+          return csoundPerfError(csound, &(p->h), Str("sendto failed"));
         }
         wp = 0;
       }
@@ -196,7 +200,7 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
       /* send the package when we have a full buffer */
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                           sizeof(p->server_addr)) == SOCKET_ERROR)) {
-        return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+        return csoundPerfError(csound, &(p->h), Str("sendto failed"));
       }
       p->wp = 0;
     }
@@ -225,7 +229,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     int32_t     len = p->str->size;
 
     if (UNLIKELY(len>=buffersize)) {
-      csound->Warning(csound, Str("string truncated in socksend"));
+      csoundWarning(csound, Str("string truncated in socksend"));
       len = buffersize-1;
     }
     memcpy(out, q, len);
@@ -233,7 +237,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     /* send the package with the string each time */
     if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                         sizeof(p->server_addr)) ==SOCKET_ERROR)) {
-      return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+      return csoundPerfError(csound, &(p->h), Str("sendto failed"));
     }
     return OK;
 }
@@ -249,13 +253,13 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csoundInitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
     p->ff = (int32_t)(*p->format);
     p->bsize = bsize = (int32_t) *p->buffersize;
     /* if (UNLIKELY((sizeof(MYFLT) * bsize) > MTU)) { */
-    /*   return csound->InitError(csound,
+    /*   return csoundInitError(csound,
          Str("The buffersize must be <= %d samples " */
     /*                                        "to fit in a udp-packet."), */
     /*                            (int32_t) (MTU / sizeof(MYFLT))); */
@@ -264,7 +268,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csoundInitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -282,7 +286,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
     /* create a buffer to write the interleaved audio to */
     if (p->aux.auxp == NULL || (uint32_t) (bsize * bwidth) > p->aux.size)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, (bsize * bwidth), &p->aux);
+      csoundAuxAlloc(csound, (bsize * bwidth), &p->aux);
     else {
       memset(p->aux.auxp, 0, bwidth * bsize);
     }
@@ -312,7 +316,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
                             sizeof(p->server_addr)) ==SOCKET_ERROR)) {
-          return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+          return csoundPerfError(csound, &(p->h), Str("sendto failed"));
         }
         wp = 0;
       }
@@ -359,7 +363,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 #if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csoundInitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
 
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
@@ -368,11 +372,11 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 #if defined(_WIN32) && !defined(__CYGWIN__)
     if (p->sock == SOCKET_ERROR) {
       err = WSAGetLastError();
-      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+      csoundInitError(csound, Str("socket failed with error: %ld\n"), err);
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csoundInitError(csound, Str("creating socket"));
     }
 #endif
     /* create server address: where we want to connect to */
@@ -409,9 +413,9 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
         goto again;
   #endif
 #endif
-      return csound->InitError(csound, Str("connect failed (%d)"), err);
+      return csoundInitError(csound, Str("connect failed (%d)"), err);
     }
-    csound->RegisterDeinitCallback(csound, p,
+    csoundRegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) stsend_deinit);
 
     return OK;
@@ -424,9 +428,9 @@ static int32_t send_ssend(CSOUND *csound, SOCKSEND *p)
     int32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
 
     if (UNLIKELY(n != send(p->sock, &p->asig[offset], n, 0))) {
-      csound->Message(csound, Str("Expected %d got %d\n"),
+      csoundMessage(csound, Str("Expected %d got %d\n"),
                       (int32_t) (sizeof(MYFLT) * CS_KSMPS), n);
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("write to socket failed"));
     }
     return OK;
@@ -470,19 +474,19 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     uint32_t     bsize;
 
     if (p->init_done) {
-      csound->Warning(csound, "already initialised");
+      csoundWarning(csound, "already initialised");
       return OK;
     }
 
     if(p->INOCOUNT > 4) {
       if(!IS_STR_ARG(p->type)) 
-               return csound->InitError(csound,
+               return csoundInitError(csound,
                              Str("Message type is not given as a string\n"));
     }
 
    
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) strlen(p->type->data) + 4))
-       return csound->InitError(csound,
+       return csoundInitError(csound,
                              Str("insufficient number of arguments for "
                                  "OSC message types\n"));
 
@@ -490,11 +494,11 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csoundInitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csoundInitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -508,13 +512,13 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
-    csound->RegisterDeinitCallback(csound, p,
+    csoundRegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) oscsend_deinit);
 
     if(p->INCOUNT > 4) {
               if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
       /* allocate space for the types buffer */
-      csound->AuxAlloc(csound, strlen(p->type->data), &p->types);
+      csoundAuxAlloc(csound, strlen(p->type->data), &p->types);
     memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
 
     // todo: parse type to allocate memory
@@ -528,7 +532,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       switch(p->type->data[i]){
       case 't':
         if (UNLIKELY(p->INOCOUNT < (uint32_t) p->type->size + 5))
-          return csound->InitError(csound, "extra argument needed for type t\n");
+          return csoundInitError(csound, "extra argument needed for type t\n");
         bsize += 8;
         iarg+=2;
         break;
@@ -541,7 +545,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         break;
       case 's':
         if (UNLIKELY(!IS_STR_ARG(p->arg[i])))
-          return csound->InitError(csound, Str("expecting a string argument\n"));
+          return csoundInitError(csound, Str("expecting a string argument\n"));
         s = (STRINGDAT *)p->arg[i];
         bsize += strlen(s->data) + 64;
         iarg++;
@@ -562,7 +566,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 'G':
-        ft = csound->FTnp2Finde(csound, p->arg[i]);
+        ft = csoundFTnp2Finde(csound, p->arg[i]);
         bsize += (sizeof(MYFLT)*ft->flen);
         iarg++;
         break;
@@ -575,7 +579,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       default:
-        return csound->InitError(csound, Str("%c: data type not supported\n"),
+        return csoundInitError(csound, Str("%c: data type not supported\n"),
                                  p->type->data[i]);
       }
     }
@@ -584,7 +588,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     bsize *= 2;
     if (p->aux.auxp == NULL || bsize > p->aux.size)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, bsize, &p->aux);
+      csoundAuxAlloc(csound, bsize, &p->aux);
     else {
       memset(p->aux.auxp, 0, bsize);
     }
@@ -595,7 +599,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       bsize += 8;
     if (p->aux.auxp == NULL || bsize > p->aux.size)
       /* allocate space for the buffer */
-      csound->AuxAlloc(csound, bsize, &p->aux);
+      csoundAuxAlloc(csound, bsize, &p->aux);
     else {
       memset(p->aux.auxp, 0, bsize);
     }
@@ -631,7 +635,7 @@ static inline char *byteswap(char *p, int32_t N){
 
 static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
     char *p = aux->auxp;
-    aux->auxp = csound->ReAlloc(csound, p, size);
+    aux->auxp = mrealloc(csound, p, size);
     aux->size = size;
     aux->endp = (char*)aux->auxp + size;
     return size;
@@ -764,7 +768,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           buffersize += size;
           break;
         case 'G':
-          ft = csound->FTnp2Finde(csound, p->arg[i]);
+          ft = csoundFTnp2Finde(csound, p->arg[i]);
           size = (int32_t)(sizeof(MYFLT)*ft->flen);
           if(buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
@@ -850,7 +854,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
         if(p->err_state == 0) {
-          csound->Warning(csound, Str("OSCsend failed to send "
+          csoundWarning(csound, Str("OSCsend failed to send "
                                       "message with destination %s to %s:%d\n"),
                                       p->dest->data, p->ipaddress->data,
                           (int) *p->port);
@@ -891,19 +895,19 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
      type and dest
   */
     if(p->arg->dimensions != 2)
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("arg array needs to be two dimensional\n"));
     if(p->type->dimensions > 1 ||
        p->dest->dimensions > 1)
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("type and dest arrays need to be unidimensional\n"));
     if((p->type->sizes[0] !=
         p->dest->sizes[0]))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("type and dest arrays need to have the same size\n"));
     p->no_msgs =  p->type->sizes[0];
     if(p->no_msgs < p->arg->sizes[0])
-      return csound->InitError(csound, "%s", Str("arg array not big enough\n"));
+      return csoundInitError(csound, "%s", Str("arg array not big enough\n"));
 
     if(*p->imtu) p->mtu = (int) *p->imtu;
     else p->mtu = MAX_PACKET_SIZE;
@@ -911,11 +915,11 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csoundInitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csoundInitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -931,7 +935,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 
     if (p->aux.auxp == NULL)
       /* allocate space for the buffer, MTU bytes */
-      csound->AuxAlloc(csound, p->mtu, &p->aux);
+      csoundAuxAlloc(csound, p->mtu, &p->aux);
     else {
       memset(p->aux.auxp, 0, p->mtu);
     }
@@ -941,7 +945,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 
 #define INCR_AND_CHECK(S)  buffsize += S;  \
         if(buffsize >= p->mtu) { \
-          csound->Warning(csound, "%s", \
+          csoundWarning(csound, "%s", \
                           Str("Bundle msg exceeded max packet size, not sent\n")); \
           return OK; }
 
@@ -1011,7 +1015,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           buff += 4;
           break;
           default:
-            csound->Message(csound,
+            csoundMessage(csound,
                             Str("only bundles with i and f types are supported \n"));
           }
         }
@@ -1019,7 +1023,7 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
 
       if (UNLIKELY(sendto(p->sock, (void*) p->aux.auxp, buffsize, 0, to,
                           sizeof(p->server_addr)) < 0))
-        return csound->PerfError(csound, &(p->h), Str("OSCbundle failed"));
+        return csoundPerfError(csound, &(p->h), Str("OSCbundle failed"));
       p->last = *p->kwhen;
     }
     return OK;

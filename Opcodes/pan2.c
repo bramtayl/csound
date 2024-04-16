@@ -24,6 +24,7 @@
 // #include "csdl.h"
 #include "csoundCore_internal.h"
 #include "interlocks.h"
+#include "insert_public.h"
 
 #include <math.h>
 
@@ -43,7 +44,7 @@ static int32_t pan2set(CSOUND *csound, PAN2 *p)
 {
     int32_t type = p->type = MYFLT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 3))
-      return csound->InitError(csound, Str("Unknown panning type"));
+      return csoundInitError(csound, Str("Unknown panning type"));
     p->lastpan = -FL(1.0);
     return OK;
 }

@@ -25,8 +25,13 @@
 #include "dumpf.h"
 #include <ctype.h>
 #include <inttypes.h>
-#include "auxfd.h"
 #include "rdscor.h"
+#include "namedins_public.h"
+#include "memalloc.h"
+#include "envvar_public.h"
+#include "fgens_public.h"
+#include "insert_public.h"
+#include "auxfd.h"
 
 static const int32_t dumpf_format_table[9] = {
   0,
@@ -44,19 +49,19 @@ int32_t kdmpset_S(CSOUND *csound, KDUMP *p) {
     /* open in curdir or pathname */
     char soundoname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
     strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -71,21 +76,21 @@ int32_t kdmpset_p(CSOUND *csound, KDUMP *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->ISSTRCOD(*p->ifilcod))
+    if (isstrcod(*p->ifilcod))
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+    else strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -98,19 +103,19 @@ int32_t kdmp2set_S(CSOUND *csound, KDUMP2 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
     strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -124,21 +129,21 @@ int32_t kdmp2set_p(CSOUND *csound, KDUMP2 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->ISSTRCOD(*p->ifilcod))
+    if (isstrcod(*p->ifilcod))
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+    else strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -152,19 +157,19 @@ int32_t kdmp3set_S(CSOUND *csound, KDUMP3 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
     strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -179,21 +184,21 @@ int32_t kdmp3set_p(CSOUND *csound, KDUMP3 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->ISSTRCOD(*p->ifilcod))
+    if (isstrcod(*p->ifilcod))
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+    else strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -206,19 +211,19 @@ int32_t kdmp4set_S(CSOUND *csound, KDUMP4 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
    strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
-      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -231,21 +236,21 @@ int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
     /* open in curdir or pathname */
     char soundoname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->ISSTRCOD(*p->ifilcod))
+    if (isstrcod(*p->ifilcod))
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+    else strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
-      return csound->InitError(csound, Str("Cannot open %s"), soundoname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundoname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -308,11 +313,11 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
       len = strlen(outbuf);
       break;
     default:
-      csound->PerfError(csound,&(((KDUMP *)p)->h),
+      csoundPerfError(csound,&(((KDUMP *)p)->h),
                         Str("unknown kdump format"));
     }
     if (UNLIKELY(fwrite(outbuf, len, 1, ofd)!=1)) { /* now write the buffer */
-      csound->PerfError(csound, &(((KDUMP *)p)->h),
+      csoundPerfError(csound, &(((KDUMP *)p)->h),
                         Str("write failure in dumpk"));
     }
 }
@@ -380,21 +385,21 @@ int32_t krdset_p(CSOUND *csound, KREAD *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-     if (csound->ISSTRCOD(*p->ifilcod))
+     if (isstrcod(*p->ifilcod))
        strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -408,19 +413,19 @@ int32_t krdset_S(CSOUND *csound, KREAD *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
     strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -434,19 +439,19 @@ int32_t krd2set_S(CSOUND *csound, KREAD2 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
    strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -460,21 +465,21 @@ int32_t krd2set_p(CSOUND *csound, KREAD2 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->ISSTRCOD(*p->ifilcod))
+    if (isstrcod(*p->ifilcod))
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -488,19 +493,19 @@ int32_t krd3set_S(CSOUND *csound, KREAD3 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
     strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -514,21 +519,21 @@ int32_t krd3set_p(CSOUND *csound, KREAD3 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->ISSTRCOD(*p->ifilcod))
+    if (isstrcod(*p->ifilcod))
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -542,19 +547,19 @@ int32_t krd4set_S(CSOUND *csound, KREAD4 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
     strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -568,21 +573,21 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (UNLIKELY((p->format = (int32_t)*p->iformat) < 1 || p->format > 8)) {
-      return csound->InitError(csound, Str("unknown format request"));
+      return csoundInitError(csound, Str("unknown format request"));
     }
     if (UNLIKELY(p->format == 2 || p->format == 3)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->ISSTRCOD(*p->ifilcod))
+    if (isstrcod(*p->ifilcod))
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
@@ -693,7 +698,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
         kp++;
       }
       break;
-    default: csound->Warning(csound,Str("unknown kdump format"));
+    default: csoundWarning(csound,Str("unknown kdump format"));
     }
 }
 
@@ -776,18 +781,18 @@ int32_t krdsset_S(CSOUND *csound, KREADS *p)
     strNcpy(soundiname, ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", 0, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
-    p->lasts = (char*)csound->Calloc(csound, INITSIZE);
+    p->lasts = (char*)mcalloc(csound, INITSIZE);
     p->lasts[0] = '\0';
      if (p->str->data == NULL) {
-       p->str->data = csound->Calloc(csound, INITSIZE);
+       p->str->data = mcalloc(csound, INITSIZE);
         p->str->size = INITSIZE;
     }
     return OK;
@@ -798,23 +803,23 @@ int32_t krdsset_p(CSOUND *csound, KREADS *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (csound->ISSTRCOD(*p->ifilcod))
+    if (isstrcod(*p->ifilcod))
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
-    else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", 0, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), soundiname);
+      return csoundInitError(csound, Str("Cannot open %s"), soundiname);
     fdrecord(csound, &p->fdch);
     if ((p->timcount = (int32_t)(*p->iprd * CS_EKR)) <= 0)
       p->timcount = 1;
     p->countdown = 0;
-    p->lasts = (char*)csound->Malloc(csound, INITSIZE);
+    p->lasts = (char*)mmalloc(csound, INITSIZE);
     p->lasts[0] = '\0';
      if (p->str->data == NULL) {
-       p->str->data = csound->Calloc(csound, INITSIZE);
+       p->str->data = mcalloc(csound, INITSIZE);
        p->str->size = INITSIZE;
     }
     return OK;
@@ -826,7 +831,7 @@ int32_t kreads(CSOUND *csound, KREADS *p)
     if (--p->countdown <= 0) {
       p->countdown = p->timcount;
       if (UNLIKELY(fgets(p->lasts, INITSIZE-1,  p->f)==NULL)) {
-        csound->PerfError(csound, &(p->h), Str("Read failure in readks"));
+        csoundPerfError(csound, &(p->h), Str("Read failure in readks"));
       }
     }
     strNcpy((char*) p->str->data, p->lasts, INITSIZE);

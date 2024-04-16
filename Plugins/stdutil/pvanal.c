@@ -40,6 +40,11 @@
 #include "pvfileio.h"
 #include <math.h>
 #include <ctype.h>
+#include "memalloc.h"
+#include "fftlib.h"
+#include "libsnd_u.h"
+#include "envvar_public.h"
+#include "utility.h"
 
 
 typedef struct pvocex_ch {
@@ -174,9 +179,9 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
         switch (*s++) {
         case 's': FIND(Str("no sampling rate"));
 #if defined(USE_DOUBLE)
-          csound->sscanf(s, "%lf", &sr);
+          cs_sscanf(s, "%lf", &sr);
 #else
-          csound->sscanf(s, "%f", &sr);
+          cs_sscanf(s, "%f", &sr);
 #endif
           break;
         case 'c':  FIND(Str("no channel"));
@@ -184,16 +189,16 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'b':  FIND(Str("no begin time"));
 #if defined(USE_DOUBLE)
-          csound->sscanf(s, "%lf", &beg_time);
+          cs_sscanf(s, "%lf", &beg_time);
 #else
-          csound->sscanf(s, "%f", &beg_time);
+          cs_sscanf(s, "%f", &beg_time);
 #endif
           break;
         case 'd':  FIND(Str("no duration time"));
 #if defined(USE_DOUBLE)
-          csound->sscanf(s, "%lf", &input_dur);
+          cs_sscanf(s, "%lf", &input_dur);
 #else
-          csound->sscanf(s, "%f", &input_dur);
+          cs_sscanf(s, "%f", &input_dur);
 #endif
           break;
         case 'H':
@@ -204,7 +209,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'B':
           FIND(Str("no beta given"));
-            csound->sscanf(s, "%lf", &beta);
+            cs_sscanf(s, "%lf", &beta);
             break;
         case 'n':  FIND(Str("no framesize"));
           sscanf(s, "%"PRId64, &frameSize);
@@ -230,11 +235,11 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'V':  FIND(Str("no output file for trace"));
           {
-            void  *dummy = csound->FileOpen2(csound, &trfil, CSFILE_STD, s,
+            void  *dummy = csoundFileOpenWithType(csound, &trfil, CSFILE_STD, s,
                                              "w", NULL, CSFTYPE_OTHER_TEXT, 0);
             if (UNLIKELY(dummy == NULL))
               return quit(csound, Str("Failed to open text file"));
-            csound->Message(csound, Str("Writing text form to file %s\n"), s);
+            csoundMessage(csound, Str("Writing text form to file %s\n"), s);
           }
           /* FALLTHRU */
         default:
@@ -251,7 +256,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(ovlp && frameIncr))
       return quit(csound, Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = SAsndgetset(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
@@ -266,7 +271,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
         frameSize >>= 1;        /* divide down until just larger */
     }
     if (ovlp == 0 && frameIncr == 0) {
-      csound->Message(csound, "frameSize=%"PRId64"\n", frameSize);
+      csoundMessage(csound, "frameSize=%"PRId64"\n", frameSize);
       ovlp = OVLP_DEF;          /* default overlap */
       frameIncr = frameSize / ovlp;
     }
@@ -275,7 +280,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
     else frameIncr = frameSize/ovlp;
 
     if (UNLIKELY(ovlp < 2 || ovlp > 64)) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("WARNING: pvanal: %d might be a bad window "
                           "overlap index\n"),
                       (int32_t) ovlp);
@@ -283,30 +288,30 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
       /* VL: removed this restriction, which sounds a bit drastic */
     }
     oframeEst = (p->getframes - frameSize/2) / frameIncr;
-    csound->Message(csound, Str("%"PRId64" infrsize, %"PRId64" infrInc\n"),
+    csoundMessage(csound, Str("%"PRId64" infrsize, %"PRId64" infrInc\n"),
                             (int64_t) frameSize, (int64_t) frameIncr);
-    csound->Message(csound, Str("%"PRId64" output frames estimated\n"),
+    csoundMessage(csound, Str("%"PRId64" output frames estimated\n"),
                             (int64_t) oframeEst);
 
     /* even for old pvoc file, is absence of extension OK? */
     if (UNLIKELY(p->nchanls > MAXPVXCHANS)) {
-      csound->Message(csound, Str("pvxanal - source has too many channels: "
+      csoundMessage(csound, Str("pvxanal - source has too many channels: "
                                   "Maxchans = %d.\n"), MAXPVXCHANS);
       return -1;
     }
-    csound->Message(csound, "%s", Str("pvanal: creating pvocex file\n"));
+    csoundMessage(csound, "%s", Str("pvanal: creating pvocex file\n"));
     /* handle all messages in here, for now */
     if (UNLIKELY(displays))
-        csound->dispinit(csound);
+        dispinit(csound);
     if (UNLIKELY(pvxanal(csound, p, infd, outfilnam, p->sr,
                         ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
                          WindowType, beta, displays) != 0)) {
-      csound->Message(csound, "%s", Str("error generating pvocex file.\n"));
+      csoundMessage(csound, "%s", Str("error generating pvocex file.\n"));
       return -1;
     }
     if (displays)
-      csound->dispexit(csound);
+      dispexit(csound);
 
     return 0;
 }
@@ -331,9 +336,9 @@ static int32_t quit(CSOUND *csound, char *msg)
 {
     int32_t i;
 
-    csound->Message(csound, Str("pvanal error: %s\n"), msg);
+    csoundMessage(csound, Str("pvanal error: %s\n"), msg);
     for (i = 0; pvanal_usage_txt[i] != NULL; i++)
-      csound->Message(csound, "%s\n", Str(pvanal_usage_txt[i]));
+      csoundMessage(csound, "%s\n", Str(pvanal_usage_txt[i]));
     return -1;
 }
 
@@ -341,9 +346,9 @@ static int32_t quit(CSOUND *csound, char *msg)
 
 int32_t pvanal_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "pvanal", pvanal);
+    int32_t retval = csoundAddUtility(csound, "pvanal", pvanal);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "pvanal",
+      retval = csoundSetUtilityDescription(csound, "pvanal",
                                              Str("Soundfile analysis for pvoc"));
     }
     return retval;
@@ -366,7 +371,7 @@ static void PVDisplay_Init(CSOUND *csound, PVDISPLAY *p,
     p->npts = (fftSize / 2) + 1;
     p->dispCntMax = dispCntMax;
     for (i = 0; i < DISPFRAMES; i++)
-      p->dispBufs[i] = (MYFLT*) csound->Calloc(csound, p->npts * sizeof(MYFLT));
+      p->dispBufs[i] = (MYFLT*) mcalloc(csound, p->npts * sizeof(MYFLT));
 }
 
 static void PVDisplay_Update(PVDISPLAY *p, const float *buf)
@@ -391,10 +396,10 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
       p->dispBufs[p->dispFrame][i] =
           (MYFLT) sqrt((double) (p->dispBufs[p->dispFrame][i]
                                  / (MYFLT) p->dispCnt));
-    p->csound->dispset(p->csound, &(p->dwindow), p->dispBufs[p->dispFrame],
+    dispset(p->csound, &(p->dwindow), p->dispBufs[p->dispFrame],
                        p->npts, "pvanalwin", 0, "PVANAL");
     snprintf(&(p->dwindow.caption[0]), CAPSIZE, "%"PRId64, (int64_t) frame);
-    p->csound->display(p->csound, &(p->dwindow));
+    display(p->csound, &(p->dwindow));
     p->dispCnt = 0;
     p->dispFrame++;
 }
@@ -451,20 +456,20 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
     /* snap to overlap size*/
     buflen = (buflen/overlap) * overlap;
     buflen_samps = buflen * chans;
-    inbuf = (MYFLT *) csound->Malloc(csound, buflen_samps * sizeof(MYFLT));
+    inbuf = (MYFLT *) mmalloc(csound, buflen_samps * sizeof(MYFLT));
     for (i=0;i < chans;i++) {
-      inbuf_c[i] = (MYFLT *) csound->Malloc(csound, buflen * sizeof(MYFLT));
-      frame_c[i] = (float*) csound->Malloc(csound,      /* RWD 32bit */
+      inbuf_c[i] = (MYFLT *) mmalloc(csound, buflen * sizeof(MYFLT));
+      frame_c[i] = (float*) mmalloc(csound,      /* RWD 32bit */
                                            (fftsize + 2) * sizeof(float));
     }
 
-    pvfile  = csound->PVOC_CreateFile(csound, fname, fftsize, overlap, chans,
+    pvfile  = pvoc_createfile(csound, fname, fftsize, overlap, chans,
                                               PVOC_AMP_FREQ, srate, stype,
                                               wintype, 0.0f, NULL, winsize);
     if (UNLIKELY(pvfile < 0)) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("pvxanal: unable to create analysis file: %s"),
-                      csound->PVOC_ErrorString(csound));
+                      pvoc_errorstr(csound));
       rc = 1;
       goto error;
     }
@@ -473,7 +478,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
                    (int32_t) (((int64_t) p->getframes * chans / overlap)
                           / DISPFRAMES));
 
-    while ((sampsread = csound->getsndin(csound,
+    while ((sampsread = getsndin(csound,
                                          fd, inbuf, buflen_samps, p)) > 0) {
       total_sampsread += sampsread;
       /* zeropad to full buflen */
@@ -489,20 +494,20 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
         for (k = 0; k < chans; k++) {
           frame = frame_c[k];
           chanbuf = inbuf_c[k];
-          if (UNLIKELY(!csound->CheckEvents(csound)))
-            csound->LongJmp(csound, 1);
+          if (UNLIKELY(!csoundYield(csound)))
+            csoundLongJmp(csound, 1);
           generate_frame(csound, pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
-          if (UNLIKELY(!csound->PVOC_PutFrames(csound, pvfile, frame, 1))) {
-            csound->Message(csound,
+          if (UNLIKELY(!pvoc_putframes(csound, pvfile, frame, 1))) {
+            csoundMessage(csound,
                             Str("pvxanal: error writing analysis frames: %s\n"),
-                            csound->PVOC_ErrorString(csound));
+                            pvoc_errorstr(csound));
             rc = 1;
             goto error;
           }
           blocks_written++;
           if (displays) PVDisplay_Update(&disp, frame);
           if ((blocks_written/chans) % 20 == 0) {
-            csound->Message(csound, "%"PRId64"\n", blocks_written/chans);
+            csoundMessage(csound, "%"PRId64"\n", blocks_written/chans);
           }
           if (displays)
             PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
@@ -522,13 +527,13 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
       for (k = 0; k < chans; k++) {
         frame = frame_c[k];
         chanbuf = inbuf_c[k];
-        if (!csound->CheckEvents(csound))
-          csound->LongJmp(csound, 1);
+        if (!csoundYield(csound))
+          csoundLongJmp(csound, 1);
         generate_frame(csound,pvx[k],chanbuf+i,frame,overlap,PVOC_AMP_FREQ);
-        if (UNLIKELY(!csound->PVOC_PutFrames(csound, pvfile, frame, 1))) {
-          csound->Message(csound,
+        if (UNLIKELY(!pvoc_putframes(csound, pvfile, frame, 1))) {
+          csoundMessage(csound,
                           Str("pvxanal: error writing analysis frames: %s\n"),
-                          csound->PVOC_ErrorString(csound));
+                          pvoc_errorstr(csound));
           rc = 1;
           goto error;
         }
@@ -537,13 +542,13 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
       }
       if (displays) PVDisplay_Display(&disp, (int32_t) (blocks_written / chans));
     }
-    csound->Message(csound, Str("\n%"PRId64" %d-chan blocks written to %s\n"),
+    csoundMessage(csound, Str("\n%"PRId64" %d-chan blocks written to %s\n"),
                     (int64_t) blocks_written / (int64_t) chans,
                     (int32_t) chans, fname);
 
  error:
     if (pvfile >= 0)
-      csound->PVOC_CloseFile(csound, pvfile);
+      pvoc_closefile(csound, pvfile);
     return rc;
 }
 
@@ -559,7 +564,7 @@ static int32_t init(CSOUND *csound,
     if (pvx == NULL)
       return 1;
 
-    thispvx  = (PVX *) csound->Calloc(csound, sizeof(PVX));
+    thispvx  = (PVX *) mcalloc(csound, sizeof(PVX));
     /* init all vars, as for a constructor */
     thispvx->input      =  NULL;
     thispvx->anal       =  NULL;
@@ -619,7 +624,7 @@ static int32_t init(CSOUND *csound,
        window duration is ibuflen/2. */
 
     thispvx->analWindow_base =
-        (MYFLT *) csound->Malloc(csound, (M + Mf) * sizeof(MYFLT));
+        (MYFLT *) mmalloc(csound, (M + Mf) * sizeof(MYFLT));
 
     thispvx->analWindow =
       thispvx->analWindow_base + (thispvx->analWinLen = thispvx->M/2);
@@ -667,7 +672,7 @@ static int32_t init(CSOUND *csound,
        values are written over. */
 
     thispvx->input =
-        (MYFLT *) csound->Malloc(csound, thispvx->ibuflen * sizeof(MYFLT));
+        (MYFLT *) mmalloc(csound, thispvx->ibuflen * sizeof(MYFLT));
     thispvx->nextIn = thispvx->input;
 
     /* set up analysis buffer for (N/2 + 1) channels: The input is real,
@@ -676,9 +681,9 @@ static int32_t init(CSOUND *csound,
        calculating phase difference between successive samples. */
 
     thispvx->anal =
-        (MYFLT *) csound->Malloc(csound, (N + 2) * sizeof(MYFLT));
+        (MYFLT *) mmalloc(csound, (N + 2) * sizeof(MYFLT));
     thispvx->oldInPhase =
-        (MYFLT *) csound->Malloc(csound, (N2 + 1) * sizeof(MYFLT));
+        (MYFLT *) mmalloc(csound, (N2 + 1) * sizeof(MYFLT));
 
     thispvx->rIn = ((MYFLT) thispvx->R / D);
     thispvx->invR =(FL(1.0) / thispvx->R);
@@ -775,7 +780,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
         k -= N;
       *(anal + k) += *(pvx->analWindow + i) * *(pvx->input + j);
     }
-    csound->RealFFTnp2(csound, anal, pvx->N);
+    csoundRealFFTnp2(csound, anal, pvx->N);
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in
@@ -831,7 +836,7 @@ static void chan_split(CSOUND *csound, const MYFLT *inbuf, MYFLT **chbuf,
     const MYFLT *p_inbuf = inbuf;
 
     len = insize/chans;
-    ampfac = (1.0/csound->Get0dBFS(csound));
+    ampfac = (1.0/csoundGet0dBFS(csound));
 
     for (i=0;i < chans;i++)
       buf_c[i] = chbuf[i];

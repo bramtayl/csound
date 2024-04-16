@@ -50,11 +50,11 @@ static int32_t warn = 0;
 int32_t poly_LPG_init(CSOUND* csound, BUCHLA *p)
 {
     p->so = p->sx = p->sd = p->xo = 0.0;
-    if (warn==0) csound->Message(csound, "**** Experimental code ****\n");
+    if (warn==0) csoundMessage(csound, "**** Experimental code ****\n");
     warn++;
 #define C1 (1e-09)
 #define C2 (2.2e-10)
-    p->f = 0.5/csound->GetSr(csound);
+    p->f = 0.5/csoundGetSr(csound);
     return OK;
 }
 
@@ -67,7 +67,7 @@ int32_t poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT e0dbfs = csound->Get0dBFS(csound);
+    MYFLT e0dbfs = csoundGet0dBFS(csound);
 
     if (*p->ksw5 != FL(0.0))
       c3 = 4.7e-09;
@@ -178,7 +178,7 @@ typedef struct {
 int32_t vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
-    p->a_base = 1000.0*PI/(csound->GetSr(csound));
+    p->a_base = 1000.0*PI/(csoundGetSr(csound));
     p->t_down = *p->down<FL(0.0) ? 3.0e3 : (double)*p->down;
     p->t_up   = *p->up<FL(0.0) ? 20.0 : (double)*p->up;
     return OK;
@@ -195,7 +195,7 @@ int32_t vactrol_perf(CSOUND *csound, VACTROL* p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT *in = p->inp;
     MYFLT *out = p->out;
-    double e0db = csound->Get0dBFS(csound);
+    double e0db = csoundGet0dBFS(csound);
 
     if (UNLIKELY(offset)) {
       memset(out, '\0', offset*sizeof(MYFLT));
@@ -234,7 +234,7 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
 {
     double R1, R2;
     double offset = 0.9999*in2 + 0.0001;
-    double zerodb = csound->Get0dBFS(csound);
+    double zerodb = csoundGet0dBFS(csound);
     double V3, Ia, If, Ifbound1, Ifbound2, Ifbound3;
     double Vb = in1/zerodb;
     double ans;

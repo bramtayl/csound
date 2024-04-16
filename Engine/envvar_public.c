@@ -25,7 +25,7 @@
  * The function returns a pointer to the full name of the file if it is
  * found, and NULL if the file could not be found in any of the search paths,
  * or an error has occured. The caller is responsible for freeing the memory
- * pointed to by the return value, by calling csound->Free().
+ * pointed to by the return value, by calling mfree().
  */
 char *csoundFindInputFile(CSOUND *csound, const char *filename,
                           const char *envList) {
@@ -57,7 +57,7 @@ char *csoundFindInputFile(CSOUND *csound, const char *filename,
  * suitable for writing the file is found, and NULL if the file cannot not be
  * written anywhere in the search paths, or an error has occured.
  * The caller is responsible for freeing the memory pointed to by the return
- * value, by calling csound->Free().
+ * value, by calling mfree().
  */
 char *csoundFindOutputFile(CSOUND *csound, const char *filename,
                            const char *envList) {
@@ -68,8 +68,8 @@ char *csoundFindOutputFile(CSOUND *csound, const char *filename,
   fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
   if (fd >= 0) {
     close(fd);
-    csound->Warning(csound,
-                    Str("Output file already exists: Will be overwritten.\n"));
+    csoundWarning(csound,
+                  Str("Output file already exists: Will be overwritten.\n"));
   }
   return name_found;
 }
@@ -94,7 +94,7 @@ void *csoundCreateFileHandle(CSOUND *csound, void *fd, int type,
   if (fullName == NULL || fullName[0] == '\0') return NULL;
   nbytes += (int)strlen(fullName);
   /* allocate file structure */
-  p = (CSFILE *)csound->Calloc(csound, (size_t)nbytes);
+  p = (CSFILE *)mcalloc(csound, (size_t)nbytes);
   if (p == NULL) return NULL;
   p->nxt = (CSFILE *)csound->open_files;
   p->prv = (CSFILE *)NULL;
@@ -122,7 +122,7 @@ void *csoundCreateFileHandle(CSOUND *csound, void *fd, int type,
                      Str("internal error: csoundCreateFileHandle(): "
                          "invalid type: %d"),
                      type);
-      csound->Free(csound, p);
+      mfree(csound, p);
       return NULL;
   }
   /* link into chain of open files */
@@ -147,7 +147,7 @@ int csoundFileClose(CSOUND *csound, void *fd) {
   CSFILE *p = (CSFILE *)fd;
   int retval = -1;
   if (p->async_flag == ASYNC_GLOBAL) {
-    csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+    csoundWaitThreadLockNoTimeout(csound->file_io_threadlock);
     /* close file */
     switch (p->type) {
       case CSFILE_FD_R:
@@ -170,10 +170,10 @@ int csoundFileClose(CSOUND *csound, void *fd) {
     else
       p->prv->nxt = p->nxt;
     if (p->nxt != NULL) p->nxt->prv = p->prv;
-    if (p->buf != NULL) csound->Free(csound, p->buf);
+    if (p->buf != NULL) mfree(csound, p->buf);
     p->bufsize = 0;
-    csound->DestroyCircularBuffer(csound, p->cb);
-    csound->NotifyThreadLock(csound->file_io_threadlock);
+    csoundDestroyCircularBuffer(csound, p->cb);
+    csoundNotifyThreadLock(csound->file_io_threadlock);
   } else {
     /* close file */
     switch (p->type) {
@@ -198,7 +198,7 @@ int csoundFileClose(CSOUND *csound, void *fd) {
     if (p->nxt != NULL) p->nxt->prv = p->prv;
   }
   /* free allocated memory */
-  csound->Free(csound, fd);
+  mfree(csound, fd);
 
   /* return with error value */
   return retval;
@@ -271,8 +271,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     if (type == CSFILE_STD) {
       tmp_f = _wfopen(wfname, wmode);
       if (UNLIKELY(tmp_f == NULL)) {
-        /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."),
-         */
+        /* csoundErrorMsg(csound, Str("csoundFileOpenWithType(\"%s\") failed:
+         * %s."), */
         /*                name, strerror(errno)); */
         free(wfname);
         free(wmode);
@@ -290,8 +290,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       fullName = (char *)name;
       tmp_f = fopen(fullName, (char *)param);
       if (UNLIKELY(tmp_f == NULL)) {
-        /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."),
-         */
+        /* csoundErrorMsg(csound, Str("csoundFileOpenWithType(\"%s\") failed:
+         * %s."), */
         /*                name, strerror(errno)); */
         goto err_return;
       }
@@ -319,7 +319,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
   }
   nbytes += (int)strlen(fullName);
   /* allocate file structure */
-  p = (CSFILE *)csound->Malloc(csound, (size_t)nbytes);
+  p = (CSFILE *)mmalloc(csound, (size_t)nbytes);
   if (UNLIKELY(p == NULL)) goto err_return;
   p->nxt = (CSFILE *)csound->open_files;
   p->prv = (CSFILE *)NULL;
@@ -329,7 +329,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
   p->sf = (SNDFILE *)NULL;
   strcpy(&(p->fullName[0]), fullName);
   if (env != NULL) {
-    csound->Free(csound, fullName);
+    mfree(csound, fullName);
     env = NULL;
   }
 
@@ -369,7 +369,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
           sf->format = TYPE2SF(TYP_RAW) |  AE_SHORT ;
           sf->samplerate = csound->esr;
           //sf->channels = 1;//csound->inchnls;
-          csound->Warning(csound,
+          csoundWarning(csound,
                           Str("After open failure(%s)\n"
                               "will try to open %s as raw\n"),
                           sflib_strerror(NULL), fullName);
@@ -377,7 +377,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
         }
 #endif
         if (UNLIKELY(p->sf == (SNDFILE *)NULL)) {
-          /* csound->Warning(csound, Str("Failed to open %s: %s\n"), */
+          /* csoundWarning(csound, Str("Failed to open %s: %s\n"), */
           /*                 fullName, sflib_strerror(NULL)); */
           goto err_return;
         }
@@ -390,8 +390,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     case CSFILE_SND_W: /* sound file write */
       p->sf = sflib_open_fd(tmp_fd, SFM_WRITE, (SFLIB_INFO *)param, 0);
       if (UNLIKELY(p->sf == (SNDFILE *)NULL)) {
-        csound->Warning(csound, Str("Failed to open %s: %s\n"), fullName,
-                        sflib_strerror(NULL));
+        csoundWarning(csound, Str("Failed to open %s: %s\n"), fullName,
+                      sflib_strerror(NULL));
         goto err_return;
       }
       sflib_command(p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
@@ -423,8 +423,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
 
 err_return:
   /* clean up on error */
-  if (p != NULL) csound->Free(csound, p);
-  if (fullName != NULL && env != NULL) csound->Free(csound, fullName);
+  if (p != NULL) mfree(csound, p);
+  if (fullName != NULL && env != NULL) mfree(csound, fullName);
   if (tmp_fd >= 0)
     close(tmp_fd);
   else if (tmp_f != NULL)
@@ -450,20 +450,19 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
 
   if (csound->file_io_start == 0) {
     csound->file_io_start = 1;
-    csound->file_io_threadlock = csound->CreateThreadLock();
-    csound->NotifyThreadLock(csound->file_io_threadlock);
-    csound->file_io_thread =
-        csound->CreateThread(file_iothread, (void *)csound);
+    csound->file_io_threadlock = csoundCreateThreadLock();
+    csoundNotifyThreadLock(csound->file_io_threadlock);
+    csound->file_io_thread = csoundCreateThread(file_iothread, (void *)csound);
   }
-  csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+  csoundWaitThreadLockNoTimeout(csound->file_io_threadlock);
   p->async_flag = ASYNC_GLOBAL;
 
-  p->cb = csound->CreateCircularBuffer(csound, buffsize * 4, sizeof(MYFLT));
+  p->cb = csoundCreateCircularBuffer(csound, buffsize * 4, sizeof(MYFLT));
   p->items = 0;
   p->pos = 0;
   p->bufsize = buffsize;
-  p->buf = (MYFLT *)csound->Calloc(csound, sizeof(MYFLT) * buffsize);
-  csound->NotifyThreadLock(csound->file_io_threadlock);
+  p->buf = (MYFLT *)mcalloc(csound, sizeof(MYFLT) * buffsize);
+  csoundNotifyThreadLock(csound->file_io_threadlock);
 
   if (p->cb == NULL || p->buf == NULL) {
     /* close file immediately */
@@ -480,7 +479,7 @@ unsigned int csoundReadAsync(CSOUND *csound, void *handle, MYFLT *buf,
                              int items) {
   CSFILE *p = handle;
   if (p != NULL && p->cb != NULL)
-    return csound->ReadCircularBuffer(csound, p->cb, buf, items);
+    return csoundReadCircularBuffer(csound, p->cb, buf, items);
   else
     return 0;
 }
@@ -489,7 +488,7 @@ unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf,
                               int items) {
   CSFILE *p = handle;
   if (p != NULL && p->cb != NULL)
-    return csound->WriteCircularBuffer(csound, p->cb, buf, items);
+    return csoundWriteCircularBuffer(csound, p->cb, buf, items);
   else
     return 0;
 }
@@ -497,7 +496,7 @@ unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf,
 int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence) {
   CSFILE *p = handle;
   int ret = 0;
-  csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+  csoundWaitThreadLockNoTimeout(csound->file_io_threadlock);
   switch (p->type) {
     case CSFILE_FD_R:
       break;
@@ -509,10 +508,10 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence) {
     case CSFILE_SND_W:
       ret = sflib_seek(p->sf, pos, whence);
       // csoundMessage(csound, "seek set %d\n", pos);
-      csound->FlushCircularBuffer(csound, p->cb);
+      csoundFlushCircularBuffer(csound, p->cb);
       p->items = 0;
       break;
   }
-  csound->NotifyThreadLock(csound->file_io_threadlock);
+  csoundNotifyThreadLock(csound->file_io_threadlock);
   return ret;
 }

@@ -25,6 +25,10 @@
 #include "ugensa.h"
 #include "ugens7.h"
 #include <math.h>
+#include "ugens4_public.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /* FOG generator */
 
@@ -34,8 +38,8 @@ static int32_t fogset(CSOUND *csound, FOGS *p)
 {
     /* legato test, not sure if the last bit (auxch) is correct? */
     int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-    if (LIKELY((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
-               (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL)) {
+    if (LIKELY((p->ftp1 = csoundFTFind(csound, p->ifna)) != NULL &&
+               (p->ftp2 = csoundFTFind(csound, p->ifnb)) != NULL)) {
       OVERLAP *ovp, *nxtovp;
       int32   olaps;
       p->fogcvt = FMAXLEN/(p->ftp1)->flen; /*JMC for FOG*/
@@ -46,10 +50,10 @@ static int32_t fogset(CSOUND *csound, FOGS *p)
           p->fundphs = MAXLEN;                    /*   trigger new FOF */
         else p->fundphs = (int32)(*p->iphs * FMAXLEN) & PHMASK;
         if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
-          return csound->InitError(csound, Str("illegal value for iolaps"));
+          return csoundInitError(csound, Str("illegal value for iolaps"));
         }
         if (*p->iphs>=FL(0.0))
-          csound->AuxAlloc(csound, (size_t)olaps * sizeof(OVERLAP), &p->auxch);
+          csoundAuxAlloc(csound, (size_t)olaps * sizeof(OVERLAP), &p->auxch);
         ovp = &p->basovrlap;
         nxtovp = (OVERLAP *) p->auxch.auxp;
         do {
@@ -162,7 +166,7 @@ static int32_t fog(CSOUND *csound, FOGS *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("FOF needs more overlaps"));
 }
 
@@ -213,7 +217,7 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
 
     if (newexp || rismps != p->prvsmps) {            /* if new params */
       if ((p->prvsmps = rismps))                     /*   redo preamp */
-        p->preamp = csound->intpow(p->expamp, -rismps);
+        p->preamp = intpow(p->expamp, -rismps);
       else p->preamp = FL(1.0);
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
@@ -233,7 +237,7 @@ static OENTRY localops[] = {
 
 int32_t ugensa_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

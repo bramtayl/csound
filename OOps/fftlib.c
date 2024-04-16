@@ -34,6 +34,7 @@
 #include "csound.h"
 #include "fftlib.h"
 #include "pffft.h"
+#include "memalloc.h"
 
 
 
@@ -3122,9 +3123,9 @@ static void fftInit(CSOUND *csound, int32_t M)
 
   if (!csound->FFT_max_size) {
     if (csound->FFT_table_1 == NULL)
-      csound->FFT_table_1 = csound->Malloc(csound, sizeof(MYFLT*) * 32);
+      csound->FFT_table_1 = mmalloc(csound, sizeof(MYFLT*) * 32);
     if (csound->FFT_table_2 == NULL)
-      csound->FFT_table_2 = csound->Malloc(csound, sizeof(int16*) * 32);
+      csound->FFT_table_2 = mmalloc(csound, sizeof(int16*) * 32);
     for (i = 0; i < 32; i++) {
       ((MYFLT**) csound->FFT_table_1)[i] = (MYFLT*) NULL;
       ((int16**) csound->FFT_table_2)[i] = (int16*) NULL;
@@ -3135,14 +3136,14 @@ static void fftInit(CSOUND *csound, int32_t M)
 
   /*** I did NOT test cases with M>27 ***/
   /* init cos table */
-  UtblArray[M] = (MYFLT*) csound->Malloc(csound,
+  UtblArray[M] = (MYFLT*) mmalloc(csound,
                                          (POW2(M) / 4 + 1) * sizeof(MYFLT));
   fftCosInit(M, UtblArray[M]);
   if (M > 1) {
     /* init bit reversed table for cmplx FFT */
     if (BRLowArray[M / 2] == NULL) {
       BRLowArray[M / 2] =
-        (int16*) csound->Malloc(csound, POW2(M / 2 - 1) * sizeof(int16));
+        (int16*) mmalloc(csound, POW2(M / 2 - 1) * sizeof(int16));
       fftBRInit(M, BRLowArray[M / 2]);
     }
   }
@@ -3150,7 +3151,7 @@ static void fftInit(CSOUND *csound, int32_t M)
     /* init bit reversed table for real FFT */
     if (BRLowArray[(M - 1) / 2] == 0) {
       BRLowArray[(M - 1) / 2] =
-        (int16*) csound->Malloc(csound,
+        (int16*) mmalloc(csound,
                                 POW2((M - 1) / 2 - 1) * sizeof(int16));
       fftBRInit(M - 1, BRLowArray[(M - 1) / 2]);
     }
@@ -3195,7 +3196,7 @@ static inline int32_t ConvertFFTSize(CSOUND *csound, int32_t N)
   case 0x08000000:  return 27;
   case 0x10000000:  return 28;
   }
-  csound->Warning(csound, Str(" *** fftlib.c: internal error: "
+  csoundWarning(csound, Str(" *** fftlib.c: internal error: "
                               "invalid FFT size: %d"), N);
   return 0;
 }
@@ -3412,7 +3413,7 @@ void vDSP_execute(CSOUND_FFT_SETUP *setup,
 #define ALIGN_BYTES 64
 static
 void *align_alloc(CSOUND *csound, size_t nb_bytes){
-  void *p, *p0 = csound->Malloc(csound, nb_bytes + ALIGN_BYTES);
+  void *p, *p0 = mmalloc(csound, nb_bytes + ALIGN_BYTES);
   if(!p0) return (void *) 0;
   p = (void *) (((size_t) p0 + ALIGN_BYTES)
                 & (~((size_t) (ALIGN_BYTES-1))));
@@ -3451,7 +3452,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   CSOUND_FFT_SETUP *setup;
   int32_t lib = csound->oparms->fft_lib;
   if(lib == PFFT_LIB && FFTsize <= 16){
-    csound->Warning(csound,
+    csoundWarning(csound,
       "FFTsize %d \n"
       "Cannot use PFFT with sizes <= 16\n"
       "--defaulting to FFTLIB",
@@ -3459,7 +3460,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     lib = 0;
   }
   setup = (CSOUND_FFT_SETUP *)
-    csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
+    mcalloc(csound, sizeof(CSOUND_FFT_SETUP));
   setup->N = FFTsize;
   setup->p2 = isPowTwo(FFTsize);
   switch(lib){
@@ -3492,7 +3493,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     return (void *) setup;
   }
   setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*FFTsize);
-  csound->RegisterResetCallback(csound, (void*) setup,
+  csoundRegisterResetCallback(csound, (void*) setup,
                                 (int32_t (*)(CSOUND *, void *))
                                 setupDispose);
   return (void *) setup;
@@ -3530,7 +3531,7 @@ void *csoundDCTSetup(CSOUND *csound,
                        FFTsize*4,d);
  if(setup->lib == 0){
   setup->buffer = (MYFLT *)
-    csound->Calloc(csound, sizeof(MYFLT)*setup->N);
+    mcalloc(csound, sizeof(MYFLT)*setup->N);
  }
  return setup;
 }
@@ -3706,7 +3707,7 @@ CSOUND_FFT_SETUP *setup =
 #define ALIGN64 64
 static
 void *vDSP_alloc(CSOUND *csound, size_t nb_bytes){
-  void *p, *p0 = csound->Malloc(csound, nb_bytes + ALIGN64);
+  void *p, *p0 = mmalloc(csound, nb_bytes + ALIGN64);
   if(!p0) return (void *) 0;
   p = (void *) (((size_t) p0 + ALIGN64)
                 & (~((size_t) (ALIGN64-1))));
@@ -3716,7 +3717,7 @@ void *vDSP_alloc(CSOUND *csound, size_t nb_bytes){
 
 static
 void vDSP_free(CSOUND *csound, void *p) {
-  if(p)csound->Free(csound, *((void **) p - 1));
+  if(p)mfree(csound, *((void **) p - 1));
 }
 
 /* reset vdsp */
@@ -3753,7 +3754,7 @@ void vDSP_setup(CSOUND *csound, int32_t FFTsize){
     csound->vdsp_buffer = vDSP_alloc(csound,
                                      FFTsize*(sizeof(MYFLT)));
     if(csound->FFT_max_size == 0)
-      csound->RegisterResetCallback(csound, (void*) NULL,
+      csoundRegisterResetCallback(csound, (void*) NULL,
                                     (int32_t (*)(CSOUND *, void *))
                                     vDSP_reset);
     csound->FFT_max_size = FFTsize;
@@ -3844,7 +3845,7 @@ vDSP_setup_New(CSOUND *csound, int32_t FFTsize, int32_t d){
   }
 
   if(csound->FFT_max_size == 0)
-    csound->RegisterResetCallback(csound, (void*) NULL,
+    csoundRegisterResetCallback(csound, (void*) NULL,
                                   (int32_t (*)(CSOUND *, void *))
                                   vDSP_reset_New);
   csound->FFT_max_size = FFTsize;
@@ -3896,7 +3897,7 @@ static
 void pffft_setup(CSOUND *csound, int32_t FFTsize, int32_t M){
   if(csound->FFT_max_size != FFTsize){
     if(csound->FFT_max_size == 0)
-      csound->RegisterResetCallback(csound, (void*) NULL,
+      csoundRegisterResetCallback(csound, (void*) NULL,
                                     (int32_t (*)(CSOUND *, void *)) pffft_reset);
     if(csound->setup[M] == NULL)
        csound->setup[M] = pffft_new_setup(FFTsize,PFFFT_REAL);

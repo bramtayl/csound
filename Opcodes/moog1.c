@@ -24,6 +24,7 @@
 // #include "csdl.h"
 #include "csoundCore_internal.h"
 #include "moog1.h"
+#include "fgens_public.h"
 
 extern void make_TwoZero(TwoZero *);
 extern void TwoZero_setZeroCoeffs(TwoZero *, MYFLT*);
@@ -163,13 +164,13 @@ int32_t Moog1set(CSOUND *csound, MOOG1 *p)
     make_FormSwep(&p->filters[0]);
     make_FormSwep(&p->filters[1]);
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->iatt)) != NULL))
+    if (LIKELY((ftp = csoundFTnp2Finde(csound, p->iatt)) != NULL))
       p->attk.wave = ftp; /* mandpluk */
     else return NOTOK;
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn )) != NULL))
+    if (LIKELY((ftp = csoundFTnp2Finde(csound, p->ifn )) != NULL))
       p->loop.wave = ftp; /* impuls20 */
     else return NOTOK;
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ivfn)) != NULL))
+    if (LIKELY((ftp = csoundFTnp2Finde(csound, p->ivfn)) != NULL))
       p->vibr.wave = ftp; /* sinewave */
     else return NOTOK;
     p->attk.time = p->attk.phase = FL(0.0);
@@ -236,7 +237,7 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
 
       p->attk.time += p->attk.rate;           /*  Update current time    */
 #ifdef DEBUG
-      csound->Message(csound, "Attack_time=%f\tAttack_rate=%f\n",
+      csoundMessage(csound, "Attack_time=%f\tAttack_rate=%f\n",
                               p->attk.time, p->attk.rate);
 #endif
       temp_time = p->attk.time;
@@ -247,48 +248,48 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
                                      /*  fractional part of time address */
         alpha = temp_time - (MYFLT)itemp;
 #ifdef DEBUG
-        csound->Message(csound, "Attack: (%d, %d), alpha=%f\t",
+        csoundMessage(csound, "Attack: (%d, %d), alpha=%f\t",
                                 itemp, itemp+1, alpha);
 #endif
         output = p->attk.wave->ftable[itemp]; /* Do linear interpolation */
                   /*  same as alpha*data[itemp+1] + (1-alpha)data[itemp] */
 #ifdef DEBUG
-        csound->Message(csound, "->%f+\n", output);
+        csoundMessage(csound, "->%f+\n", output);
 #endif
         output += (alpha * (p->attk.wave->ftable[itemp+1] - output));
         output *= p->attackGain;
                                                    /* End of attack tick */
       }
 #ifdef DEBUG
-      csound->Message(csound, "After Attack: %f\n", output);
+      csoundMessage(csound, "After Attack: %f\n", output);
 #endif
       output += p->loopGain * Samp_tick(&p->loop);
 #ifdef DEBUG
-      csound->Message(csound, "Before OnePole: %f\n", output);
+      csoundMessage(csound, "Before OnePole: %f\n", output);
 #endif
       output = OnePole_tick(&p->filter, output);
 #ifdef DEBUG
-      csound->Message(csound, "After OnePole: %f\n", output);
+      csoundMessage(csound, "After OnePole: %f\n", output);
 #endif
       output *= ADSR_tick(&p->adsr);
 #ifdef DEBUG
-      csound->Message(csound, "Sampler_tick: %f\n", output);
+      csoundMessage(csound, "Sampler_tick: %f\n", output);
 #endif
       output = TwoZero_tick(&p->twozeroes[0], output);
 #ifdef DEBUG
-      csound->Message(csound, "TwoZero0_tick: %f\n", output);
+      csoundMessage(csound, "TwoZero0_tick: %f\n", output);
 #endif
       output = FormSwep_tick(csound, &p->filters[0], output);
 #ifdef DEBUG
-      csound->Message(csound, "Filters0_tick: %f\n", output);
+      csoundMessage(csound, "Filters0_tick: %f\n", output);
 #endif
       output = TwoZero_tick(&p->twozeroes[1], output);
 #ifdef DEBUG
-      csound->Message(csound, "TwoZero1_tick: %f\n", output);
+      csoundMessage(csound, "TwoZero1_tick: %f\n", output);
 #endif
       output = FormSwep_tick(csound, &p->filters[1], output);
 #ifdef DEBUG
-      csound->Message(csound, "Filter2_tick: %f\n", output);
+      csoundMessage(csound, "Filter2_tick: %f\n", output);
 #endif
       ar[n] = output*AMP_SCALE*FL(8.0);
     }

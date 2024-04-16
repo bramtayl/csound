@@ -41,6 +41,7 @@
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include <stdbool.h>
+#include "memalloc.h"
 
 #if defined(_MSC_VER)
 /* For InterlockedCompareExchange */
@@ -124,11 +125,11 @@ static void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
-    csound->dag_task_status = csound->Calloc(csound, sizeof(stateWithPadding)*max);
-    csound->dag_task_watch  = csound->Calloc(csound, sizeof(watchList*)*max);
-    csound->dag_task_map    = csound->Calloc(csound, sizeof(INSDS*)*max);
-    csound->dag_task_dep    = (char **)csound->Calloc(csound, sizeof(char*)*max);
-    csound->dag_wlmm = (watchList *)csound->Calloc(csound, sizeof(watchList)*max);
+    csound->dag_task_status = mcalloc(csound, sizeof(stateWithPadding)*max);
+    csound->dag_task_watch  = mcalloc(csound, sizeof(watchList*)*max);
+    csound->dag_task_map    = mcalloc(csound, sizeof(INSDS*)*max);
+    csound->dag_task_dep    = (char **)mcalloc(csound, sizeof(char*)*max);
+    csound->dag_wlmm = (watchList *)mcalloc(csound, sizeof(watchList)*max);
 }
 
 static void recreate_dag(CSOUND *csound)
@@ -136,17 +137,17 @@ static void recreate_dag(CSOUND *csound)
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
     csound->dag_task_status =
-      csound->ReAlloc(csound, (stateWithPadding *)csound->dag_task_status,
+      mrealloc(csound, (stateWithPadding *)csound->dag_task_status,
                sizeof(stateWithPadding)*max);
     csound->dag_task_watch  =
-      csound->ReAlloc(csound, (struct watchList *)csound->dag_task_watch,
+      mrealloc(csound, (struct watchList *)csound->dag_task_watch,
                sizeof(watchList*)*max);
     csound->dag_task_map    =
-      csound->ReAlloc(csound, (INSDS *)csound->dag_task_map, sizeof(INSDS*)*max);
+      mrealloc(csound, (INSDS *)csound->dag_task_map, sizeof(INSDS*)*max);
     csound->dag_task_dep    =
-      (char **)csound->ReAlloc(csound, csound->dag_task_dep, sizeof(char*)*max);
+      (char **)mrealloc(csound, csound->dag_task_dep, sizeof(char*)*max);
     csound->dag_wlmm        =
-      (watchList *)csound->ReAlloc(csound, csound->dag_wlmm, sizeof(watchList)*max);
+      (watchList *)mrealloc(csound, csound->dag_wlmm, sizeof(watchList)*max);
 }
 
 static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
@@ -158,7 +159,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
         csp_orc_sa_instr_get_by_name(csound,
            csound->engineState.instrtxtp[insno]->insname);
       if (UNLIKELY(current_instr == NULL))
-        csound->Die(csound,
+        csoundDie(csound,
                     Str("Failed to find semantic information"
                         " for instrument '%i'"),
                     insno);
@@ -178,10 +179,10 @@ static int dag_intersect(CSOUND *csound, struct set_t *current,
     ele = ans->head;
     while (ele != NULL) {
       struct set_element_t *next = ele->next;
-      csound->Free(csound, ele);
+      mfree(csound, ele);
       ele = next; res++;
     }
-    csound->Free(csound, ans);
+    mfree(csound, ans);
     return res;
 }
 
@@ -256,7 +257,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
           if (tt==NULL) {
             /* get dep vector if missing and set watch first time */
             tt = csound->dag_task_dep[j] =
-              (char*)csound->Calloc(csound, sizeof(char)*(j+1));
+              (char*)mcalloc(csound, sizeof(char)*(j+1));
             csound->dag_task_status[j].s = WAITING;
             csound->dag_wlmm[j].next = csound->dag_task_watch[i];
             csound->dag_wlmm[j].id = j;
@@ -868,9 +869,9 @@ void newdag_alloc(CSOUND *csound, int numtasks)
 {
     doNotAdd = &endwatch;
 ??
-    watch = (watchList **)csound->Calloc(csound, sizeof(watchList *)*numtasks);
+    watch = (watchList **)mcalloc(csound, sizeof(watchList *)*numtasks);
     wlmm = (watchListMemoryManagement *)
-      csound->Calloc(csound, sizeof(watchListMemoryManagement)*numtasks);
+      mcalloc(csound, sizeof(watchListMemoryManagement)*numtasks);
 
 }
 

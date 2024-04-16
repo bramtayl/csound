@@ -24,6 +24,7 @@
 #include "csdl.h"
 #include "interlocks.h"
 #include <math.h>
+#include "insert_public.h"
 
 typedef struct {
     OPDS    h;                                      /* required header */
@@ -45,7 +46,7 @@ typedef struct {
 
 static int32_t iambicode(CSOUND *csound, AMBIC *p)
 {
-    csound->Warning(csound,
+    csoundWarning(csound,
                     Str("bformenc is deprecated; use bformenc1 instead\n"));
     /* check correct number of input and output arguments */
     switch (p->OUTOCOUNT) {
@@ -53,7 +54,7 @@ static int32_t iambicode(CSOUND *csound, AMBIC *p)
 /*         { */
 /*           /\* 2nd order *\/ */
 /*           if (p->INOCOUNT != 5) { */
-/*             return csound->InitError(csound, */
+/*             return csoundInitError(csound, */
 /*                                      Str("Wrong number of input arguments! " */
 /*                                          "5 needed!")); */
 /*           } */
@@ -64,7 +65,7 @@ static int32_t iambicode(CSOUND *csound, AMBIC *p)
 /*         { */
 /*           /\* 3rd order *\/ */
 /*           if (p->INOCOUNT != 6) { */
-/*             return csound->InitError(csound, */
+/*             return csoundInitError(csound, */
 /*                                      Str("Wrong number of input arguments! " */
 /*                                          "6 needed!")); */
 /*           } */
@@ -75,7 +76,7 @@ static int32_t iambicode(CSOUND *csound, AMBIC *p)
 /*         { */
 /*           /\* 4th order *\/ */
 /*           if (p->INOCOUNT != 7) { */
-/*             return csound->InitError(csound, */
+/*             return csoundInitError(csound, */
 /*                                      Str("Wrong number of input arguments! " */
 /*                                          "7 needed!")); */
 /*           } */
@@ -84,7 +85,7 @@ static int32_t iambicode(CSOUND *csound, AMBIC *p)
         break;
       default:
         {
-          return csound->InitError(csound,
+          return csoundInitError(csound,
                                    Str("Wrong number of output arguments! "
                                        "4, 9 or 16 needed!"));
         }
@@ -330,21 +331,21 @@ static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
 static int32_t iambideco(CSOUND *csound, AMBID *p)
 {
     int32_t setup = (int32_t)*p->isetup;
-    csound->Warning(csound,
+    csoundWarning(csound,
                     Str("bformdec is deprecated; use bformdec1 instead\n"));
     if (setup<0) setup = -setup;
     /* check correct number of input arguments */
     if (UNLIKELY((p->INOCOUNT != 5)  &&
                  (p->INOCOUNT != 10) &&
                  (p->INOCOUNT != 17))) {
-      return csound->InitError(csound, Str("Wrong number of input arguments!"));
+      return csoundInitError(csound, Str("Wrong number of input arguments!"));
     }
 
     switch (setup) {
       case 1:
         {
           if (UNLIKELY(p->OUTOCOUNT != 2)) {
-            return csound->InitError(csound,
+            return csoundInitError(csound,
                                      Str("Wrong number of output cells! "
                                          "There must be 2 output cells."));
           }
@@ -389,7 +390,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
       case 2:
         {
           if (UNLIKELY(p->OUTOCOUNT != 4)) {
-            return csound->InitError(csound,
+            return csoundInitError(csound,
                                      Str("Wrong number of output cells! "
                                          "There must be 4 output cells."));
           }
@@ -434,7 +435,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
 
       case 3: {
         if (UNLIKELY(p->OUTOCOUNT != 5)) {
-          return csound->InitError(csound,
+          return csoundInitError(csound,
                                    Str("Wrong number of output cells! "
                                        "There must be 5 output cells."));
         }
@@ -483,7 +484,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
       case 4:
         {
           if (UNLIKELY(p->OUTOCOUNT != 8)) {
-            return csound->InitError(csound,
+            return csoundInitError(csound,
                                      Str("Wrong number of output cells! "
                                          "There must be 8 output cells."));
           }
@@ -538,7 +539,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
       case 5:
         {
           if (UNLIKELY(p->OUTOCOUNT != 8)) {
-            return csound->InitError(csound,
+            return csoundInitError(csound,
                                      Str("Wrong number of output cells! "
                                          "There must be 8 output cells."));
           }
@@ -593,7 +594,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
         }
       case 6: {
         if (UNLIKELY(p->OUTOCOUNT != 5)) {
-          return csound->InitError(csound,
+          return csoundInitError(csound,
                                    Str("Wrong number of output cells! "
                                        "There must be 5 output cells."));
         }
@@ -633,7 +634,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
       }
 
       default:
-        return csound->InitError(csound, Str("Not supported setup number!"));
+        return csoundInitError(csound, Str("Not supported setup number!"));
     }
     return OK;
 }

@@ -32,6 +32,8 @@
 // #include "csdl.h"
 #include "csoundCore_internal.h"
 #include "bowedbar.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 /* Number of banded waveguide modes */
 
@@ -41,7 +43,7 @@ static void make_DLineN(CSOUND *csound, DLINEN *p, int32 length)
        Thus, if we want to allow a delay of max_length, we need
        a delay-line of length = max_length+1. */
     p->length = length = length+1;
-    csound->AuxAlloc(csound, length * sizeof(MYFLT), &p->inputs);
+    csoundAuxAlloc(csound, length * sizeof(MYFLT), &p->inputs);
     p->inPoint = 0;
     p->outPoint = length >> 1;
     p->lastOutput = FL(0.0);
@@ -50,7 +52,7 @@ static void make_DLineN(CSOUND *csound, DLINEN *p, int32 length)
 static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int32_t lag)
 {
     if (UNLIKELY(lag > p->length-1)) {                   /* if delay is too big, */
-      csound->Warning(csound, Str("DLineN: Delay length too big ... setting to "
+      csoundWarning(csound, Str("DLineN: Delay length too big ... setting to "
                                   "maximum length of %d.\n"), p->length - 1);
       p->outPoint = p->inPoint + 1;            /* force delay to max_length */
     }
@@ -94,7 +96,7 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
       else if (*p->frequency!=FL(0.0))
         p->length = (int32) (CS_ESR / *p->frequency + FL(1.0));
       else {
-        csound->Warning(csound,
+        csoundWarning(csound,
                         Str("unknown lowest frequency for bowed bar -- "
                             "assuming 50Hz\n"));
         p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
@@ -154,7 +156,7 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
         }
       }
       if (UNLIKELY(p->nr_modes==0))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("Bowedbar: cannot have zero modes\n"));
       for (i=0; i<p->nr_modes; i++) {
         MYFLT R = FL(1.0) - p->freq * p->modes[i] * csound->pidsr;

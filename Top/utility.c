@@ -24,6 +24,8 @@
 #include "csoundCore_internal.h"
 #include <setjmp.h>
 #include "corfile.h"
+#include "memalloc.h"
+#include "utility.h"
 
 typedef struct csUtility_s {
     char                *name;
@@ -36,7 +38,7 @@ int csoundAddUtility(CSOUND *csound, const char *name,
                                      int (*UtilFunc)(CSOUND*, int, char**))
 {
     csUtility_t *p;
-    /* csound->Message(csound, "csoundAddUtility: name: %s  function: 0x%p\n",
+    /* csoundMessage(csound, "csoundAddUtility: name: %s  function: 0x%p\n",
                        name, UtilFunc); */
     if (UNLIKELY(csound == NULL || name == NULL ||
                  name[0] == '\0' || UtilFunc == NULL))
@@ -50,14 +52,14 @@ int csoundAddUtility(CSOUND *csound, const char *name,
           break;
         p = p->nxt;
       } while (1);
-      p->nxt = csound->Malloc(csound, sizeof(csUtility_t));
+      p->nxt = mmalloc(csound, sizeof(csUtility_t));
       p = p->nxt;
     }
     else {
-      csound->utility_db = csound->Calloc(csound, sizeof(csUtility_t));
+      csound->utility_db = mcalloc(csound, sizeof(csUtility_t));
       p = (csUtility_t*) csound->utility_db;
     }
-    p->name = csound->Malloc(csound, strlen(name) + 1);
+    p->name = mmalloc(csound, strlen(name) + 1);
     strcpy(p->name, name);
     p->nxt = NULL;
     p->UtilFunc = UtilFunc;
@@ -85,7 +87,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
       print_sndfile_version(csound);
     }
 
-    saved_exitjmp = (void*) csound->Malloc(csound, sizeof(jmp_buf));
+    saved_exitjmp = (void*) mmalloc(csound, sizeof(jmp_buf));
     if (UNLIKELY(saved_exitjmp == NULL))
       return -1;
     memcpy((void*) saved_exitjmp, (void*) &(csound->exitjmp), sizeof(jmp_buf));
@@ -107,34 +109,34 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
     }
     csound->engineStatus |= CS_STATE_UTIL;
     csound->scorename = csound->orchname = (char*) name;    /* needed ? */
-    csound->Message(csound, Str("util %s:\n"), name);
+    csoundMessage(csound, Str("util %s:\n"), name);
     n = p->UtilFunc(csound, argc, argv);
     goto err_return;
 
  notFound:
     if (name != NULL && name[0] != '\0') {
       print_opcodedir_warning(csound);
-      csound->ErrorMsg(csound, Str("Error: utility '%s' was not found\n"), name);
+      csoundErrorMsg(csound, Str("Error: utility '%s' was not found\n"), name);
     }
     else
-      csound->ErrorMsg(csound, Str("Error: utility not found\n"));
-    lst = csound->ListUtilities(csound);
+      csoundErrorMsg(csound, Str("Error: utility not found\n"));
+    lst = csoundListUtilities(csound);
     if (lst != NULL && lst[0] != NULL) {
       int i;
-      csound->Message(csound, Str("The available utilities are:\n"));
+      csoundMessage(csound, Str("The available utilities are:\n"));
       for (i = 0; lst[i] != NULL; i++) {
-        const char *desc = csound->GetUtilityDescription(csound, lst[i]);
+        const char *desc = csoundGetUtilityDescription(csound, lst[i]);
         if (desc != NULL)
-          csound->Message(csound, "    %s\t%s\n", lst[i], Str(desc));
+          csoundMessage(csound, "    %s\t%s\n", lst[i], Str(desc));
         else
-          csound->Message(csound, "    %s\n", lst[i]);
+          csoundMessage(csound, "    %s\n", lst[i]);
       }
     }
     csoundDeleteUtilityList(csound, lst);
     n = -1;
  err_return:
     memcpy((void*) &(csound->exitjmp), (void*) saved_exitjmp, sizeof(jmp_buf));
-    csound->Free(csound, (void*) saved_exitjmp);
+    mfree(csound, (void*) saved_exitjmp);
     return n;
 }
 
@@ -161,7 +163,7 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
     while (p != NULL)
       p = p->nxt, utilCnt++;
     /* allocate list */
-    lst = (char**) csound->Malloc(csound, sizeof(char*) * (utilCnt + 1));
+    lst = (char**) mmalloc(csound, sizeof(char*) * (utilCnt + 1));
     if (UNLIKELY(lst == NULL))
       return NULL;
     /* store pointers to utility names */
@@ -184,7 +186,7 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
 PUBLIC void csoundDeleteUtilityList(CSOUND *csound, char **lst)
 {
     if (lst != NULL)
-      csound->Free(csound, lst);
+      mfree(csound, lst);
 }
 
 /**
@@ -208,13 +210,13 @@ int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
       return CSOUND_ERROR;      /* not found */
     /* copy description text */
     if (utilDesc != NULL && utilDesc[0] != '\0') {
-      desc = (char*) csound->Malloc(csound, strlen(utilDesc) + 1);
+      desc = (char*) mmalloc(csound, strlen(utilDesc) + 1);
       if (UNLIKELY(desc == NULL))
         return CSOUND_MEMORY;
       strcpy(desc, utilDesc);
     }
     if (p->desc != NULL)
-      csound->Free(csound, p->desc);
+      mfree(csound, p->desc);
     p->desc = desc;
     /* report success */
     return CSOUND_SUCCESS;

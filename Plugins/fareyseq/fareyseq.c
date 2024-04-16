@@ -30,6 +30,9 @@
 #include "interlocks.h"
 #include <math.h>
 #include <time.h>
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 #define MAX_PFACTOR 16
 const int32_t MAX_PRIMES = 1229;
@@ -250,12 +253,12 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action.     */
     if (UNLIKELY((*p->dft < 1) || (*p->sft < 1))) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f"),
                                (float)*p->dft, (float)*p->sft);
     }
     if (UNLIKELY((*p->ftype < 1))) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Farey: Filter type < 1 ftype=%.2f"),
                                (float)*p->ftype);
     }
@@ -268,9 +271,9 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
       /* Get pointer to the function table data structure.
        * csoundFTFindP() for perf time. csoundFTFind() for init time.
        */
-      if (UNLIKELY((p->funcd = csound->FTFindP(csound, p->dft)) == NULL)) {
+      if (UNLIKELY((p->funcd = csoundFTFindP(csound, p->dft)) == NULL)) {
         return
-          csound->PerfError(csound, &(p->h),
+          csoundPerfError(csound, &(p->h),
                             Str("Farey: Destination dft table %.2f not found."),
                             *p->dft);
       }
@@ -280,8 +283,8 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
     }
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
-        return csound->PerfError(csound, &(p->h),
+      if (UNLIKELY((p->funcs = csoundFTFindP(csound, p->sft)) == NULL)) {
+        return csoundPerfError(csound, &(p->h),
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
       }
@@ -300,12 +303,12 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     /* Check the state of the two table number variables.
      * Error message if any are < 1 and no further action. */
     if (UNLIKELY((*p->dft < 1) || (*p->sft < 1))) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f"),
                                *p->dft, *p->sft);
     }
     if (UNLIKELY((*p->ftype < 1))) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Farey: Filter type < 1"));
     }
 
@@ -315,9 +318,9 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
        * csoundFTFindP() for perf time. csoundFTFind() for init time. */
-      if (UNLIKELY((p->funcd = csound->FTnp2Find(csound, p->dft)) == NULL)) {
+      if (UNLIKELY((p->funcd = csoundFTnp2Find(csound, p->dft)) == NULL)) {
         return
-          csound->InitError(csound,
+          csoundInitError(csound,
                             Str("Farey: Destination dft table %.2f not found."),
                             *p->dft);
       }
@@ -327,8 +330,8 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     }
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
-        return csound->InitError(csound,
+      if (UNLIKELY((p->funcs = csoundFTnp2Find(csound, p->sft)) == NULL)) {
+        return csoundInitError(csound,
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
       }
@@ -445,15 +448,15 @@ int32_t tableshuffleset(CSOUND *csound, TABSHUFFLE *p)
 int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Table no. < 1 sft=%.2f"),
                                *p->sft);
     }
 
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
-        return csound->PerfError(csound, &(p->h),
+      if (UNLIKELY((p->funcs = csoundFTFindP(csound, p->sft)) == NULL)) {
+        return csoundPerfError(csound, &(p->h),
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
       }
@@ -466,7 +469,7 @@ int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Table no. < 1 sft=%.2f"),
                                *p->sft);
     }
@@ -474,8 +477,8 @@ int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
-        return csound->InitError(csound,
+      if (UNLIKELY((p->funcs = csoundFTnp2Find(csound, p->sft)) == NULL)) {
+        return csoundInitError(csound,
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
       }
@@ -506,7 +509,7 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     /* Now get the base address of the table. */
     bases = p->funcs->ftable;
 
-    temp = (MYFLT*) csound->Calloc (csound, sourcelength* sizeof(MYFLT));
+    temp = (MYFLT*) mcalloc (csound, sourcelength* sizeof(MYFLT));
     memset (temp, 0, sizeof(MYFLT) * sourcelength);
 
     for (i = 0; i < sourcelength; i++) {
@@ -520,7 +523,7 @@ static int32_t dotableshuffle (CSOUND *csound, TABSHUFFLE *p)
     }
 
     memcpy (bases, temp, sizeof(MYFLT) * sourcelength);
-    csound->Free (csound, temp);
+    mfree (csound, temp);
     return OK;
 }
 
@@ -708,7 +711,7 @@ void float_to_cfrac (CSOUND *csound, double r, int32_t n,
       return;
     }
 
-    x = csound->Calloc(csound, (n+1)* sizeof(double));
+    x = mcalloc(csound, (n+1)* sizeof(double));
 
     r_copy = fabs (r);
 
@@ -734,7 +737,7 @@ void float_to_cfrac (CSOUND *csound, double r, int32_t n,
       }
     }
 
-    csound->Free(csound, x);
+    mfree(csound, x);
 }
 
 #define S sizeof

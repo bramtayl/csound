@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore_internal.h"
+#include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
@@ -248,9 +249,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
-                      csound->DebugMsg(csound,"Extending xstr buffer\n");
+                      csoundDebugMsg(csound,"Extending xstr buffer\n");
                   }
-                  //csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
+                  //csoundDebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
                   PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
@@ -258,9 +259,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
   .         { if (PARM->xstrptr+2==PARM->xstrmax) {
                       PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
-                      csound->DebugMsg(csound,"Extending xstr buffer\n");
+                      csoundDebugMsg(csound,"Extending xstr buffer\n");
                   }
-                  //csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
+                  //csoundDebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
                   PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                 }
@@ -288,16 +289,16 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 
   {IDENT}/[ \t]*\( { BEGIN(INITIAL);
                     *lvalp = lookup_token(csound, yytext, yyscanner);
-                    /*csound->Message(csound, ">>>> NEW UDO DEF <<<<<<<\n");*/
-                    /*csound->Message(csound,"%s -> %d\n",*/
+                    /*csoundMessage(csound, ">>>> NEW UDO DEF <<<<<<<\n");*/
+                    /*csoundMessage(csound,"%s -> %d\n",*/
                     /*                   yytext, (*lvalp)->type); */
                     return (*lvalp)->type; }
 
 
   {IDENT} { BEGIN(udoarg);
-                    /*csound->Message(csound, ">>>> OLD UDO DEF <<<<<<<\n");*/
+                    /*csoundMessage(csound, ">>>> OLD UDO DEF <<<<<<<\n");*/
                     *lvalp = lookup_token(csound, yytext, yyscanner);
-                    /* csound->Message(csound,"%s -> %d\n",
+                    /* csoundMessage(csound,"%s -> %d\n",
                                        yytext, (*lvalp)->type); */
                     return (*lvalp)->type; }
 
@@ -308,7 +309,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
   ","     { return ','; }
  {XIDENT} { BEGIN(udoarg);
                   *lvalp = lookup_token(csound, yytext, yyscanner);
-                  /* csound->Message(csound,"%s -> %d\n",
+                  /* csoundMessage(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   (*lvalp)->type = UDO_IDENT;
                   return (*lvalp)->type; }
@@ -357,7 +358,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                       if (UNLIKELY(n>=cnt-2)) buff = realloc(buff, cnt+=20);
                       buff[n++] = '"';
                       buff[n] = '\0';
-                      csound->Message(csound,
+                      csoundMessage(csound,
                               Str("unterminated string found on line %d >>%s<<\n"),
                                       csound_orcget_lineno(yyscanner), buff);
                       break;
@@ -374,20 +375,20 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_IDENT;
-                  /* csound->Message(csound,"%d\n", (*lvalp)->type); */
+                  /* csoundMessage(csound,"%d\n", (*lvalp)->type); */
                   return T_IDENT; }
 {IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);
-                  /* csound->Message(csound,"%s -> %d\n",
+                  /* csoundMessage(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
 
 {TYPED_IDENTIFIER} { *lvalp = lookup_token(csound, yytext, yyscanner);
-                  /* csound->Message(csound,"%s -> %d\n",
+                  /* csoundMessage(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
 {INTGR}         {
                     *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
-                    /*csound->Message(csound,"%d\n", (*lvalp)->type);*/
+                    /*csoundMessage(csound,"%d\n", (*lvalp)->type);*/
                     return ((*lvalp)->type);
                 }
 {LPAREN}     { BEGIN(ignorenewline);
@@ -454,7 +455,7 @@ static inline int isNameChar(int c, int pos)
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
 {
-    ORCTOKEN *ans = (ORCTOKEN*)csound->Calloc(csound, sizeof(ORCTOKEN));
+    ORCTOKEN *ans = (ORCTOKEN*)mcalloc(csound, sizeof(ORCTOKEN));
     ans->type = type;
     return ans;
 }
@@ -474,7 +475,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     while (*ps != ':') ps++;
     *(ps+1) = '\0';
     len = strlen(s);
-    ans->lexeme = (char*)csound->Calloc(csound, len);
+    ans->lexeme = (char*)mcalloc(csound, len);
     strNcpy(ans->lexeme, s, len); /* Not the trailing colon */
     return ans;
 }
@@ -496,7 +497,7 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
     int len = strlen(s);
 /* Keep the quote marks */
-    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
+    ans->lexeme = (char*)mcalloc(csound, len + 1);
     strcpy(ans->lexeme, s);
     //printf(">>%s<<\n", ans->lexeme);
     return ans;
@@ -515,7 +516,7 @@ ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
     ans = new_token(csound, INTEGER_TOKEN);
     sprintf(buf, "%d", i+k);
     len = strlen(buf);
-    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
+    ans->lexeme = (char*)mcalloc(csound, len + 1);
     strNcpy(ans->lexeme, buf, len+1);
     ans->value = i;
     return ans;
@@ -526,7 +527,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s)
     int n = atoi(s);
     ORCTOKEN *ans = new_token(csound, INTEGER_TOKEN);
     int len = strlen(s);
-    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
+    ans->lexeme = (char*)mcalloc(csound, len + 1);
     strNcpy(ans->lexeme, s, len+1);
     ans->value = n;
     return ans;
@@ -537,7 +538,7 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     double n = atof(s);
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN);
     int len = strlen(s);
-    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
+    ans->lexeme = (char*)mcalloc(csound, len + 1);
     strNcpy(ans->lexeme, s, len+1);
     ans->fvalue = n;
     return ans;

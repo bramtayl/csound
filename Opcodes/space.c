@@ -30,6 +30,9 @@
 #include "stdopcod.h"
 #include "space.h"
 #include <math.h>
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 #define RESOLUTION 100
 
@@ -39,7 +42,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
     FUNC              *ftp = NULL;
 
     if (*p->ifn > 0) {
-      if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->ifn)) == NULL))
         return NOTOK;
       p->ftp = ftp;
     }
@@ -47,7 +50,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
     if (p->auxch.auxp == NULL ||
         p->auxch.size<sizeof(MYFLT)*(CS_KSMPS * 4)) {
       MYFLT *fltp;
-      csound->AuxAlloc(csound, (size_t) (CS_KSMPS * 4)
+      csoundAuxAlloc(csound, (size_t) (CS_KSMPS * 4)
                                * sizeof(MYFLT), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->rrev1 = fltp;   fltp += CS_KSMPS;
@@ -176,7 +179,7 @@ static int32_t space(CSOUND *csound, SPACE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("space: not initialised"));
 }
 
@@ -207,7 +210,7 @@ static int32_t spdistset(CSOUND *csound, SPDIST *p)
    FUNC *ftp;
 
    if (*p->ifn > 0) {
-     if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+     if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->ifn)) == NULL))
        return NOTOK;
      p->ftp = ftp;
    }
@@ -260,7 +263,7 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
     *r=distance;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("spdist: not initialised"));
 }
 
@@ -275,7 +278,7 @@ static OENTRY localops[] =
 
 int32_t space_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

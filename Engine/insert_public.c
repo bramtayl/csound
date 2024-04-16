@@ -13,7 +13,7 @@ int csoundInitError(CSOUND *csound, const char *s, ...) {
     va_start(args, s);
     csoundErrMsgV(csound, Str("\nINIT ERROR: "), s, args);
     va_end(args);
-    csound->LongJmp(csound, 1);
+    csoundLongJmp(csound, 1);
   }
   if (csound->mode != 1)
     csoundErrorMsg(csound, Str("InitError in wrong mode %d\n"), csound->mode);

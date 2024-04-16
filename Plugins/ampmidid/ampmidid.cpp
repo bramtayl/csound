@@ -69,7 +69,7 @@ public:
              MYFLT(1.0) / MYFLT(126.0);
         im = (MYFLT(1.0) - ib) / MYFLT(127.0);
         if (*iuse0dbfs == FL(0.0)) {
-            dbfs = csound->Get0dBFS(csound);
+            dbfs = csoundGet0dBFS(csound);
         } else {
             dbfs = *iuse0dbfs;
         }
@@ -111,7 +111,7 @@ public:
              MYFLT(1.0) / MYFLT(126.0);
         im = (MYFLT(1.0) - ib) / MYFLT(127.0);
         if (*iuse0dbfs == FL(0.0)) {
-            dbfs = csound->Get0dBFS(csound);
+            dbfs = csoundGet0dBFS(csound);
         } else {
             dbfs = *iuse0dbfs;
         }
@@ -153,33 +153,33 @@ public:
 
 extern "C" {
     PUBLIC int csoundModuleInit_ampmidid(CSOUND *csound) {
-        int status = csound->AppendOpcode(
+        int status = csoundAppendOpcode(
                          csound, (char *)"ampmidid.k", sizeof(KAMPMIDID), 0, 3, (char *)"k",
                          (char *)"kio",
                          (int (*)(CSOUND *, void *))KAMPMIDID::init_,
                          (int (*)(CSOUND *, void *))KAMPMIDID::kontrol_,
                          (int (*)(CSOUND *, void *))0);
-        status |= csound->AppendOpcode(
+        status |= csoundAppendOpcode(
                       csound, (char *)"ampmidid.i", sizeof(IAMPMIDID), 0, 1, (char *)"i",
                       (char *)"iio",
                       (int (*)(CSOUND *, void *))IAMPMIDID::init_,
                       (int (*)(CSOUND *, void *))0,
                       (int (*)(CSOUND *, void *))0);
-        status |= csound->AppendOpcode(csound, (char *)"ampmidid", 0xffff, 0, 0, 0, 0,
+        status |= csoundAppendOpcode(csound, (char *)"ampmidid", 0xffff, 0, 0, 0, 0,
                                        0, 0, 0);
-        status = csound->AppendOpcode(
+        status = csoundAppendOpcode(
                      csound, (char *)"ampmidicurve.k", sizeof(AMPMIDICURVE), 0, 3, (char *)"k",
                      (char *)"kkk",
                      (int (*)(CSOUND *, void *))AMPMIDICURVE::init_,
                      (int (*)(CSOUND *, void *))AMPMIDICURVE::kontrol_,
                      (int (*)(CSOUND *, void *))0);
-        status |= csound->AppendOpcode(
+        status |= csoundAppendOpcode(
                       csound, (char *)"ampmidicurve.i", sizeof(AMPMIDICURVE), 0, 1, (char *)"i",
                       (char *)"iii",
                       (int (*)(CSOUND *, void *))AMPMIDICURVE::init_,
                       (int (*)(CSOUND *, void *))0,
                       (int (*)(CSOUND *, void *))0);
-        status |= csound->AppendOpcode(csound, (char *)"ampmidicurve", 0xffff, 0, 0, 0, 0,
+        status |= csoundAppendOpcode(csound, (char *)"ampmidicurve", 0xffff, 0, 0, 0, 0,
                                        0, 0, 0);
         return status;
     }

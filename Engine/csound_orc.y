@@ -230,7 +230,7 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                     csp_orc_sa_instr_finalize(csound);
                  }
                 | INSTR_TOKEN NEWLINE error
-                   { csound->ErrorMsg(csound, Str("No number following instr\n"));
+                   { csoundErrorMsg(csound, Str("No number following instr\n"));
                      csp_orc_sa_instr_finalize(csound);
                    }
                 ;
@@ -258,7 +258,7 @@ udo_definition   : UDOSTART_DEFINITION identifier ',' UDO_IDENT ',' UDO_IDENT NE
                 TREE *udoArgs = make_leaf(csound, LINE,LOCN, UDO_ARGS_TOKEN,
                                           (ORCTOKEN *)$6);
                 if (UNLIKELY(PARSER_DEBUG))
-                  csound->Message(csound, "UDO COMPLETE\n");
+                  csoundMessage(csound, "UDO COMPLETE\n");
 
                 udoTop->left = ident;
                 ident->left = udoAns;

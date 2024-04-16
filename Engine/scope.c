@@ -1,6 +1,7 @@
 #include "csoundCore_internal.h"
 #include "corfile.h"
 #include "score_param.h"
+#include "memalloc.h"
 
 extern uint8_t file_to_int(CSOUND*, const char*);
 int scope(CSOUND *csound)
@@ -38,13 +39,13 @@ extern void csound_scolex_destroy(void *);
       corfile_puts(buff, csound->expanded_sco);
       qq.line = 1;
       csound_prslex(csound, qq.yyscanner);
-      csound->Message(csound, "yielding >>%s<<\n",
+      csoundMessage(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
       csound_prslex_destroy(qq.yyscanner);
       corfile_rm(&csound->scorestr);
     }
     {
-      ScoreTree* scoTree = (ScoreTree *)csound->Calloc(csound, sizeof(ScoreTree));
+      ScoreTree* scoTree = (ScoreTree *)mcalloc(csound, sizeof(ScoreTree));
       SCORE_PARM  pp;
       extern int csound_scodebug;
       int err;
@@ -58,7 +59,7 @@ extern void csound_scolex_destroy(void *);
       err = csound_scoparse(&pp, pp.yyscanner, csound, scoTree);
       corfile_rm(&csound->expanded_sco);
       if (LIKELY(err == 0))
-        csound->Message(csound, "Parsing successful!\n");
+        csoundMessage(csound, "Parsing successful!\n");
       {
         ScoreTree* s = scoTree;
         while (s) {

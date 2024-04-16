@@ -51,7 +51,7 @@ static inline PVOC_GLOBALS *PVOC_GetGlobals(CSOUND *csound)
 {
     PVOC_GLOBALS  *p;
 
-    p = (PVOC_GLOBALS*) csound->QueryGlobalVariable(csound, "pvocGlobals");
+    p = (PVOC_GLOBALS*) csoundQueryGlobalVariable(csound, "pvocGlobals");
     if (p == NULL)
       return PVOC_AllocGlobals(csound);
     return p;

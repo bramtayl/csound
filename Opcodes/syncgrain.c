@@ -25,6 +25,10 @@
 #include "syncgrain.h"
 #include "soundio.h"
 #include "interlocks.h"
+#include "envvar_public.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 /*
 #ifdef HAVE_VALUES_H
@@ -40,11 +44,11 @@
 static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
 {
     int32_t size;
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csoundFTnp2Finde(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn1);
+    p->sfunc = csoundFTnp2Finde(csound, p->ifn1);
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
@@ -54,11 +58,11 @@ static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
       p->olaps = 2;
 
     size =  (p->olaps) * sizeof(double);
-    csound->AuxAlloc(csound, size, &p->index);
-    csound->AuxAlloc(csound, size, &p->envindex);
-    csound->AuxAlloc(csound, size, &p->envincr);
+    csoundAuxAlloc(csound, size, &p->index);
+    csoundAuxAlloc(csound, size, &p->envindex);
+    csoundAuxAlloc(csound, size, &p->envincr);
     size = (p->olaps) * sizeof(int32_t);
-    csound->AuxAlloc(csound, size, &p->streamon);
+    csoundAuxAlloc(csound, size, &p->streamon);
  
 
     p->count = 0;                  /* sampling period counter */
@@ -184,18 +188,18 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("grain size smaller than 1 sample\n"));
 }
 
 
 static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 {
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csoundFTnp2Finde(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn1);
+    p->sfunc = csoundFTnp2Finde(csound, p->ifn1);
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
@@ -209,12 +213,12 @@ static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
     if (*p->iskip == 0) {
       int32_t size =  (p->olaps) * sizeof(double);
       if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
-        csound->AuxAlloc(csound, size, &p->index);
+        csoundAuxAlloc(csound, size, &p->index);
       if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
-        csound->AuxAlloc(csound, size, &p->envindex);
+        csoundAuxAlloc(csound, size, &p->envindex);
       size = (p->olaps) * sizeof(int32_t);
       if (p->streamon.auxp == NULL || p->streamon.size < (uint32_t)size)
-        csound->AuxAlloc(csound, size, &p->streamon);
+        csoundAuxAlloc(csound, size, &p->streamon);
       p->count = 0;                  /* sampling period counter */
       p->numstreams = 0;                  /* curr num of streams */
       p->firststream = 0;                 /* streams index (first stream)  */
@@ -255,7 +259,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     if (UNLIKELY(loop_start >= datasize)) loop_start = datasize-1;
     loop_end = (loop_start > loop_end ? loop_start : loop_end);
     loopsize = loop_end - loop_start;
-    /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n",
+    /*csoundMessage(csound, "st:%d, end:%d, loopsize=%d\n",
                               loop_start, loop_end, loopsize);     */
 
     pitch  = *p->pitch * pscale;
@@ -298,7 +302,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
         while (UNLIKELY(start >= loop_end)) {
           firsttime = 0;
           start -= loopsize;
-          /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n",
+          /*csoundMessage(csound, "st:%d, end:%d, loopsize=%d\n",
                                     loop_start, loop_end, loopsize); */
         }
         while (UNLIKELY(start < loop_start && !firsttime))
@@ -357,7 +361,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     p->firsttime = firsttime;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("grain size smaller than 1 sample\n"));
 }
 
@@ -407,10 +411,10 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
 
     p->nChannels = (int32_t) (p->OUTOCOUNT);
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("diskgrain: invalid number of channels"));
     }
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csoundFTnp2Finde(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
@@ -423,30 +427,30 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
 
     size =  (p->olaps) * sizeof(double);
     if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
-      csound->AuxAlloc(csound, size, &p->index);
+      csoundAuxAlloc(csound, size, &p->index);
     if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
-      csound->AuxAlloc(csound, size, &p->envindex);
+      csoundAuxAlloc(csound, size, &p->envindex);
     size = (p->olaps) * sizeof(int32_t);
     if (p->streamon.auxp == NULL || p->streamon.size < (uint32_t)size)
-      csound->AuxAlloc(csound, size, &p->streamon);
+      csoundAuxAlloc(csound, size, &p->streamon);
     if (p->buffer.auxp == NULL ||
         p->buffer.size < (p->dataframes+1)*sizeof(MYFLT)*p->nChannels)
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (p->dataframes+1)*sizeof(MYFLT)*p->nChannels, &p->buffer);
 
     buffer = (MYFLT *) p->buffer.auxp;
     memset(&sfinfo, '\0', sizeof(sfinfo)); /* for Valgrind */
     /* open file and read the first block using *p->ioff */
-    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
+    fd = csoundFileOpenWithType(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     memset(buffer, 0,p->buffer.size);
     if (UNLIKELY(fd == NULL)) {
-      return csound->InitError(csound, Str("diskgrain: could not open file: %s\n"),
+      return csoundInitError(csound, Str("diskgrain: could not open file: %s\n"),
                                Str(sflib_strerror(NULL)));
     }
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return
-        csound->InitError(csound, Str("diskgrain: soundfile channel numbers "
+        csoundInitError(csound, Str("diskgrain: soundfile channel numbers "
                                       "do not match the number of outputs\n"));
     }
 
@@ -461,7 +465,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
       p->read2 = 0;
     }
     else {
-      return csound->InitError(csound, Str("diskgrain: could not read file\n"));
+      return csoundInitError(csound, Str("diskgrain: could not read file\n"));
     }
 
    /* -===-  */
@@ -714,7 +718,7 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     p->pos = pos;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("grain size smaller than 1 sample\n"));
 }
 
@@ -733,7 +737,7 @@ static OENTRY localops[] =
 
 int32_t syncgrain_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

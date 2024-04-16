@@ -25,6 +25,10 @@
 #include "soundio.h"
 #include <math.h>
 #include <inttypes.h>
+#include "memalloc.h"
+#include "libsnd_u.h"
+#include "envvar_public.h"
+#include "utility.h"
 
 //#define DEBUG 1
 
@@ -163,9 +167,9 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
         case 's':
           FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->sr);
+          cs_sscanf(s,"%lf",&t->sr);
 #else
-          csound->sscanf(s,"%f",&t->sr);
+          cs_sscanf(s,"%f",&t->sr);
 #endif
           break;
         case 'c':
@@ -175,42 +179,42 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
         case 'b':
           FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->beg_time);
+          cs_sscanf(s,"%lf",&t->beg_time);
 #else
-          csound->sscanf(s,"%f",&t->beg_time);
+          cs_sscanf(s,"%f",&t->beg_time);
 #endif
           break;
         case 'd':
           FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->input_dur);
+          cs_sscanf(s,"%lf",&t->input_dur);
 #else
-          csound->sscanf(s,"%f",&t->input_dur);
+          cs_sscanf(s,"%f",&t->input_dur);
 #endif
           break;
         case 'f':
           FIND(Str("no fundamental estimate"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->fund_est);
+          cs_sscanf(s,"%lf",&t->fund_est);
 #else
-          csound->sscanf(s,"%f",&t->fund_est);
+          cs_sscanf(s,"%f",&t->fund_est);
 #endif
           break;
         case 'h':
           FIND(Str("no harmonic count"))
           sscanf(s,"%hd",&t->hmax);
           if (UNLIKELY(t->hmax > HMAX))
-            csound->Message(csound, Str("over %d harmonics but continuing"),
+            csoundMessage(csound, Str("over %d harmonics but continuing"),
                             HMAX);
           if (UNLIKELY(t->hmax < 1)) {
-            csound->Message(csound,Str("h of %d too low, reset to 1\n"),
+            csoundMessage(csound,Str("h of %d too low, reset to 1\n"),
                             t->hmax);
                 t->hmax = 1;
           }
           break;
         case 'M':
           FIND(Str("no amplitude maximum"))
-          csound->sscanf(s,"%lf",&t->m_ampsum);
+          cs_sscanf(s,"%lf",&t->m_ampsum);
           break;
         case 'm':
           FIND(Str("no amplitude minimum"))
@@ -223,9 +227,9 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
         case 'l':
           FIND(Str("no filter cutoff"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->freq_c);
+          cs_sscanf(s,"%lf",&t->freq_c);
 #else
-          csound->sscanf(s,"%f",&t->freq_c);
+          cs_sscanf(s,"%f",&t->freq_c);
 #endif
           break;
         case 'X':
@@ -250,13 +254,13 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     t->outfilnam = *argv;
 
     if (UNLIKELY(t->freq_c > 1))
-      csound->Message(csound, Str("Filter cutoff freq. = %f\n"),
+      csoundMessage(csound, Str("Filter cutoff freq. = %f\n"),
                               t->freq_c);
 
     if (UNLIKELY((t->input_dur < 0) || (t->beg_time < 0)))
       return quit(csound,Str("input and begin times cannot be less than zero"));
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SAsndgetset(csound, t->infilnam, &p,
+    if (UNLIKELY((infd = SAsndgetset(csound, t->infilnam, &p,
                                     &t->beg_time, &t->input_dur,
                                              &t->sr, channel)) == NULL)) {
       char errmsg[256];
@@ -265,13 +269,13 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     }
     nsamps = p->getframes;
     /* alloc for MYFLTs */
-    t->auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
+    t->auxp = (MYFLT*) mmalloc(csound, nsamps * sizeof(MYFLT));
     /* & read them in */
     if (UNLIKELY((t->smpsin =
-                  csound->getsndin(csound, infd,
+                  getsndin(csound, infd,
                                    t->auxp, nsamps, p)) <= 0)) {
       char errmsg[256];
-      csound->Message(csound, "smpsin = %"PRId64"\n", (int64_t) t->smpsin);
+      csoundMessage(csound, "smpsin = %"PRId64"\n", (int64_t) t->smpsin);
       snprintf(errmsg, 256, Str("Read error on %s\n"), t->infilnam);
       return quit(csound, errmsg);
     }
@@ -304,7 +308,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     smpspc = t->smpsin * sizeof(double);
     bufspc = t->bufsiz * sizeof(double);
 //printf("sizes2: smpspc - %d  bufspc - %d\n", smpspc, bufspc);
-    dsp = dspace = csound->Calloc(csound, smpspc * 2 + bufspc * 13);
+    dsp = dspace = mcalloc(csound, smpspc * 2 + bufspc * 13);
     t->c_p = (double *) dsp;      dsp += smpspc;  /* space for the    */
     t->s_p = (double *) dsp;      dsp += smpspc;  /* quadrature terms */
     begbufs = (double *) dsp;
@@ -324,10 +328,10 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     endbufs = (double *) dsp;
 
     mgfrspc = t->num_pts * sizeof(MYFLT);
-    dsp = csound->Malloc(csound, mgfrspc * t->hmax * 2);
-    t->MAGS = (MYFLT **) csound->Malloc(csound,
+    dsp = mmalloc(csound, mgfrspc * t->hmax * 2);
+    t->MAGS = (MYFLT **) mmalloc(csound,
                                               t->hmax * sizeof(MYFLT*));
-    t->FREQS = (MYFLT **) csound->Malloc(csound,
+    t->FREQS = (MYFLT **) mmalloc(csound,
                                                t->hmax * sizeof(MYFLT*));
     for (i = 0; i < t->hmax; i++) {
       t->MAGS[i] = (MYFLT *) dsp;    dsp += mgfrspc;
@@ -347,21 +351,21 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
       t->max_frq = FL(0.0);
       t->max_amp = -FL(1.0);
 
-      csound->Message(csound,Str("analyzing harmonic #%d\n"),hno);
-      csound->Message(csound,Str("freq estimate %6.1f,"), t->cur_est);
+      csoundMessage(csound,Str("analyzing harmonic #%d\n"),hno);
+      csoundMessage(csound,Str("freq estimate %6.1f,"), t->cur_est);
       if (hetdyn(csound, t, hno) != 0)  /* perform actual computation */
         return -1;
-      if (!csound->CheckEvents(csound))
+      if (!csoundYield(csound))
         return -1;
-      csound->Message(csound, Str(" max found %6.1f, rel amp %6.1f\n"),
+      csoundMessage(csound, Str(" max found %6.1f, rel amp %6.1f\n"),
                               t->max_frq, t->max_amp);
     }
-    csound->Free(csound, dspace);
+    mfree(csound, dspace);
 #if INCSDIF
     /* RWD if extension is .sdif, write as 1TRC frames */
     if (is_sdiffile(t->outfilnam)) {
       if (UNLIKELY(!writesdif(csound,t))) {
-        csound->Message(csound, "%s", Str("Unable to write to SDIF file\n"));
+        csoundMessage(csound, "%s", Str("Unable to write to SDIF file\n"));
         retval = -1;
       }
     }
@@ -454,7 +458,7 @@ static int32_t hetdyn(CSOUND *csound,
         /* if next out-time */
         output(t, smplno, hno, outpnt);  /*     place in     */
         lastout = outpnt;                      /*     output array */
-        if (!csound->CheckEvents(csound))
+        if (!csoundYield(csound))
           return -1;
       }
       if (t->skip) {
@@ -619,9 +623,9 @@ static const char *hetro_usage_txt[] = {
 static int32_t quit(CSOUND *csound, char *msg)
 {
     int i;
-    csound->ErrorMsg(csound, Str("hetro:  %s\n\tanalysis aborted"), msg);
+    csoundErrorMsg(csound, Str("hetro:  %s\n\tanalysis aborted"), msg);
     for (i = 0; hetro_usage_txt[i] != NULL; i++)
-      csound->Message(csound, "%s\n", Str(hetro_usage_txt[i]));
+      csoundMessage(csound, "%s\n", Str(hetro_usage_txt[i]));
     return -1;
 }
 
@@ -640,27 +644,27 @@ static int32_t filedump(HET *t, CSOUND *csound)
     MYFLT   timesiz;
     FILE    *ff;
 
-    mags  = (int16 **) csound->Malloc(csound, t->hmax * sizeof(int16*));
-    freqs = (int16 **) csound->Malloc(csound, t->hmax * sizeof(int16*));
+    mags  = (int16 **) mmalloc(csound, t->hmax * sizeof(int16*));
+    freqs = (int16 **) mmalloc(csound, t->hmax * sizeof(int16*));
     for (h = 0; h < t->hmax; h++) {
-      mags[h]  = (int16 *)csound->Malloc(csound,
+      mags[h]  = (int16 *)mmalloc(csound,
                                         (t->num_pts+2) * sizeof(int16));
-      freqs[h] = (int16 *)csound->Malloc(csound,
+      freqs[h] = (int16 *)mmalloc(csound,
                                          (t->num_pts+2) * sizeof(int16));
     }
 
-    TIME = (int16 *)csound->Malloc(csound, (t->num_pts+2) * sizeof(int16));
+    TIME = (int16 *)mmalloc(csound, (t->num_pts+2) * sizeof(int16));
     timesiz = FL(1000.0) * t->input_dur /t->num_pts;
     for (pnt = 0; pnt < t->num_pts; pnt++)
       TIME[pnt] = (int16)(pnt * timesiz);
 
     /* fullpath else cur dir */
     if (t->newformat) {
-      if (UNLIKELY(csound->FileOpen2(csound, &ff, CSFILE_STD, t->outfilnam,
+      if (UNLIKELY(csoundFileOpenWithType(csound, &ff, CSFILE_STD, t->outfilnam,
                                      "w", "", CSFTYPE_HETROT, 0) == NULL))
       return quit(csound, Str("cannot create output file\n"));
     } else
-      if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W, t->outfilnam,
+      if (UNLIKELY(csoundFileOpenWithType(csound, &ofd, CSFILE_FD_W, t->outfilnam,
                                      NULL, "", CSFTYPE_HETRO, 0) == NULL))
         return quit(csound, Str("cannot create output file\n"));
 
@@ -668,7 +672,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
       fprintf(ff,"HETRO %d\n", t->hmax);        /* Header */
     else {
       if (UNLIKELY(write(ofd, (char*)&t->hmax, sizeof(t->hmax))<0))
-        csound->Message(csound,"%s", Str("Write failure\n")); /* Write header */
+        csoundMessage(csound,"%s", Str("Write failure\n")); /* Write header */
     }
     for (pnt=1; pnt < t->num_pts+1; pnt++) {
       ampsum = 0.0;
@@ -678,7 +682,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
         maxampsum = ampsum;
     }
     scale = t->m_ampsum / maxampsum;
-    csound->Message(csound,Str("scale = %f\n"), scale);
+    csoundMessage(csound,Str("scale = %f\n"), scale);
 
     for (h = 0; h < t->hmax; h++) {
       for (pnt = 0; pnt < t->num_pts+1; pnt++) {
@@ -691,9 +695,9 @@ static int32_t filedump(HET *t, CSOUND *csound)
       }
     }
 
-    magout = (int16 *)csound->Malloc(csound,
+    magout = (int16 *)mmalloc(csound,
                                      (t->num_pts+1) * 2 * sizeof(int16));
-    frqout = (int16 *)csound->Malloc(csound,
+    frqout = (int16 *)mmalloc(csound,
                                      (t->num_pts+1) * 2 * sizeof(int16));
 
     for (h = 0; h < t->hmax; h++) {
@@ -762,14 +766,14 @@ static int32_t filedump(HET *t, CSOUND *csound)
       }
       else {
         if (UNLIKELY(write(ofd, (char *)magout, nbytes)<0))
-          csound->Message(csound, "%s", Str("Write failure\n"));
+          csoundMessage(csound, "%s", Str("Write failure\n"));
       }
 #ifdef DEBUG
       {
         int32_t i;
         for (i=0; i<(mp-magout); i++)
-          csound->Message(csound, "%hd,", magout[i]);
-        csound->Message(csound, "\n");
+          csoundMessage(csound, "%hd,", magout[i]);
+        csoundMessage(csound, "\n");
       }
 #endif
       lenfil += nbytes;
@@ -783,33 +787,33 @@ static int32_t filedump(HET *t, CSOUND *csound)
       }
       else {
         if (UNLIKELY(write(ofd, (char *)frqout, nbytes)<0))
-          csound->Message(csound, "%s", Str("Write failure\n"));
+          csoundMessage(csound, "%s", Str("Write failure\n"));
       }
 #ifdef DEBUG
       {
         int32_t i;
         for (i=0; i<(fp-frqout); i++)
-          csound->Message(csound, "%hd,", frqout[i]);
-        csound->Message(csound, "\n");
+          csoundMessage(csound, "%hd,", frqout[i]);
+        csoundMessage(csound, "\n");
       }
 #endif
       lenfil += nbytes;
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("harmonic #%d:\tamp points %d, \tfrq points %d,"
                           "\tpeakamp %d\n"),
                       h, mpoints, fpoints, pkamp);
     }
-    csound->Message(csound, "%s%" PRId64 " %s%s\n", Str("wrote "),
+    csoundMessage(csound, "%s%" PRId64 " %s%s\n", Str("wrote "),
                     (int64_t)lenfil, Str("bytes to "), t->outfilnam);
-    csound->Free(csound, magout);
-    csound->Free(csound, frqout);
-    csound->Free(csound, TIME);
+    mfree(csound, magout);
+    mfree(csound, frqout);
+    mfree(csound, TIME);
     for (h = 0; h < t->hmax; h++) {
-      csound->Free(csound, mags[h]);
-      csound->Free(csound, freqs[h]);
+      mfree(csound, mags[h]);
+      mfree(csound, freqs[h]);
     }
-    csound->Free(csound, mags);
-    csound->Free(csound, freqs);
+    mfree(csound, mags);
+    mfree(csound, freqs);
 
     return 0;
 }
@@ -830,7 +834,7 @@ static int32_t writesdif(CSOUND *csound, HET *t)
     FILE        *sdiffile = NULL;
 
     if (UNLIKELY(SDIF_Init() != ESDIF_SUCCESS)) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       "%s", Str("OOPS: SDIF does not work on this machine!\n"));
       return 0;
     }
@@ -846,7 +850,7 @@ static int32_t writesdif(CSOUND *csound, HET *t)
     scale = t->m_ampsum / maxampsum;
     /* SDIF does not specify a range, 'cos it's too clever for that sort
      * of thing, but this seems consistent with existing examples! */
-    scale *= (double) (1.0/csound->Get0dBFS(csound));
+    scale *= (double) (1.0/csoundGet0dBFS(csound));
 
     for (h = 0; h < t->hmax; h++) {
       for (pnt = 0; pnt < t->num_pts; pnt++) {
@@ -858,11 +862,11 @@ static int32_t writesdif(CSOUND *csound, HET *t)
     if (UNLIKELY((r =
                   SDIF_OpenWrite(t->outfilnam, &sdiffile))!=ESDIF_SUCCESS)) {
       /* can get SDIF error messages, but trickly for CSTRINGS */
-      csound->Message(csound,Str("Error creating %s\n"),t->outfilnam);
+      csoundMessage(csound,Str("Error creating %s\n"),t->outfilnam);
       fclose(sdiffile);
       return 0;
     }
-    csound->NotifyFileOpened(csound, t->outfilnam, CSFTYPE_SDIF, 1, 0);
+    csoundNotifyFileOpened(csound, t->outfilnam, CSFTYPE_SDIF, 1, 0);
 
     SDIF_Copy4Bytes(head.frameType,"1TRC");
     head.streamID = SDIF_UniqueStreamID();
@@ -886,7 +890,7 @@ static int32_t writesdif(CSOUND *csound, HET *t)
       /* cannot offer anything interesting with phase! */
       head.time = (sdif_float32) ((MYFLT)i * timesiz);
       if (UNLIKELY((r = SDIF_WriteFrameHeader(&head,sdiffile))!=ESDIF_SUCCESS)) {
-        csound->Message(csound,"%s", Str("Error writing SDIF frame header.\n"));
+        csoundMessage(csound,"%s", Str("Error writing SDIF frame header.\n"));
         return 0;
       }
       /*setup data matrix */
@@ -895,7 +899,7 @@ static int32_t writesdif(CSOUND *csound, HET *t)
       SDIF_Copy4Bytes(mh.matrixType,"1TRC");
       mh.matrixDataType = SDIF_FLOAT32;
       if (UNLIKELY((r = SDIF_WriteMatrixHeader(&mh,sdiffile))!=ESDIF_SUCCESS)) {
-        csound->Message(csound,"%s", Str("Error writing SDIF matrix header.\n"));
+        csoundMessage(csound,"%s", Str("Error writing SDIF matrix header.\n"));
         return 0;
       }
       for (j=0;j < t->hmax;j++) {
@@ -908,13 +912,13 @@ static int32_t writesdif(CSOUND *csound, HET *t)
                      ((r = SDIF_Write4(&freq,1,sdiffile))!= ESDIF_SUCCESS)  ||
                      ((r = SDIF_Write4(&amp,1,sdiffile))!= ESDIF_SUCCESS)   ||
                      ((r = SDIF_Write4(&phase,1,sdiffile))!= ESDIF_SUCCESS))) {
-          csound->Message(csound,"%s", Str("Error writing SDIF data.\n"));
+          csoundMessage(csound,"%s", Str("Error writing SDIF data.\n"));
           return 0;
         }
       }
       /* 64-bit alignment can be relied upon here, so no need to calc padding */
     }
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("wrote %d 1TRC frames to %s\n"),
                     t->num_pts, t->outfilnam);
     SDIF_CloseWrite(sdiffile);
@@ -940,9 +944,9 @@ static int32_t is_sdiffile(char *name)
 
 int32_t hetro_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "hetro", hetro);
+    int32_t retval = csoundAddUtility(csound, "hetro", hetro);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "hetro",
+      retval = csoundSetUtilityDescription(csound, "hetro",
                                              Str("Soundfile analysis for adsyn"));
     }
     return retval;

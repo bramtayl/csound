@@ -40,6 +40,10 @@
 
 #include "pvs_ops.h"
 #include "pstream.h"
+#include "fftlib.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 typedef struct _ifd {
   OPDS    h;
@@ -71,42 +75,42 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
   frames = fftsize / hopsize;
 
   if (UNLIKELY((frames - (float) fftsize / hopsize) != 0.0f))
-    return csound->InitError(csound, Str("pvsifd: fftsize should "
+    return csoundInitError(csound, Str("pvsifd: fftsize should "
                                          "be an integral multiple of hopsize"));
 
   if (UNLIKELY((fftsize & (fftsize - 1))))
-    return csound->InitError(csound,
+    return csoundInitError(csound,
                              Str("pvsifd: fftsize should be power-of-two"));
 
   p->frames = frames;
 
   if (p->sigframe.auxp == NULL ||
       frames * fftsize * sizeof(MYFLT) > (uint32_t) p->sigframe.size)
-    csound->AuxAlloc(csound, frames * fftsize * sizeof(MYFLT), &p->sigframe);
+    csoundAuxAlloc(csound, frames * fftsize * sizeof(MYFLT), &p->sigframe);
   else
     memset(p->sigframe.auxp, 0, sizeof(MYFLT) * fftsize * frames);
   if (p->diffsig.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (uint32_t) p->diffsig.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
+    csoundAuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
   else
     memset(p->diffsig.auxp, 0, sizeof(MYFLT) * fftsize);
   if (p->diffwin.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (uint32_t) p->diffwin.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
+    csoundAuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
   if (p->win.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (uint32_t) p->win.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
+    csoundAuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
   if (p->counter.auxp == NULL ||
       frames * sizeof(int32_t) > (uint32_t) p->counter.size)
-    csound->AuxAlloc(csound, frames * sizeof(int32_t), &p->counter);
+    csoundAuxAlloc(csound, frames * sizeof(int32_t), &p->counter);
   if (p->fout1->frame.auxp == NULL ||
       (fftsize + 2) * sizeof(MYFLT) > (uint32_t) p->fout1->frame.size)
-    csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
+    csoundAuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
   else
     memset(p->fout1->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
   if (p->fout2->frame.auxp == NULL ||
       (fftsize + 2) * sizeof(MYFLT) > (uint32_t) p->fout2->frame.size)
-    csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
+    csoundAuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
   else
     memset(p->fout2->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
   p->fout1->N = fftsize;
@@ -138,7 +142,7 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
     alpha = 0.5;
     break;
   default:
-    return csound->InitError(csound,
+    return csoundInitError(csound,
                              Str("pvsifd: unsupported value for iwintype\n"));
     break;
   }
@@ -155,7 +159,7 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
 
   p->factor = CS_ESR / TWOPI_F;
   p->fund = CS_ESR / fftsize;
-  p->setup = csound->RealFFT2Setup(csound, fftsize, FFT_FWD);
+  p->setup = csoundRealFFT2Setup(csound, fftsize, FFT_FWD);
   return OK;
 }
 
@@ -189,8 +193,8 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
     signal[i + hsize] = tmp2;
     }
 
-  csound->RealFFT2(csound, p->setup, signal);
-  csound->RealFFT2(csound, p->setup,diffsig);
+  csoundRealFFT2(csound, p->setup, signal);
+  csoundRealFFT2(csound, p->setup,diffsig);
 
   for (i = 2; i < fftsize; i += 2) {
 
@@ -269,37 +273,37 @@ static int32_t tifd_init(CSOUND * csound, IFD * p)
   wintype = p->wintype = (int32_t) *p->p6;
 
   if (UNLIKELY((fftsize & (fftsize - 1))))
-    return csound->InitError(csound,
+    return csoundInitError(csound,
                              Str("pvsifd: fftsize should be power-of-two"));
 
   if (p->sigframe.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (uint32_t) p->sigframe.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->sigframe);
+    csoundAuxAlloc(csound, fftsize * sizeof(MYFLT), &p->sigframe);
   else
     memset(p->sigframe.auxp, 0, sizeof(MYFLT) * fftsize);
 
   if (p->diffsig.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (uint32_t) p->diffsig.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
+    csoundAuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffsig);
   else
     memset(p->diffsig.auxp, 0, sizeof(MYFLT) * fftsize);
 
   if (p->diffwin.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (uint32_t) p->diffwin.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
+    csoundAuxAlloc(csound, fftsize * sizeof(MYFLT), &p->diffwin);
 
   if (p->win.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (uint32_t) p->win.size)
-    csound->AuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
+    csoundAuxAlloc(csound, fftsize * sizeof(MYFLT), &p->win);
 
   if (p->fout1->frame.auxp == NULL ||
       (fftsize + 2) * sizeof(MYFLT) > (uint32_t) p->fout1->frame.size)
-    csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
+    csoundAuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout1->frame);
   else
     memset(p->fout1->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
   if (p->fout2->frame.auxp == NULL ||
       (fftsize + 2) * sizeof(MYFLT) > (uint32_t) p->fout2->frame.size)
-    csound->AuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
+    csoundAuxAlloc(csound, (fftsize + 2) * sizeof(float), &p->fout2->frame);
   else
     memset(p->fout2->frame.auxp, 0, sizeof(MYFLT) * (fftsize + 2));
 
@@ -328,7 +332,7 @@ static int32_t tifd_init(CSOUND * csound, IFD * p)
     alpha = 0.5;
     break;
   default:
-    return csound->InitError(csound,
+    return csoundInitError(csound,
                              Str("pvsifd: unsupported value for iwintype\n"));
     break;
   }
@@ -356,15 +360,15 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
   uint32_t nsmps = CS_KSMPS;
 
   if(p->cnt >= hopsize){
-    MYFLT  pos = *p->in*csound->GetSr(csound);
+    MYFLT  pos = *p->in*csoundGetSr(csound);
     MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
     MYFLT  pit = *p->p3;
     int32_t     fftsize = p->fftsize;
     int32_t post;
     MYFLT frac;
-    FUNC *ft = csound->FTnp2Find(csound,p->p7);
+    FUNC *ft = csoundFTnp2Find(csound,p->p7);
     if (UNLIKELY(ft == NULL)) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                "could not find table number %d\n", (int32_t) *p->p7);
     }
     MYFLT *tab = ft->ftable;
@@ -398,7 +402,7 @@ static OENTRY localops[] =
 
 int32_t ifd_init_(CSOUND *csound)
 {
-  return csound->AppendOpcodes(csound, &(localops[0]),
+  return csoundAppendOpcodes(csound, &(localops[0]),
                                (int32_t
                                 ) (sizeof(localops) / sizeof(OENTRY)));
 }

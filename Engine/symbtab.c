@@ -34,6 +34,7 @@
 #include "interlocks.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 
 #ifndef PARSER_DEBUG
@@ -58,7 +59,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     ORCTOKEN *ans;
 
     if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "Looking up token for: %s\n", s);
+      csoundMessage(csound, "Looking up token for: %s\n", s);
 
     ans = new_token(csound, T_IDENT);
 
@@ -339,7 +340,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 //      i++; types++;
 //      if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
 //        synterr(csound, Str("too many input args for opcode %s"), inm->name);
-//        csound->LongJmp(csound, 1);
+//        csoundLongJmp(csound, 1);
 //      }
 //    }
 //      default:
@@ -354,19 +355,19 @@ early_exit:
     if(in_args != NULL) {
       while(in_args[n] != NULL)  {
         // printf("delete %p\n", argsFound[n]);
-        csound->Free(csound, in_args[n]);
+        mfree(csound, in_args[n]);
         n++;
       }
-      csound->Free(csound, in_args);
+      mfree(csound, in_args);
     }
     if (out_args != NULL) {
       n = 0;
       while(out_args[n] != NULL)  {
         // printf("delete %p\n", argsFound[n]);
-        csound->Free(csound, out_args[n]);
+        mfree(csound, out_args[n]);
         n++;
       }
-      csound->Free(csound, out_args);
+      mfree(csound, out_args);
     }
 
     return err;
@@ -400,7 +401,7 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
     }
 
     if (shortName != oentry->opname) {
-        csound->Free(csound, shortName);
+        mfree(csound, shortName);
     }
 
     return retVal;
@@ -429,11 +430,11 @@ int add_udo_definition(CSOUND *csound, char *opname,
       opc = find_opcode_exact(csound, opname, outtypes, "o");
     } else {
       // this feature is removed from 7.0
-      /*char* adjusted_intypes = csound->Malloc(csound, sizeof(char) * (len + 2));
+      /*char* adjusted_intypes = mmalloc(csound, sizeof(char) * (len + 2));
       sprintf(adjusted_intypes, "%so", intypes);
       opc = find_opcode_exact(csound, opname, outtypes, adjusted_intypes); */
       opc = find_opcode_exact(csound, opname, outtypes, intypes);
-      //csound->Free(csound, adjusted_intypes);
+      //mfree(csound, adjusted_intypes);
     }
 
     /* check if opcode is already defined */
@@ -458,12 +459,12 @@ int add_udo_definition(CSOUND *csound, char *opname,
         synterr(csound, Str("cannot redefine %s"), opname);
         return -2;
       }
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("WARNING: redefined opcode: %s\n"), opname);
     }
     /* IV - Oct 31 2002 */
-    /* store the name in a linked list (note: must use csound->Calloc) */
-    inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
+    /* store the name in a linked list (note: must use mcalloc) */
+    inm = (OPCODINFO *) mcalloc(csound, sizeof(OPCODINFO));
     inm->name = cs_strdup(csound, opname);
     inm->intypes = intypes;
     inm->outtypes = outtypes;
@@ -485,14 +486,14 @@ int add_udo_definition(CSOUND *csound, char *opname,
       memcpy(&tmpEntry, opc, sizeof(OENTRY));
       tmpEntry.opname = cs_strdup(csound, opname);
 
-      csound->AppendOpcodes(csound, &tmpEntry, 1);
+      csoundAppendOpcodes(csound, &tmpEntry, 1);
       newopc = csound_find_internal_oentry(csound, &tmpEntry);
 
       newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
 
       /* check in/out types and copy to the opcode's */
       /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-      newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
+      newopc->outypes = mmalloc(csound, strlen(outtypes) + 1
                                        + strlen(intypes) + 2);
       newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
       newopc->flags = flags | newopc->flags;

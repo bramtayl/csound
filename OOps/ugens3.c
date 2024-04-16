@@ -25,12 +25,17 @@
 #include "ugens3.h"
 #include <math.h>
 #include "rdscor.h"
+#include "namedins_public.h"
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {
     FUNC    *ftp;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->cphs = p->mphs = (int32_t)(*p->iphs * FMAXLEN);
@@ -115,7 +120,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("foscil: not initialised"));
 }
 
@@ -203,7 +208,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("foscili: not initialised"));
 }
 
@@ -211,7 +216,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
 int32_t losset(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
-    if ((ftp = csound->FTnp2Finde(csound,p->ifn)) != NULL) {
+    if ((ftp = csoundFTnp2Finde(csound,p->ifn)) != NULL) {
       uint32 maxphs = ftp->flenfrms;
       //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
       //printf("****ftp cvtbas = %g ibas = %g\n", ftp->cvtbas, *p->ibas);
@@ -220,13 +225,13 @@ int32_t losset(CSOUND *csound, LOSC *p)
         p->cpscvt = (ftp->cvtbas / *p->ibas)/LOFACT;
       else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
         p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
-        csound->Warning(csound, Str("no legal base frequency"));
+        csoundWarning(csound, Str("no legal base frequency"));
       }
       else p->cpscvt /= LOFACT;
       //printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
-          csound->Warning(csound, Str("loscil: sustain defers to "
+          csoundWarning(csound, Str("loscil: sustain defers to "
                                       "non-looping source"));
         }
         p->beg1 = ftp->begin1;
@@ -244,7 +249,7 @@ int32_t losset(CSOUND *csound, LOSC *p)
         else if (UNLIKELY(p->beg1 < 0 ||
                           p->end1 > maxphs ||
                           p->beg1 >= p->end1)) {
-          csound->Message(csound, "beg: %g, end = %g, maxphs = %d\n",
+          csoundMessage(csound, "beg: %g, end = %g, maxphs = %d\n",
                           p->beg1, p->end1, maxphs);
           goto lerr2;
         }
@@ -286,13 +291,13 @@ int32_t losset(CSOUND *csound, LOSC *p)
       if (p->OUTOCOUNT == 1) {
         p->stereo = 0;
         if (UNLIKELY(ftp->nchanls != 1))
-          return csound->InitError(csound, Str(
+          return csoundInitError(csound, Str(
                                "mono loscil cannot read from stereo ftable"));
       }
       else {
         p->stereo = 1;
         if (UNLIKELY(ftp->nchanls != 2))
-          return csound->InitError(csound, Str(
+          return csoundInitError(csound, Str(
                                "stereo loscil cannot read from mono ftable"));
       }
       return OK;
@@ -300,15 +305,15 @@ int32_t losset(CSOUND *csound, LOSC *p)
     return NOTOK;
 
  lerr2:
-    return csound->InitError(csound, Str("illegal sustain loop data"));
+    return csoundInitError(csound, Str("illegal sustain loop data"));
  lerr3:
-    return csound->InitError(csound, Str("illegal release loop data"));
+    return csoundInitError(csound, Str("illegal release loop data"));
 }
 
 int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
 {
     FUNC    *ftp;
-    if ((ftp = csound->FTnp2Finde(csound,p->ifn)) != NULL) {
+    if ((ftp = csoundFTnp2Finde(csound,p->ifn)) != NULL) {
       uint32 maxphs = ftp->flenfrms;
       //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
       p->ftp = ftp;
@@ -316,13 +321,13 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
         p->cpscvt = (ftp->cvtbas / *p->ibas)/LOFACT;
       else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
         p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
-        csound->Warning(csound, Str("no legal base frequency"));
+        csoundWarning(csound, Str("no legal base frequency"));
       }
       else p->cpscvt /= LOFACT;
       //printf("****cpscvt = %g\n", p->cpscvt);
       if ((p->mod1 = (int16) *p->imod1) < 0) {
         if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
-          csound->Warning(csound, Str("loscil: sustain defers to "
+          csoundWarning(csound, Str("loscil: sustain defers to "
                                       "non-looping source"));
         }
         p->beg1 = ftp->begin1;
@@ -340,7 +345,7 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
         else if (UNLIKELY(p->beg1 < 0 ||
                           p->end1 > maxphs ||
                           p->beg1 >= p->end1)) {
-          csound->Message(csound, "beg: %g, end = %g, maxphs = %d\n",
+          csoundMessage(csound, "beg: %g, end = %g, maxphs = %d\n",
                           p->beg1, p->end1, maxphs);
           goto lerr2;
         }
@@ -382,18 +387,18 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
       if (p->OUTOCOUNT == 2) {
         p->stereo = 0;
         if (UNLIKELY(ftp->nchanls != 1))
-          return csound->InitError(csound, Str(
+          return csoundInitError(csound, Str(
                                "mono loscilphs cannot read from stereo ftable"));
       }
       else if (p->OUTOCOUNT == 3)
         {
           p->stereo = 1;
           if (UNLIKELY(ftp->nchanls != 2))
-            return csound->InitError(csound, Str(
+            return csoundInitError(csound, Str(
                                "stereo loscilphs cannot read from mono ftable"));
         }
       else {
-        return csound->InitError(csound, Str(
+        return csoundInitError(csound, Str(
                                "loscilphs: insufficient outputs"));
       }
       return OK;
@@ -401,9 +406,9 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
     return NOTOK;
 
  lerr2:
-    return csound->InitError(csound, Str("illegal sustain loop data"));
+    return csoundInitError(csound, Str("illegal sustain loop data"));
  lerr3:
-    return csound->InitError(csound, Str("illegal release loop data"));
+    return csoundInitError(csound, Str("illegal release loop data"));
 }
 
 static inline void loscil_linear_interp_mono(MYFLT *ar,
@@ -1374,21 +1379,21 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
     if (csound->isintab == NULL) {  /* if no sin table yet, make one */
       int16 *ip;
       csound->isintab = ip =
-        (int16*) csound->Malloc(csound, ISINSIZ * sizeof(int16));
+        (int16*) mmalloc(csound, ISINSIZ * sizeof(int16));
       for (n = 0; n < ISINSIZ; n++)
         *ip++ = (int16) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
     if (stringname) strNcpy(filnam, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
-    else if (csound->ISSTRCOD(*p->ifilcod))
+    else if (isstrcod(*p->ifilcod))
       strNcpy(filnam, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
-    else csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", 0);
+    else strarg2name(csound, filnam, p->ifilcod, "adsyn.", 0);
 
 
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
       /* readfile if reqd */
       if (UNLIKELY((mfp = ldmemfile2withCB(csound, filnam,
                                            CSFTYPE_HETRO, NULL)) == NULL)) {
-        return csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
+        return csoundInitError(csound, Str("ADSYN cannot load %s"), filnam);
       }
       p->mfp = mfp;                         /*   & record         */
     }
@@ -1397,7 +1402,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
     endata = (int16 *) mfp->endp;
     size = 1+(*adp == -1 ? MAXPTLS : *adp++); /* Old no header -> MAXPIL */
     if (p->aux.auxp==NULL || p->aux.size < (uint32_t)sizeof(PTLPTR)*size)
-      csound->AuxAlloc(csound, sizeof(PTLPTR)*size, &p->aux);
+      csoundAuxAlloc(csound, sizeof(PTLPTR)*size, &p->aux);
 
     ptlap = ptlfp = (PTLPTR*)p->aux.auxp;   /* find base ptl blk */
     ptlim = ptlap + size;
@@ -1417,12 +1422,12 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
           ptlfp->phs = 0;                /*  and clr the phase */
           break;
         default:
-          return csound->InitError(csound, Str("illegal code %d encountered"), val);
+          return csoundInitError(csound, Str("illegal code %d encountered"), val);
         }
       }
     } while (adp < endata);
     if (UNLIKELY(ptlap != ptlfp)) {
-      return csound->InitError(csound, Str("%d amp tracks, %d freq tracks"),
+      return csoundInitError(csound, Str("%d amp tracks, %d freq tracks"),
                                (int32_t) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
                                (int32_t) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
     }
@@ -1432,7 +1437,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
     return OK;
 
  adsful:
-    return csound->InitError(csound, Str("partial count exceeds MAXPTLS"));
+    return csoundInitError(csound, Str("partial count exceeds MAXPTLS"));
 }
 
 int32_t adset(CSOUND *csound, ADSYN *p){
@@ -1459,7 +1464,7 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
     int32_t   timkincr, nxtim;
 
     if (UNLIKELY(csound->isintab == NULL)) {      /* RWD fix */
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("adsyn: not initialised"));
     }
     /* IV - Jul 11 2002 */

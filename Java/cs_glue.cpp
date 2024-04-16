@@ -334,7 +334,7 @@ CsoundChannelList::CsoundChannelList(CSOUND *csound)
 CsoundChannelList::CsoundChannelList(Csound *csound)
 {
     lst = (controlChannelInfo_t*) 0;
-    cnt = csound->ListChannels(lst);
+    cnt = csoundListChannels(lst);
     this->csound = csound->GetCsound();
     if (cnt < 0 || !lst)
       this->ResetVariables();
@@ -406,7 +406,7 @@ CsoundUtilityList::CsoundUtilityList(CSOUND *csound)
 CsoundUtilityList::CsoundUtilityList(Csound *csound)
 {
     int n = -1;
-    lst = csound->ListUtilities();
+    lst = csoundListUtilities();
     if (lst) {
       while (lst[++n])
         ;

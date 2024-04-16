@@ -29,6 +29,9 @@
 #include <math.h>
 #include "csoundCore_internal.h"
 #include "pstream.h"
+#include "fftlib.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
         double  besseli(double x);
 static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);
@@ -70,12 +73,12 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
         return OK;
       default:
         if (UNLIKELY(type >= 0))
-          return csound->InitError(csound, Str("invalid window type"));
+          return csoundInitError(csound, Str("invalid window type"));
     }
     /* use table created with GEN20 */
     flen = csoundGetTable(csound, &ftable, -(type));
     if (UNLIKELY(flen < 0))
-      return csound->InitError(csound, Str("ftable for window not found"));
+      return csoundInitError(csound, Str("ftable for window not found"));
     inc = (double)flen / (double)(winLen & (~1));
     fpos = ((double)flen + (double)even * inc) * 0.5;
     n = winLen >> 1;
@@ -102,7 +105,7 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
     int32_t i;
     int32_t wintype = MYFLT2LRND(*p->wintype);
 
-    if (N<=0) return csound->InitError(csound, Str("Invalid window size"));
+    if (N<=0) return csoundInitError(csound, Str("Invalid window size"));
     /* deal with iinit and iformat later on! */
 
     N = N + N%2;               /* Make N even */
@@ -111,17 +114,17 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
     /* Need space for NB complex numbers for each of ksmps */
     if (p->fsig->frame.auxp==NULL ||
         CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fsig->frame.size)
-      csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fsig->frame);
+      csoundAuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fsig->frame);
     else memset(p->fsig->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     /* Space for remembering samples */
     if (p->input.auxp==NULL ||
         N*sizeof(MYFLT) > (uint32_t)p->input.size)
-      csound->AuxAlloc(csound, N*sizeof(MYFLT),&p->input);
+      csoundAuxAlloc(csound, N*sizeof(MYFLT),&p->input);
     else memset(p->input.auxp, 0, N*sizeof(MYFLT));
-    csound->AuxAlloc(csound, NB * sizeof(double), &p->oldInPhase);
+    csoundAuxAlloc(csound, NB * sizeof(double), &p->oldInPhase);
    if (p->analwinbuf.auxp==NULL ||
         NB*sizeof(CMPLX) > (uint32_t)p->analwinbuf.size)
-      csound->AuxAlloc(csound, NB*sizeof(CMPLX),&p->analwinbuf);
+      csoundAuxAlloc(csound, NB*sizeof(CMPLX),&p->analwinbuf);
     else memset(p->analwinbuf.auxp, 0, NB*sizeof(CMPLX));
     p->inptr = 0;                 /* Pointer in circular buffer */
     p->fsig->NB = p->Ii = NB;
@@ -132,7 +135,7 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
     /* Need space for NB sines, cosines and a scatch phase area */
     if (p->trig.auxp==NULL ||
         (2*NB)*sizeof(double) > (uint32_t)p->trig.size)
-      csound->AuxAlloc(csound,(2*NB)*sizeof(double),&p->trig);
+      csoundAuxAlloc(csound,(2*NB)*sizeof(double),&p->trig);
     {
       double dc = cos(TWOPI/(double)N);
       double ds = sin(TWOPI/(double)N);
@@ -176,21 +179,21 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
     if (overlap<CS_KSMPS || overlap<=10) /* 10 is a guess.... */
       return pvssanalset(csound, p);
     if (UNLIKELY(N <= 32))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvsanal: fftsize of 32 is too small!\n"));
     /* check N for powof2? CARL fft routines and FFTW are not limited to that */
     N = N  + N%2;       /* Make N even */
     if (UNLIKELY(M < N)) {
-       csound->Warning(csound,
+       csoundWarning(csound,
                                Str("pvsanal: window size too small for fftsize"));
        M = N;
     }
     if (UNLIKELY(overlap > N / 2))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvsanal: overlap too big for fft size\n"));
 #ifdef OLPC
     if (UNLIKELY(overlap < CS_KSMPS))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvsanal: overlap must be >= ksmps\n"));
 #endif
     halfwinsize = M/2;
@@ -204,13 +207,13 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
      */
     /*Lf =*/ Mf = 1 - M%2;
 
-    csound->AuxAlloc(csound, overlap * sizeof(MYFLT), &p->overlapbuf);
-    csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->analbuf);
-    csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->analwinbuf);
-    csound->AuxAlloc(csound, nBins * sizeof(MYFLT), &p->oldInPhase);
-    csound->AuxAlloc(csound, buflen * sizeof(MYFLT), &p->input);
+    csoundAuxAlloc(csound, overlap * sizeof(MYFLT), &p->overlapbuf);
+    csoundAuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->analbuf);
+    csoundAuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->analwinbuf);
+    csoundAuxAlloc(csound, nBins * sizeof(MYFLT), &p->oldInPhase);
+    csoundAuxAlloc(csound, buflen * sizeof(MYFLT), &p->input);
     /* the signal itself */
-    csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->fsig->frame);
+    csoundAuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->fsig->frame);
 
     /* make the analysis window*/
     analwinbase = (MYFLT *) (p->analwinbuf.auxp);
@@ -264,7 +267,7 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->sliding = 0;
 
     if (!(N & (N - 1))) /* if pow of two use this */
-     p->setup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+     p->setup = csoundRealFFT2Setup(csound,N,FFT_FWD);
     return OK;
 }
 
@@ -331,13 +334,13 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       anal[k] += analWindow[i] * input[j];
     }
     if (!(N & (N - 1))) {
-      /* csound->RealFFT(csound, anal, N);*/
-      csound->RealFFT2(csound,p->setup,anal);
+      /* csoundRealFFT(csound, anal, N);*/
+      csoundRealFFT2(csound,p->setup,anal);
       anal[N] = anal[1];
       anal[1] = anal[N + 1] = FL(0.0);
     }
     else
-      csound->RealFFTnp2(csound, anal, N);
+      csoundRealFFTnp2(csound, anal, N);
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in
@@ -467,7 +470,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     uint32_t i, nsmps = CS_KSMPS;
     int32_t wintype = p->fsig->wintype;
     if (UNLIKELY(data==NULL)) {
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsanal: Not Initialised.\n"));
     }
     ain = p->ain;               /* The input samples */
@@ -532,7 +535,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
         ff[NB-1].re -= FL(0.5)*fw[NB-2].re;
         break;
       default:
-        csound->Warning(csound,
+        csoundWarning(csound,
                         Str("Unknown window type; replaced by rectangular\n"));
         /* FALLTHRU */
       case PVS_WIN_RECT:
@@ -681,7 +684,7 @@ int32_t pvsanal(CSOUND *csound, PVSANAL *p)
     ain = p->ain;
 
     if (UNLIKELY(p->input.auxp==NULL)) {
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsanal: Not Initialised.\n"));
     }
     {
@@ -723,8 +726,8 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
       /* and put into locals */
       p->wintype = wintype;
       p->format = p->fsig->format;
-      csound->AuxAlloc(csound, p->fsig->NB * sizeof(double), &p->oldOutPhase);
-      csound->AuxAlloc(csound, p->fsig->NB * sizeof(double), &p->output);
+      csoundAuxAlloc(csound, p->fsig->NB * sizeof(double), &p->oldOutPhase);
+      csoundAuxAlloc(csound, p->fsig->NB * sizeof(double), &p->output);
       return OK;
     }
     /* and put into locals */
@@ -737,12 +740,12 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     nBins = N/2 + 1;
     Lf = Mf = 1 - M%2;
     /* deal with iinit later on! */
-    csound->AuxAlloc(csound, overlap * sizeof(MYFLT), &p->overlapbuf);
-    csound->AuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->synbuf);
-    csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->analwinbuf);
-    csound->AuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->synwinbuf);
-    csound->AuxAlloc(csound, nBins * sizeof(MYFLT), &p->oldOutPhase);
-    csound->AuxAlloc(csound, buflen * sizeof(MYFLT), &p->output);
+    csoundAuxAlloc(csound, overlap * sizeof(MYFLT), &p->overlapbuf);
+    csoundAuxAlloc(csound, (N+2) * sizeof(MYFLT), &p->synbuf);
+    csoundAuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->analwinbuf);
+    csoundAuxAlloc(csound, (M+Mf) * sizeof(MYFLT), &p->synwinbuf);
+    csoundAuxAlloc(csound, nBins * sizeof(MYFLT), &p->oldOutPhase);
+    csoundAuxAlloc(csound, buflen * sizeof(MYFLT), &p->output);
 
 
 
@@ -819,7 +822,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
 
 
    if (!(N & (N - 1L)))
-     sum = csound->GetInverseRealFFTScale(csound, (int32_t) N)/ sum;
+     sum = csoundGetInverseRealFFTScale(csound, (int32_t) N)/ sum;
     else
       sum = FL(1.0) / sum;
 
@@ -838,7 +841,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->buflen = buflen;
 
     if (!(N & (N - 1))) /* if pow of two use this */
-      p->setup = csound->RealFFT2Setup(csound,N,FFT_INV);
+      p->setup = csoundRealFFT2Setup(csound,N,FFT_INV);
     return OK;
 }
 
@@ -942,12 +945,12 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     if (!(NO & (NO - 1))) {
       /*printf("N %d %d \n", NO, NO & (NO-1));*/
       syn[1] = syn[NO];
-      /* csound->InverseRealFFT(csound, syn, NO);*/
-      csound->RealFFT2(csound,p->setup,syn);
+      /* csoundInverseRealFFT(csound, syn, NO);*/
+      csoundRealFFT2(csound,p->setup,syn);
       syn[NO] = syn[NO + 1] = FL(0.0);
     }
     else
-      csound->InverseRealFFTnp2(csound, syn, NO);
+      csoundInverseRealFFTnp2(csound, syn, NO);
     j = p->nO - synWinLen - 1;
     while (j < 0)
       j += p->buflen;
@@ -1053,7 +1056,7 @@ int32_t pvsynth(CSOUND *csound, PVSYNTH *p)
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(p->output.auxp==NULL)) {
-      return csound->PerfError(csound,&(p->h),
+      return csoundPerfError(csound,&(p->h),
                                Str("pvsynth: Not Initialised.\n"));
     }
     if (p->fsig->sliding) return pvssynth(csound, p);

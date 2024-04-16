@@ -32,6 +32,7 @@
 
 #include "cs_par_ops.h"
 #include "cs_par_structs.h"
+#include "memalloc.h"
 
 /***********************************************************************
  * external prototypes not in headers
@@ -55,7 +56,7 @@ struct global_var_lock_t {
 inline void csp_locks_lock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("Poorly specified global lock index: %i [max: %i]\n"),
                   global_index, csound->global_var_lock_count);
     }
@@ -68,7 +69,7 @@ inline void csp_locks_lock(CSOUND * csound, int global_index)
 inline void csp_locks_unlock(CSOUND * csound, int global_index)
 {
     if (UNLIKELY(global_index >= csound->global_var_lock_count)) {
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("Poorly specified global lock index: %i [max: %i]\n"),
                   global_index, csound->global_var_lock_count);
     }
@@ -82,11 +83,11 @@ static struct global_var_lock_t *global_var_lock_alloc(CSOUND *csound,
                                                        char *name, int index)
 {
     if (UNLIKELY(name == NULL))
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("Invalid NULL parameter name for a global variable\n"));
 
     struct global_var_lock_t *ret =
-      csound->Malloc(csound, sizeof(struct global_var_lock_t));
+      mmalloc(csound, sizeof(struct global_var_lock_t));
     memset(ret, 0, sizeof(struct global_var_lock_t));
     INIT_LOCK(ret->lock);
     strncpy(ret->hdr, GLOBAL_VAR_LOCK_HDR, HDR_LEN);
@@ -102,7 +103,7 @@ static struct global_var_lock_t
   *global_var_lock_find(CSOUND *csound, char *name)
 {
     if (UNLIKELY(name == NULL))
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("Invalid NULL parameter name for a global variable\n"));
 
     if (csound->global_var_lock_root == NULL) {
@@ -133,7 +134,7 @@ static struct global_var_lock_t
 
 TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 {
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("Inserting Parallelism Constructs into AST\n"));
 
     TREE *anchor = NULL;
@@ -157,7 +158,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 //        if (instr->read_write->count > 0 &&
 //            instr->read->count == 0 &&
 //            instr->write->count == 0) {
-//          csound->Message(csound, Str("Instr %d needs locks"), instr->insno);
+//          csoundMessage(csound, Str("Instr %d needs locks"), instr->insno);
 //          //print_tree(csound, "before locks", root);
 //          current->right = csp_locks_insert(csound, current->right);
 //          //print_tree(csound, "after locks", root);
@@ -236,7 +237,7 @@ TREE *csp_locks_insert(CSOUND *csound, TREE *root)
 //
 //    }
 //
-//    csound->Message(csound,
+//    csoundMessage(csound,
 //                    Str("[End Inserting Parallelism Constructs into AST]\n"));
 
     return anchor;
@@ -251,7 +252,7 @@ void csp_locks_cache_build(CSOUND *csound)
     }
 
     csound->global_var_lock_cache =
-      csound->Malloc(csound,
+      mmalloc(csound,
                      sizeof(struct global_var_lock_t *) *
                      csound->global_var_lock_count);
 
@@ -262,10 +263,10 @@ void csp_locks_cache_build(CSOUND *csound)
       ctr++;
     }
 
-    /* csound->Message(csound, "Global Locks Cache\n");
+    /* csoundMessage(csound, "Global Locks Cache\n");
        ctr = 0;
        while (ctr < csound->global_var_lock_count) {
-       csound->Message(csound, "[%i] %s\n",
+       csoundMessage(csound, "[%i] %s\n",
                        csound->global_var_lock_cache[ctr]->index,
        csound->global_var_lock_cache[ctr]->name);
        ctr++;
@@ -275,14 +276,14 @@ void csp_locks_cache_build(CSOUND *csound)
 /* The opcodes that implement local global locks */
 int globallock(CSOUND *csound, GLOBAL_LOCK_UNLOCK *p)
 {
-    /* csound->Message(csound, "Locking:   %i\n", (int)*p->gvar_ix); */
+    /* csoundMessage(csound, "Locking:   %i\n", (int)*p->gvar_ix); */
     csp_locks_lock(csound, (int)*p->gvar_ix);
     return OK;
 }
 
 int globalunlock(CSOUND *csound, GLOBAL_LOCK_UNLOCK *p)
 {
-    /* csound->Message(csound, "UnLocking: %i\n", (int)*p->gvar_ix); */
+    /* csoundMessage(csound, "UnLocking: %i\n", (int)*p->gvar_ix); */
     csp_locks_unlock(csound, (int)*p->gvar_ix);
     return OK;
 }

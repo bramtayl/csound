@@ -34,6 +34,9 @@
 #include "stdopcod.h"
 #include "wavegde.h"
 #include "pluck.h"
+#include "memalloc.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 /* external prototypes */
 static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);
@@ -48,8 +51,8 @@ static inline void filter3Set(filter3* filt, MYFLT a0, MYFLT a1)
     filt->a1 = a1;
     filt->x1 = filt->x2 = FL(0.0);
 #ifdef WG_VERBOSE
-    csound->Message(csound, "c[0]=%f; c[1]=%f; c[2]=\n", a0, a1, a0);
-    csound->Message(csound, "Zeros at %f, %f\n",
+    csoundMessage(csound, "c[0]=%f; c[1]=%f; c[2]=\n", a0, a1, a0);
+    csoundMessage(csound, "Zeros at %f, %f\n",
                             (-a1-sqrt(a1*a1-4.0*a0*a0))/(2.0*a0),
                             (-a1+sqrt(a1*a1-4.0*a0*a0))/(2.0*a0));
 #endif
@@ -82,7 +85,7 @@ static int32_t pluckExcite(CSOUND *csound, WGPLUCK* p)
     }
 
     /* free the space used by the pluck shape */
-    csound->Free(csound, shape);
+    mfree(csound, shape);
 
     /* set excitation flag */
     p->wg.excited = 1;
@@ -96,20 +99,20 @@ static int32_t pluckPluck(CSOUND *csound, WGPLUCK* p)
     len_t ndelay = (len_t) (CS_ESR / *p->freq - FL(1.0));
 
 #ifdef WG_VERBOSE
-    csound->Message(csound, "pluckPluck -- allocating memory...");
+    csoundMessage(csound, "pluckPluck -- allocating memory...");
 #endif
 
     /* Allocate auxillary memory or reallocate if size has changed */
-    csound->AuxAlloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->upperData);
-    csound->AuxAlloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->lowerData);
+    csoundAuxAlloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->upperData);
+    csoundAuxAlloc(csound, (len_t)(ndelay/2)*sizeof(MYFLT), &p->lowerData);
 
 #ifdef WG_VERBOSE
-    csound->Message(csound, "done.\n");
+    csoundMessage(csound, "done.\n");
 #endif
 
     /* construct waveguide object */
 #ifdef WG_VERBOSE
-    csound->Message(csound, "Constructing waveguide...");
+    csoundMessage(csound, "Constructing waveguide...");
 #endif
 
     waveguideWaveguide(csound,
@@ -118,16 +121,16 @@ static int32_t pluckPluck(CSOUND *csound, WGPLUCK* p)
                        (MYFLT*)p->upperData.auxp,      /* upper rail data */
                        (MYFLT*)p->lowerData.auxp);     /* lower rail data */
 #ifdef WG_VERBOSE
-    csound->Message(csound, "done.\n");
+    csoundMessage(csound, "done.\n");
 #endif
 
     /* Excite the string with the input parameters */
 #ifdef WG_VERBOSE
-    csound->Message(csound, "Exciting the string...");
+    csoundMessage(csound, "Exciting the string...");
 #endif
     pluckExcite(csound,p);
 #ifdef WG_VERBOSE
-    csound->Message(csound, "done\n");
+    csoundMessage(csound, "done\n");
 #endif
     return OK;
 }
@@ -166,9 +169,9 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
     MYFLT M;
 
     /* This memory must be freed after use */
-    shape = (MYFLT *)csound->Malloc(csound, len*sizeof(MYFLT));
+    shape = (MYFLT *)mmalloc(csound, len*sizeof(MYFLT));
     if (UNLIKELY(!shape)) {
-      csound->InitError(csound,
+      csoundInitError(csound,
                         Str("wgpluck:Could not allocate for initial shape"));
       return NULL;
     }
@@ -244,7 +247,7 @@ static inline int32_t circularBufferCircularBuffer(CSOUND *csound,
     IGN(csound);
     MYFLT *data = cb->data;
     /* if (UNLIKELY(!data)) */
-    /*   return csound->InitError(csound, */
+    /*   return csoundInitError(csound, */
     /*                            Str("wgpluck: Buffer memory not allocated!")); */
 
   /* Initialize pointers and variables */
@@ -315,7 +318,7 @@ static void waveguideWaveguide(CSOUND *csound,
     wg->w0      = csound->tpidsr*freq;
 
 #ifdef WG_VERBOSE
-    csound->Message(csound, "f0=%f, w0=%f\n", wg->f0, wg->w0);
+    csoundMessage(csound, "f0=%f, w0=%f\n", wg->f0, wg->w0);
 #endif
 
     /* Calculate the size of the delay lines and set them */
@@ -331,7 +334,7 @@ static void waveguideWaveguide(CSOUND *csound,
     wg->upperRail.data = upperData;
     wg->lowerRail.data = lowerData;
 #ifdef WG_VERBOSE
-    csound->Message(csound, "size=%d+1, df=%f\n", (len_t) size, df);
+    csoundMessage(csound, "size=%d+1, df=%f\n", (len_t) size, df);
 #endif
     size = size*FL(0.5);
     circularBufferCircularBuffer(csound, &wg->upperRail,(len_t)size);
@@ -348,7 +351,7 @@ static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
     wg->c = -sinf((k-k*df)/FL(2.0))/sinf((k+k*df)/FL(2.0));
 
 #ifdef WG_VERBOSE
-    csound->Message(csound, "tuning :c=%f\n", wg->c);
+    csoundMessage(csound, "tuning :c=%f\n", wg->c);
 #endif
 }
 
@@ -362,7 +365,7 @@ static OENTRY localops[] =
 
 int32_t pluck_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

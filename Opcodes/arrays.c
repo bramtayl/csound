@@ -25,6 +25,13 @@
 #include "interlocks.h"
 #include "aops.h"
 #include "find_opcode.h"
+#include "memalloc.h"
+#include "fftlib.h"
+#include "envvar_public.h"
+#include "lpred_public.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
@@ -70,8 +77,8 @@ static int32_t array_del(CSOUND *csound, void *p)
 {
     ARRAYDAT *t = ((ARRAYDEL*)p)->arrayDat;
     t->arrayType = NULL; // types cleaned up later
-    csound->Free(csound, t->data);
-    csound->Free(csound, p);           /* Unlikely to free the p */
+    mfree(csound, t->data);
+    mfree(csound, p);           /* Unlikely to free the p */
     return OK;
 }
 #endif
@@ -87,19 +94,19 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 
     if (UNLIKELY(inArgCount == 0))
       return
-        csound->InitError(csound, "%s",
+        csoundInitError(csound, "%s",
                           Str("Error: no sizes set for array initialization"));
 
     for (i = 0; i < inArgCount; i++) {
       if (UNLIKELY(MYFLT2LRND(*p->isizes[i]) <= 0)) {
         return
-          csound->InitError(csound, "%s",
+          csoundInitError(csound, "%s",
                       Str("Error: sizes must be > 0 for array initialization"));
       }
     }
 
     arrayDat->dimensions = inArgCount;
-    arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
+    arrayDat->sizes = mcalloc(csound, sizeof(int32_t) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
       arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[i]);
     }
@@ -116,7 +123,7 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
       CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,arrayDat->arrayType);
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
-      arrayDat->data = csound->Calloc(csound,
+      arrayDat->data = mcalloc(csound,
                                       arrayDat->allocated=var->memBlockSize*size);
       mem = (char *) arrayDat->data;
       for (i=0; i < size; i++) {
@@ -136,7 +143,7 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
     tabinit(csound, p->ans, nargs);
 /*     if (UNLIKELY(p->ans->dimensions > 2)) { */
 /*       return */
-/*         csound->InitError(csound, "%s", */
+/*         csoundInitError(csound, "%s", */
 /*                           Str("fillarrray: arrays with dim > 2 not " */
 /*                               "currently supported\n")); */
 /*     } */
@@ -192,10 +199,10 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
     int32_t i = 0, flen = 0, size;
     char *fname = p->fname->data;
     FILE    *infile;
-    void    *fd = csound->FileOpen2(csound, &infile, CSFILE_STD, fname, "r",
+    void    *fd = csoundFileOpenWithType(csound, &infile, CSFILE_STD, fname, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL)) {
-      return csound->InitError(csound, Str("error opening ASCII file %s\n"), fname);
+      return csoundInitError(csound, Str("error opening ASCII file %s\n"), fname);
     }
     do {
       flen++;
@@ -278,7 +285,7 @@ static int32_t tabsfill(CSOUND *csound, TABFILLF *p)
 static int32_t array_err(CSOUND* csound, ARRAY_SET *p)
 {
     IGN(p);
-    return csound->InitError(csound, "%s", Str("Cannot set i-array at k-rate\n"));
+    return csoundInitError(csound, "%s", Str("Cannot set i-array at k-rate\n"));
 }
 
 static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
@@ -298,7 +305,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
       return CSOUND_ERROR;
     }
     if (UNLIKELY(indefArgCount!=dat->dimensions)) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Array dimension %d does not match "
                                    "for dimensions %d\n"),
                                indefArgCount, dat->dimensions);
@@ -308,7 +315,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
       end = (int)(*p->indexes[i]);
       //printf("** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
                                end, dat->sizes[i], i+1);
@@ -336,10 +343,10 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     int32_t indefArgCount = p->INOCOUNT - 1;
 
     if (UNLIKELY(indefArgCount == 0))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Error: no indexes set for array get"));
     if (UNLIKELY(indefArgCount!=dat->dimensions)) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Array dimension %d out of range "
                                    "for dimensions %d"),
                                indefArgCount, dat->dimensions);
@@ -349,7 +356,7 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
       end = (int)(*p->indexes[i]);
       //printf("++++ ** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
                                end, dat->sizes[i]-1, i+1);
@@ -440,18 +447,18 @@ static int32_t tabarithset(CSOUND *csound, TABARITH *p)
       int i;
       if (UNLIKELY(p->left->dimensions != p->right->dimensions))
         return
-          csound->InitError(csound, "%s",
+          csoundInitError(csound, "%s",
                             Str("Dimensions do not match in array arithmetic"));
       for (i=0; i<p->left->dimensions; i++) {
         if (UNLIKELY(p->left->sizes[i] != p->right->sizes[i]))
           return
-            csound->InitError(csound, "%s",
+            csoundInitError(csound, "%s",
                               Str("Dimensions do not match in array arithmetic"));
       }
       tabinit_like(csound, p->ans, p->left);
       return OK;
     }
-    else return csound->InitError(csound, "%s",
+    else return csoundInitError(csound, "%s",
                                   Str("array-variable not initialised"));
 }
 
@@ -496,7 +503,7 @@ static int32_t tabadd(CSOUND *csound, TABARITH *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -519,7 +526,7 @@ static int32_t tabsub(CSOUND *csound, TABARITH *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -542,7 +549,7 @@ static int32_t tabmult(CSOUND *csound, TABARITH *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -565,7 +572,7 @@ static int32_t tabdiv(CSOUND *csound, TABARITH *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -578,7 +585,7 @@ static int32_t tabdiv(CSOUND *csound, TABARITH *p)
         ans->data[i] = l->data[i] / r->data[i];
       else
         return
-          csound->PerfError(csound, &(p->h),
+          csoundPerfError(csound, &(p->h),
                             Str("division by zero in array-var at index %d"), i);
     return OK;
 }
@@ -593,7 +600,7 @@ static int32_t tabrem(CSOUND *csound, TABARITH *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
    for (i=1; i<ans->dimensions; i++) {
@@ -606,7 +613,7 @@ static int32_t tabrem(CSOUND *csound, TABARITH *p)
         ans->data[i] = MOD(l->data[i], r->data[i]);
       else
         return
-          csound->PerfError(csound, &(p->h),
+          csoundPerfError(csound, &(p->h),
                             Str("division by zero in array-var at index %d"), i);
 
     return OK;
@@ -623,7 +630,7 @@ static int32_t tabpow(CSOUND *csound, TABARITH *p)
     MYFLT tmp;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
    for (i=1; i<ans->dimensions; i++) {
@@ -635,7 +642,7 @@ static int32_t tabpow(CSOUND *csound, TABARITH *p)
       if (LIKELY(l->data[i]>=0) || MODF(r->data[i],&tmp)==FL(0.0))
         ans->data[i] = POWER(l->data[i],r->data[i]);
       else
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                                  Str("undefined power in array-var at index %d"),
                                     i);
     return OK;
@@ -663,7 +670,7 @@ static int32_t tabiadd(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l, MYFLT r, void
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(((TABARITH *) p)->h),
+      return csoundPerfError(csound, &(((TABARITH *) p)->h),
                                Str("array-variable not initialised"));
 
    for (i=1; i<l->dimensions; i++) {
@@ -714,7 +721,7 @@ static int32_t tabaddinkk(CSOUND *csound, TABARITHIN *p)
 
     tabinit_like(csound, ans, r);
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -740,7 +747,7 @@ static int32_t tabaaddin(CSOUND *csound, TABARITHIN *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -779,7 +786,7 @@ static int32_t tabaasubin(CSOUND *csound, TABARITHIN *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -818,7 +825,7 @@ static int32_t tabarkrddin(CSOUND *csound, TABARITHIN *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -854,7 +861,7 @@ static int32_t tabarkrsbin(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -889,7 +896,7 @@ static int32_t tabakaddin(CSOUND *csound, TABARITHIN1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -920,7 +927,7 @@ static int32_t tabaksubin(CSOUND *csound, TABARITHIN1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -952,7 +959,7 @@ static int32_t tabaksub(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -983,7 +990,7 @@ static int32_t subinAA(CSOUND *csound, TABARITHIN *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -1007,7 +1014,7 @@ static int32_t tabsubinkk(CSOUND *csound, TABARITHIN *p)
 
     tabinit_like(csound, ans, r);
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -1033,7 +1040,7 @@ static int32_t tabaisub(CSOUND *csound, TABARITH1 *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
    for (i=1; i<l->dimensions; i++) {
@@ -1054,7 +1061,7 @@ static int32_t tabiasub(CSOUND *csound, TABARITH2 *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
    for (i=1; i<l->dimensions; i++) {
@@ -1073,7 +1080,7 @@ static int32_t tabimult(CSOUND *csound, ARRAYDAT *ans, ARRAYDAT *l,
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(((TABARITH1 *)p)->h),
+      return csoundPerfError(csound, &(((TABARITH1 *)p)->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<l->dimensions; i++) {
@@ -1112,10 +1119,10 @@ static int32_t tabaidiv(CSOUND *csound, TABARITH1 *p)
     int32_t i;
 
     if (UNLIKELY(r==FL(0.0)))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("division by zero in array-var"));
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<l->dimensions; i++) {
@@ -1136,7 +1143,7 @@ static int32_t tabiadiv(CSOUND *csound, TABARITH2 *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<l->dimensions; i++) {
@@ -1144,7 +1151,7 @@ static int32_t tabiadiv(CSOUND *csound, TABARITH2 *p)
     }
     for (i=0; i<sizel; i++) {
       if (UNLIKELY(l->data[i]==FL(0.0)))
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                                  Str("division by zero in array-var"));
       ans->data[i] = r / l->data[i];
     }
@@ -1161,10 +1168,10 @@ static int32_t tabairem(CSOUND *csound, TABARITH1 *p)
     int32_t i;
 
     if (UNLIKELY(r==FL(0.0)))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("division by zero in array-var"));
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<l->dimensions; i++) {
@@ -1185,7 +1192,7 @@ static int32_t tabiarem(CSOUND *csound, TABARITH2 *p)
     int32_t i;
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<l->dimensions; i++) {
@@ -1194,7 +1201,7 @@ static int32_t tabiarem(CSOUND *csound, TABARITH2 *p)
     for (i=0; i<sizel; i++) {
       if (UNLIKELY(l->data[i]==FL(0.0)))
         return
-          csound->PerfError(csound, &(p->h),
+          csoundPerfError(csound, &(p->h),
                             Str("division by zero in array-var at index %d"), i);
       else
         ans->data[i] = MOD(r,l->data[i]);
@@ -1214,7 +1221,7 @@ static int32_t tabaipow(CSOUND *csound, TABARITH1 *p)
     int32_t intcase = (MODF(r,&tmp)==FL(0.0));
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<l->dimensions; i++) {
@@ -1224,7 +1231,7 @@ static int32_t tabaipow(CSOUND *csound, TABARITH1 *p)
       if (intcase || LIKELY(l->data[i]>=0))
         ans->data[i] = POWER(l->data[i], r);
       else
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                                  Str("undefined power in array-var at index %d"),
                                  i);
     }
@@ -1243,7 +1250,7 @@ static int32_t tabiapow(CSOUND *csound, TABARITH2 *p)
     int32_t poscase = (r>=FL(0.0));
 
     if (UNLIKELY(ans->data == NULL || l->data== NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<l->dimensions; i++) {
@@ -1253,7 +1260,7 @@ static int32_t tabiapow(CSOUND *csound, TABARITH2 *p)
       if (LIKELY(poscase || MODF(l->data[i],&tmp)==FL(0.0)))
         ans->data[i] = POWER(r,l->data[i]);
       else
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                                  Str("undefined power in array-var at index %d"),
                                     i);
     }
@@ -1302,7 +1309,7 @@ static int32_t tabaadd(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -1342,7 +1349,7 @@ static int32_t tabasub(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -1382,7 +1389,7 @@ static int32_t tabamul(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -1422,7 +1429,7 @@ static int32_t tabadiv(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -1444,7 +1451,7 @@ static int32_t tabadiv(CSOUND *csound, TABARITH *p)
       }
       for (n=offset; n<nsmps; n++) {
         if (UNLIKELY(b[n]==FL(0.0)))
-          return csound->PerfError(csound, &(p->h),
+          return csoundPerfError(csound, &(p->h),
                                   Str("division by zero in array-var "
                                       "at index %d/%d"), i,n);
         aa[n] = a[n] / b[n];
@@ -1466,7 +1473,7 @@ static int32_t tabkamult(CSOUND *csound, TABARITH2 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1499,7 +1506,7 @@ static int32_t tabakmult(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1532,7 +1539,7 @@ static int32_t tabkaadd(CSOUND *csound, TABARITH2 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1565,7 +1572,7 @@ static int32_t tabakadd(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1598,7 +1605,7 @@ static int32_t tabkasub(CSOUND *csound, TABARITH2 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1631,7 +1638,7 @@ static int32_t tabkadiv(CSOUND *csound, TABARITH2 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1647,7 +1654,7 @@ static int32_t tabkadiv(CSOUND *csound, TABARITH2 *p)
       }
       for (n=offset; n<nsmps; n++) {
         if (UNLIKELY(b[n]==FL(0.0)))
-          return csound->PerfError(csound, &(p->h),
+          return csoundPerfError(csound, &(p->h),
                             Str("division by zero in array-var "
                                 "at index %d/%d"), i,n);
         aa[n] = l / b[n];
@@ -1669,10 +1676,10 @@ static int32_t tabakdiv(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     if (UNLIKELY(l==FL(0.0)))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("division by zero in array-var"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1705,10 +1712,10 @@ static int32_t tabarkrem(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     if (UNLIKELY(l==FL(0.0)))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("division by zero in array-var"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1741,7 +1748,7 @@ static int32_t tabarkpow(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1774,7 +1781,7 @@ static int32_t tabaardd(CSOUND *csound, TABARITH2 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1807,7 +1814,7 @@ static int32_t tabaarsb(CSOUND *csound, TABARITH2 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1840,7 +1847,7 @@ static int32_t tabaarml(CSOUND *csound, TABARITH2 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1873,7 +1880,7 @@ static int32_t tabaardv(CSOUND *csound, TABARITH2 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1906,7 +1913,7 @@ static int32_t tabaradd(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1939,7 +1946,7 @@ static int32_t tabarasb(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -1972,7 +1979,7 @@ static int32_t tabaraml(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -2005,7 +2012,7 @@ static int32_t tabaradv(CSOUND *csound, TABARITH1 *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++)
@@ -2040,7 +2047,7 @@ static int32_t tabkrardd(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2077,7 +2084,7 @@ static int32_t tabkrarsb(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2114,7 +2121,7 @@ static int32_t tabkrarml(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2151,7 +2158,7 @@ static int32_t tabkrardv(CSOUND *csound, TABARITH *p)
     int32_t span        = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2188,7 +2195,7 @@ static int32_t tabkrarmd(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2225,7 +2232,7 @@ static int32_t tabarkrdd(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2262,7 +2269,7 @@ static int32_t tabarkrsb(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2299,7 +2306,7 @@ static int32_t tabarkrml(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2336,7 +2343,7 @@ static int32_t tabarkrdv(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2373,7 +2380,7 @@ static int32_t tabarkrmd(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2410,7 +2417,7 @@ static int32_t tabarkrpw(CSOUND *csound, TABARITH *p)
     int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
 
     for (i=1; i<ans->dimensions; i++) {
@@ -2444,13 +2451,13 @@ static int32_t tabarkrpw(CSOUND *csound, TABARITH *p)
 static int32_t tabqset(CSOUND *csound, TABQUERY *p)
 {
     if (LIKELY(p->tab->data)) return OK;
-    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+    return csoundInitError(csound, "%s", Str("array-variable not initialised"));
 }
 
 static int32_t tabqset1(CSOUND *csound, TABQUERY1 *p)
 {
     if (LIKELY(p->tab->data)) return OK;
-    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+    return csoundInitError(csound, "%s", Str("array-variable not initialised"));
 }
 
 static int32_t tabmax(CSOUND *csound, TABQUERY *p)
@@ -2460,10 +2467,10 @@ static int32_t tabmax(CSOUND *csound, TABQUERY *p)
     MYFLT ans;
 
     if (UNLIKELY(t->data == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     /* if (UNLIKELY(t->dimensions!=1)) */
-    /*      return csound->PerfError(csound, &(p->h), */
+    /*      return csoundPerfError(csound, &(p->h), */
     /*      Str("array-variable not vector")); */
 
     for (i=0; i<t->dimensions; i++) size += t->sizes[i];
@@ -2491,10 +2498,10 @@ static int32_t tabmin(CSOUND *csound, TABQUERY *p)
     MYFLT ans;
 
     if (UNLIKELY(t->data == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     /* if (UNLIKELY(t->dimensions!=1)) */
-    /*   return csound->PerfError(csound,
+    /*   return csoundPerfError(csound,
          &(p->h), Str("array-variable not a vector")); */
 
     for (i=0; i<t->dimensions; i++) size += t->sizes[i];
@@ -2527,10 +2534,10 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
     int32_t span = (t->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(t->data == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     if (UNLIKELY(t->dimensions!=1))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not a vector"));
 
 
@@ -2569,7 +2576,7 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
 static int32_t tabclearset(CSOUND *csound, TABCLEAR *p)
 {
     if (LIKELY(p->tab->data)) return OK;
-    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+    return csoundInitError(csound, "%s", Str("array-variable not initialised"));
 }
 
 
@@ -2581,10 +2588,10 @@ static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
     int32_t size = 1;
     
     if (UNLIKELY(t->data == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     /* if (UNLIKELY(t->dimensions!=1)) */
-    /*   return csound->PerfError(csound, &(p->h), */
+    /*   return csoundPerfError(csound, &(p->h), */
     /*                            Str("array-variable not a vector")); */
 
     for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
@@ -2601,10 +2608,10 @@ static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
     int32_t size = 1;
     
     if (UNLIKELY(t->data == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     /* if (UNLIKELY(t->dimensions!=1)) */
-    /*   return csound->PerfError(csound, &(p->h), */
+    /*   return csoundPerfError(csound, &(p->h), */
     /*                            Str("array-variable not a vector")); */
 
     for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
@@ -2622,10 +2629,10 @@ static int32_t tabsum(CSOUND *csound, TABQUERY1 *p)
     MYFLT ans;
 
     if (UNLIKELY(t->data == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
     if (UNLIKELY(t->dimensions!=1))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("array-variable not a vector"));
     ans = t->data[0];
     for (i=0; i<t->dimensions; i++) size += t->sizes[i];
@@ -2650,7 +2657,7 @@ static int32_t tabsum1(CSOUND *csound, TABQUERY1 *p)
 static int32_t tabscaleset(CSOUND *csound, TABSCALE *p)
 {
     if (LIKELY(p->tab->data && p->tab->dimensions==1)) return OK;
-    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+    return csoundInitError(csound, "%s", Str("array-variable not initialised"));
 }
 
 static int32_t tabscale(CSOUND *csound, TABSCALE *p)
@@ -2724,13 +2731,13 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
     int32_t i, arrayTotalSize, memMyfltSize;
 
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
-      return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+      return csoundInitError(csound, "%s", Str("array-variable not initialised"));
     if (UNLIKELY(p->dst->dimensions > 0 &&
                  p->src->dimensions != p->dst->dimensions))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("array-variable dimensions do not match"));
     if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("array-variable types do not match"));
 
     if (p->src == p->dst) return OK;
@@ -2742,15 +2749,15 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
     if (arrayTotalSize != get_array_total_size(p->dst)) {
       p->dst->dimensions = p->src->dimensions;
 
-      p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
+      p->dst->sizes = mmalloc(csound, sizeof(int32_t) * p->src->dimensions);
       memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
 
       if (p->dst->data == NULL) {
-        p->dst->data = csound->Calloc(csound,
+        p->dst->data = mcalloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
         p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
-        p->dst->data = csound->ReAlloc(csound, p->dst->data,
+        p->dst->data = mrealloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
@@ -2775,13 +2782,13 @@ static int32_t tabcopyk(CSOUND *csound, TABCPY *p)
     int32_t i, arrayTotalSize, memMyfltSize;
 
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
-      return csound->PerfError(csound, &(p->h), "%s", Str("array-variable not initialised"));
+      return csoundPerfError(csound, &(p->h), "%s", Str("array-variable not initialised"));
     if (UNLIKELY(p->dst->dimensions > 0 &&
                  p->src->dimensions != p->dst->dimensions))
-      return csound->PerfError(csound,&(p->h), "%s",
+      return csoundPerfError(csound,&(p->h), "%s",
                                Str("array-variable dimensions do not match"));
     if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csoundPerfError(csound, &(p->h), "%s",
                                Str("array-variable types do not match"));
 
     if (p->src == p->dst) return OK;
@@ -2793,15 +2800,15 @@ static int32_t tabcopyk(CSOUND *csound, TABCPY *p)
     if (arrayTotalSize != get_array_total_size(p->dst)) {
       p->dst->dimensions = p->src->dimensions;
 
-      p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
+      p->dst->sizes = mmalloc(csound, sizeof(int32_t) * p->src->dimensions);
       memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
 
       if (p->dst->data == NULL) {
-        p->dst->data = csound->Calloc(csound,
+        p->dst->data = mcalloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
         p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
-        p->dst->data = csound->ReAlloc(csound, p->dst->data,
+        p->dst->data = mrealloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
@@ -2823,12 +2830,12 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
     int32_t i, arrayTotalSize, memMyfltSize;
 
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
-      return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+      return csoundInitError(csound, "%s", Str("array-variable not initialised"));
     if (p->dst->dimensions > 0 && p->src->dimensions != p->dst->dimensions)
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("array-variable dimensions do not match"));
 //    if (p->src->arrayType != p->dst->arrayType)
-//      return csound->InitError(csound, "%s",
+//      return csoundInitError(csound, "%s",
 //                               Str("array-variable types do not match"));
 
     if (p->src == p->dst) return OK;
@@ -2840,15 +2847,15 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
     if (arrayTotalSize != get_array_total_size(p->dst)) {
       p->dst->dimensions = p->src->dimensions;
 
-      p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
+      p->dst->sizes = mmalloc(csound, sizeof(int32_t) * p->src->dimensions);
       memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
 
       if (p->dst->data == NULL) {
-        p->dst->data = csound->Calloc(csound,
+        p->dst->data = mcalloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
         p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
-        p->dst->data = csound->ReAlloc(csound, p->dst->data,
+        p->dst->data = mrealloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
@@ -2876,13 +2883,13 @@ static int32_t tabcopy2(CSOUND *csound, TABCPY *p)
     uint32_t k;
 
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
-      return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+      return csoundInitError(csound, "%s", Str("array-variable not initialised"));
     if (UNLIKELY(p->dst->dimensions > 0 &&
                  p->src->dimensions != p->dst->dimensions))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("array-variable dimensions do not match"));
     if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("array-variable types do not match"));
 
     if (p->src == p->dst) return OK;
@@ -2893,15 +2900,15 @@ static int32_t tabcopy2(CSOUND *csound, TABCPY *p)
     if (arrayTotalSize != get_array_total_size(p->dst)) {
       p->dst->dimensions = p->src->dimensions;
 
-      p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
+      p->dst->sizes = mmalloc(csound, sizeof(int32_t) * p->src->dimensions);
       memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
 
       if (p->dst->data == NULL) {
-        p->dst->data = csound->Calloc(csound,
+        p->dst->data = mcalloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
         p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
-        p->dst->data = csound->ReAlloc(csound, p->dst->data,
+        p->dst->data = mrealloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
@@ -2932,10 +2939,10 @@ static int32_t tab2ftab(CSOUND *csound, TABCOPY *p)
     int32_t i, tlen = 0;
 
     if (UNLIKELY(p->tab->data==NULL))
-      return csound->PerfError(csound,
+      return csoundPerfError(csound,
                                &(p->h), Str("array-var not initialised"));
-    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-      return csound->PerfError(csound,
+    if (UNLIKELY((ftp = csoundFTFindP(csound, p->kfn)) == NULL))
+      return csoundPerfError(csound,
                                &(p->h), Str("No table for copy2ftab"));
     for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
     fsize = ftp->flen;
@@ -2954,9 +2961,9 @@ static int32_t tab2ftabi(CSOUND *csound, TABCOPY *p)
     int32_t i, tlen = 0;
 
     if (UNLIKELY(p->tab->data==NULL))
-      return csound->InitError(csound, "%s", Str("array-var not initialised"));
-    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-      return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
+      return csoundInitError(csound, "%s", Str("array-var not initialised"));
+    if (UNLIKELY((ftp = csoundFTFindP(csound, p->kfn)) == NULL))
+      return csoundInitError(csound, "%s", Str("No table for copy2ftab"));
     for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
     fsize = ftp->flen;
     fdata = ftp->ftable;
@@ -2975,12 +2982,12 @@ static int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p)
   int32_t offset = (int)(*p->offset);
   int32_t i, tlen = 0, maxitems;
   if (UNLIKELY(t->data==NULL))
-    return csound->PerfError(csound, &(p->h), Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-    return csound->PerfError(csound, &(p->h), Str("No table for copy2ftab"));
+    return csoundPerfError(csound, &(p->h), Str("array-var not initialised"));
+  if (UNLIKELY((ftp = csoundFTFindP(csound, p->kfn)) == NULL))
+    return csoundPerfError(csound, &(p->h), Str("No table for copy2ftab"));
   fsize = ftp->flen;
   if (UNLIKELY(offset >= fsize || offset < 0))
-      return csound->PerfError(csound, &(p->h), Str("Offset is out of bounds"));
+      return csoundPerfError(csound, &(p->h), Str("Offset is out of bounds"));
   for (i=0; i<t->dimensions; i++)
       tlen += t->sizes[i];
   fdata = ftp->ftable;
@@ -3001,13 +3008,13 @@ static int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p)
     int32_t offset = (int)*p->offset;;
     int32_t i, tlen = 0, maxitems;
     if (UNLIKELY(t->data==NULL))
-      return csound->InitError(csound, "%s", Str("array-var not initialised"));
-    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-      return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
+      return csoundInitError(csound, "%s", Str("array-var not initialised"));
+    if (UNLIKELY((ftp = csoundFTFindP(csound, p->kfn)) == NULL))
+      return csoundInitError(csound, "%s", Str("No table for copy2ftab"));
     fsize = ftp->flen;
     fdata = ftp->ftable;
     if (UNLIKELY(offset >= fsize || offset < 0))
-        return csound->InitError(csound, "%s", Str("Offset is out of bounds"));
+        return csoundInitError(csound, "%s", Str("Offset is out of bounds"));
     for (i=0; i<t->dimensions; i++)
         tlen += t->sizes[i];
     maxitems = fsize - offset;
@@ -3037,7 +3044,7 @@ static int32_t tabgen(CSOUND *csound, TABGEN *p)
     //printf("start=%f end=%f incr=%f size=%d\n", start, end, incr, size);
     if (UNLIKELY(size < 0))
       return
-        csound->InitError(csound, "%s",
+        csoundInitError(csound, "%s",
                           Str("inconsistent start, end and increment parameters"));
     tabinit(csound, p->tab, size);
     if (UNLIKELY(p->tab->data==NULL)) {
@@ -3065,8 +3072,8 @@ static int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
     MYFLT       *fdata;
     int32_t tlen;
 
-    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-      return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
+    if (UNLIKELY((ftp = csoundFTFindP(csound, p->kfn)) == NULL))
+      return csoundInitError(csound, "%s", Str("No table for copy2ftab"));
     fsize = ftp->flen;
     if (UNLIKELY(p->tab->data==NULL)) {
       tabinit(csound, p->tab, fsize);
@@ -3086,8 +3093,8 @@ static int32_t ftab2tab(CSOUND *csound, TABCOPY *p)
     MYFLT       *fdata;
     int32_t      tlen;
 
-    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
-      return csound->PerfError(csound,
+    if (UNLIKELY((ftp = csoundFTFindP(csound, p->kfn)) == NULL))
+      return csoundPerfError(csound,
                                &(p->h), Str("No table for copy2ftab"));
     fsize = ftp->flen;
     if (UNLIKELY(p->tab->data==NULL)) {
@@ -3143,15 +3150,15 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
     int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
 
     if (UNLIKELY(size < 0))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("inconsistent start, end parameters"));
     if (UNLIKELY(p->tabin->dimensions!=1 || end >= p->tabin->sizes[0])) {
       //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("slice larger than original size"));
     }
     if (UNLIKELY(inc<=0))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("slice increment must be positive"));
     tabinit(csound, p->tab, size);
 
@@ -3174,11 +3181,11 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
 //    int32_t size = end - start + 1, i;
 //    STRCPY_OP xx;
 //    if (UNLIKELY(size < 0))
-//      return csound->InitError(csound, "%s",
+//      return csoundInitError(csound, "%s",
 //                               Str("inconsistent start, end parameters"));
 //    if (UNLIKELY(p->tabin->dimensions!=1 || size > p->tabin->sizes[0])) {
 //      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-//      return csound->InitError(csound, "%s",
+//      return csoundInitError(csound, "%s",
 //                               Str("slice larger than original size"));
 //    }
 //    tabensure(csound, p->tab, size);
@@ -3209,7 +3216,7 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
     EVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
-      return csound->InitError(csound, "%s", Str("array-var not initialised"));
+      return csoundInitError(csound, "%s", Str("array-var not initialised"));
 
     size = p->tabin->sizes[0];
     if (UNLIKELY(p->tab->data==NULL)) {
@@ -3222,7 +3229,7 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
     opc = find_opcode_new(csound, p->str->data, "i", "i");
 
     if (UNLIKELY(opc == NULL))
-      return csound->InitError(csound, Str("%s not found"), p->str->data);
+      return csoundInitError(csound, Str("%s not found"), p->str->data);
     p->opc = opc;
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
@@ -3245,15 +3252,15 @@ static int32_t tabmap_perf(CSOUND *csound, TABMAP *p)
     EVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
-      return csound->PerfError(csound,
+      return csoundPerfError(csound,
                                &(p->h), Str("array-var not initialised"));
     if (UNLIKELY(p->tab->data==NULL) || p->tab->dimensions !=1)
-      return csound->PerfError(csound,
+      return csoundPerfError(csound,
                                &(p->h), Str("array-var not initialised"));
     size = p->tab->sizes[0];
 
     if (UNLIKELY(opc == NULL))
-      return csound->PerfError(csound,
+      return csoundPerfError(csound,
                                &(p->h), Str("map fn not found at k rate"));
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
@@ -3286,12 +3293,12 @@ static int32_t ina_set(CSOUND *csound, OUTA *p)
     ARRAYDAT *aa = p->tabin;
     // should call ensure here but it is a-rate
     aa->dimensions = 1;
-    if (aa->sizes) csound->Free(csound, aa->sizes);
-    if (aa->data) csound->Free(csound, aa->data);
-    aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+    if (aa->sizes) mfree(csound, aa->sizes);
+    if (aa->data) mfree(csound, aa->data);
+    aa->sizes = (int32_t*)mmalloc(csound, sizeof(int32_t));
     aa->sizes[0] = p->len = csound->inchnls;
     aa->data = (MYFLT*)
-      csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
+      mmalloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
     aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
     return OK;
 }
@@ -3340,7 +3347,7 @@ static int32_t monitora_perf(CSOUND *csound, OUTA *p)
           nsmps -= early;
         }
         for (i = 0; i<nsmps; i++) {
-          for (j = 0; j<csound->GetNchnls(csound); j++) {
+          for (j = 0; j<csoundGetNchnls(csound); j++) {
             if (i<offset)
               data[i+j*nsmps] = FL(0.0);
             else
@@ -3356,12 +3363,12 @@ static int32_t monitora_init(CSOUND *csound, OUTA *p)
     ARRAYDAT *aa = p->tabin;
     // should call ensure here but it is a-rate
     aa->dimensions = 1;
-    if (aa->sizes) csound->Free(csound, aa->sizes);
-    if (aa->data) csound->Free(csound, aa->data);
-    aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+    if (aa->sizes) mfree(csound, aa->sizes);
+    if (aa->data) mfree(csound, aa->data);
+    aa->sizes = (int32_t*)mmalloc(csound, sizeof(int32_t));
     aa->sizes[0] = p->len = csound->nchnls;
     aa->data = (MYFLT*)
-      csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
+      mmalloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
     aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
     return OK;
 }
@@ -3383,7 +3390,7 @@ int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
   int32_t   N = p->in->sizes[0], fn;
   for(fn=2; fn < N*2-1; fn*=2);
   if (p->mem.auxp == 0 || p->mem.size < fn*sizeof(MYFLT))
-      csound->AuxAlloc(csound, fn*sizeof(MYFLT), &p->mem);
+      csoundAuxAlloc(csound, fn*sizeof(MYFLT), &p->mem);
   p->N = N;
   p->FN = fn;
   tabinit(csound, p->out,N);
@@ -3394,7 +3401,7 @@ int32_t perf_autocorr(CSOUND *csound, AUTOCORR *p) {
   MYFLT *r = p->out->data;
   MYFLT *buf = (MYFLT *) p->mem.auxp;
   MYFLT *s = p->in->data;
-  csound->AutoCorrelation(csound,r,s,p->N,buf,p->FN);
+  csoundAutoCorrelation(csound,r,s,p->N,buf,p->FN);
   return OK;
 }
 
@@ -3418,11 +3425,11 @@ static uint32_t isPowerOfTwo (uint32_t x) {
 int32_t init_rfft(CSOUND *csound, FFT *p) {
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound, "%s",
+    return csoundInitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
   if (isPowerOfTwo(N)) {
     tabinit(csound, p->out,N);
-    p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+    p->setup = csoundRealFFT2Setup(csound, N, FFT_FWD);
   }
   else
     tabinit(csound, p->out, N+2);
@@ -3433,11 +3440,11 @@ int32_t perf_rfft(CSOUND *csound, FFT *p) {
     int32_t N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     if (isPowerOfTwo(N)) {
-      csound->RealFFT2(csound,p->setup,p->out->data);
+      csoundRealFFT2(csound,p->setup,p->out->data);
     }
     else{
       p->out->data[N] = FL(0.0);
-      csound->RealFFTnp2(csound,p->out->data,N);
+      csoundRealFFTnp2(csound,p->out->data,N);
     }
     return OK;
 }
@@ -3451,10 +3458,10 @@ int32_t rfft_i(CSOUND *csound, FFT *p) {
 int32_t init_rifft(CSOUND *csound, FFT *p) {
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound, "%s",
+    return csoundInitError(csound, "%s",
                              Str("rifft: only one-dimensional arrays allowed"));
   if (isPowerOfTwo(N)) {
-    p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
+    p->setup = csoundRealFFT2Setup(csound, N, FFT_INV);
     tabinit(csound, p->out, N);
   }
   else
@@ -3466,10 +3473,10 @@ int32_t perf_rifft(CSOUND *csound, FFT *p) {
     int32_t N = p->in->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     if (isPowerOfTwo(N))
-      csound->RealFFT2(csound,p->setup,p->out->data);
+      csoundRealFFT2(csound,p->setup,p->out->data);
     else{
       p->out->data[N] = FL(0.0);
-      csound->InverseRealFFTnp2(csound,p->out->data,N);
+      csoundInverseRealFFTnp2(csound,p->out->data,N);
     }
     return OK;
 }
@@ -3483,19 +3490,19 @@ int32_t rifft_i(CSOUND *csound, FFT *p) {
 int32_t init_rfftmult(CSOUND *csound, FFT *p) {
     int32_t   N = p->in->sizes[0];
     if (UNLIKELY(N != p->in2->sizes[0]))
-      return csound->InitError(csound, "%s", Str("array sizes do not match\n"));
+      return csoundInitError(csound, "%s", Str("array sizes do not match\n"));
     /*if (isPowerOfTwo(N))*/
     tabinit(csound, p->out, N);
     /* else
        return
-         csound->InitError(csound, "%s",
+         csoundInitError(csound, "%s",
                            Str("non-pow-of-two case not implemented yet\n"));*/
     return OK;
 }
 
 int32_t perf_rfftmult(CSOUND *csound, FFT *p) {
     int32_t N = p->out->sizes[0];
-    csound->RealFFTMult(csound,p->out->data,p->in->data,p->in2->data,N,1);
+    csoundRealFFTMult(csound,p->out->data,p->in->data,p->in2->data,N,1);
     return OK;
 }
 
@@ -3506,7 +3513,7 @@ void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 int32_t initialise_fft(CSOUND *csound, FFT *p) {
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound, "%s",
+    return csoundInitError(csound, "%s",
                              Str("fft: only one-dimensional arrays allowed"));
   tabinit(csound,p->out,N2);
   return OK;
@@ -3516,7 +3523,7 @@ int32_t perf_fft(CSOUND *csound, FFT *p) {
     int32_t N2 = p->in->sizes[0];
     memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
     if (isPowerOfTwo(N2))
-      csound->ComplexFFT(csound,p->out->data,N2/2);
+      csoundComplexFFT(csound,p->out->data,N2/2);
     else {
       csoundComplexFFTnp2(csound,p->out->data,N2/2);
     }
@@ -3533,7 +3540,7 @@ int32_t fft_i(CSOUND *csound, FFT *p) {
 int32_t init_ifft(CSOUND *csound, FFT *p) {
     int32_t   N2 = p->in->sizes[0];
     if (UNLIKELY(p->in->dimensions > 1))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("fftinv: only one-dimensional arrays allowed"));
     tabinit(csound, p->out, N2);
     return OK;
@@ -3543,7 +3550,7 @@ int32_t perf_ifft(CSOUND *csound, FFT *p) {
     int32_t N2 = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
     if (isPowerOfTwo(N2)) {
-      csound->InverseComplexFFT(csound,p->out->data,N2/2);
+      csoundInverseComplexFFT(csound,p->out->data,N2/2);
     }
     else {
       csoundInverseComplexFFTnp2(csound,p->out->data,N2/2);
@@ -3596,7 +3603,7 @@ int32_t init_poltorect2(CSOUND *csound, FFT *p) {
       int32_t   N = p->in2->sizes[0];
       tabinit(csound, p->out, N*2 - 2);
       return OK;
-    } else return csound->InitError(csound,
+    } else return csoundInitError(csound,
                                     Str("in array sizes do not match: %d and %d\n"),
                                     p->in2->sizes[0],p->in->sizes[0]);
 }
@@ -3730,7 +3737,7 @@ int32_t init_window(CSOUND *csound, FFT *p) {
     MYFLT *w;
     tabinit(csound, p->out, N);
     if (p->mem.auxp == 0 || p->mem.size < N*sizeof(MYFLT))
-      csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
+      csoundAuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
     w = (MYFLT *) p->mem.auxp;
     switch(type) {
     case 0:
@@ -3774,11 +3781,11 @@ typedef struct _pvsceps {
 int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p) {
     int32_t N = p->fin->N;
     if (LIKELY(isPowerOfTwo(N))) {
-      p->setup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
+      p->setup = csoundRealFFT2Setup(csound, N/2, FFT_FWD);
       tabinit(csound, p->out, N/2+1);
     }
     else
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("non-pow-of-two case not implemented yet\n"));
     p->lastframe = 0;
     return OK;
@@ -3796,7 +3803,7 @@ int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
         ceps[j] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
       }
       ceps[N/2] = fin[N/2];
-      csound->RealFFT2(csound, p->setup, ceps);
+      csoundRealFFT2(csound, p->setup, ceps);
       if (coefs) {
         // lifter coefs
        for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
@@ -3811,14 +3818,14 @@ int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
 int32_t init_ceps(CSOUND *csound, FFT *p) {
     int32_t N = p->in->sizes[0]-1;
     if (UNLIKELY(N < 64))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("FFT size too small (min 64 samples)\n"));
     if (LIKELY(isPowerOfTwo(N))) {
-      p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+      p->setup = csoundRealFFT2Setup(csound, N, FFT_FWD);
       tabinit(csound, p->out, N+1);
     }
     else
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("non-pow-of-two case not implemented yet\n"));
 
     return OK;
@@ -3834,7 +3841,7 @@ int32_t perf_ceps(CSOUND *csound, FFT *p) {
       ceps[i] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
     }
     ceps[siz] = mags[siz];
-    csound->RealFFT2(csound, p->setup, ceps);
+    csoundRealFFT2(csound, p->setup, ceps);
     if (coefs) {
       // lifter coefs
       for (i=coefs*2; i < siz; i++) ceps[i] = 0.0;
@@ -3846,15 +3853,15 @@ int32_t perf_ceps(CSOUND *csound, FFT *p) {
 int32_t init_iceps(CSOUND *csound, FFT *p) {
     int32_t N = p->in->sizes[0]-1;
     if (LIKELY(isPowerOfTwo(N))) {
-      p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
+      p->setup = csoundRealFFT2Setup(csound, N, FFT_INV);
       tabinit(csound, p->out, N+1);
     }
     else
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("non-pow-of-two case not implemented yet\n"));
     N++;
     if (p->mem.auxp == NULL || p->mem.size < N*sizeof(MYFLT))
-      csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
+      csoundAuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
     return OK;
 }
 
@@ -3863,7 +3870,7 @@ int32_t perf_iceps(CSOUND *csound, FFT *p) {
     MYFLT *spec = (MYFLT *)p->mem.auxp;
     MYFLT *out = p->out->data;
     memcpy(spec, p->in->data, siz*sizeof(MYFLT));
-    csound->RealFFT2(csound,p->setup,spec);
+    csoundRealFFT2(csound,p->setup,spec);
     for (i=0; i < siz; i++) {
       out[i] = exp(spec[i]);
     }
@@ -3878,7 +3885,7 @@ int32_t rows_init(CSOUND *csound, FFT *p) {
       return OK;
     }
     else
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("in array not 2-dimensional\n"));
 }
 
@@ -3890,7 +3897,7 @@ int32_t rows_perf(CSOUND *csound, FFT *p) {
       memcpy(p->out->data,p->in->data+start,bytes);
       return OK;
     }
-    else return csound->PerfError(csound,  &(p->h),
+    else return csoundPerfError(csound,  &(p->h),
                                   Str("requested row is out of range\n"));
 }
 
@@ -3916,7 +3923,7 @@ int32_t rows_perf_S(CSOUND *csound, FFT *p)
       }
       return OK;
     }
-    else return csound->PerfError(csound,  &(p->h),
+    else return csoundPerfError(csound,  &(p->h),
                                   Str("requested row is out of range\n"));
 }
 
@@ -3941,7 +3948,7 @@ int32_t set_rows_perf_S(CSOUND *csound, FFT *p)
       }
       return OK;
     }
-    else return csound->PerfError(csound,  &(p->h),
+    else return csoundPerfError(csound,  &(p->h),
                                   Str("requested row is out of range\n"));
 }
 
@@ -3955,7 +3962,7 @@ int32_t rows_i(CSOUND *csound, FFT *p) {
       memcpy(p->out->data,p->in->data+start,bytes);
       return OK;
     }
-    else return csound->InitError(csound, "%s",
+    else return csoundInitError(csound, "%s",
                                   Str("requested row is out of range\n"));
 
   }
@@ -3974,11 +3981,11 @@ static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p,
       }
       ss = p->arrayMemberSize*rows*columns;
       if (p->data==NULL) {
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->data = (MYFLT*)mcalloc(csound, ss);
         p->dimensions = 2;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*2);
+        p->sizes = (int32_t*)mmalloc(csound, sizeof(int32_t)*2);
       }
-      else p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+      else p->data = (MYFLT*) mrealloc(csound, p->data, ss);
       p->sizes[0] = rows;  p->sizes[1] = columns;
     }
 }
@@ -4011,7 +4018,7 @@ int32_t cols_init(CSOUND *csound, FFT *p) {
       return OK;
     }
     else
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("in array not 2-dimensional\n"));
 }
 
@@ -4025,7 +4032,7 @@ int32_t cols_perf(CSOUND *csound, FFT *p) {
         }
         return OK;
     }
-    else return csound->PerfError(csound,  &(p->h),
+    else return csoundPerfError(csound,  &(p->h),
                                   Str("requested col is out of range\n"));
 }
 
@@ -4039,7 +4046,7 @@ int32_t cols_i(CSOUND *csound, FFT *p) {
         }
         return OK;
     }
-    else return csound->InitError(csound, "%s",
+    else return csoundInitError(csound, "%s",
                                   Str("requested col is out of range\n"));
   }
   else return NOTOK;
@@ -4066,14 +4073,14 @@ int32_t cols_perf_S(CSOUND *csound, FFT *p) {
       }
       return OK;
     }
-    else return csound->PerfError(csound,  &(p->h),
+    else return csoundPerfError(csound,  &(p->h),
                                   Str("requested col is out of range\n"));
 }
 
 int32_t set_rows_perf(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
     if (UNLIKELY(start < 0 || start >= p->out->sizes[0]))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                  Str("Error: index out of range\n"));
     int32_t bytes =  p->in->sizes[0]*sizeof(MYFLT);
     start *= p->out->sizes[1];
@@ -4085,7 +4092,7 @@ int32_t set_rows_i(CSOUND *csound, FFT *p) {
   int32_t start = *((MYFLT *)p->in2);
   set_rows_init(csound, p);
   if (UNLIKELY(start < 0 || start >= p->out->sizes[0]))
-        return csound->InitError(csound, "%s",
+        return csoundInitError(csound, "%s",
                                  Str("Error: index out of range\n"));
   int32_t bytes =  p->in->sizes[0]*sizeof(MYFLT);
   start *= p->out->sizes[1];
@@ -4106,10 +4113,10 @@ int32_t set_cols_perf(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
 
     if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                  Str("Error: index out of range\n"));
     if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                  Str("Error: New column too short\n"));
 
 
@@ -4123,10 +4130,10 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
     set_cols_init(csound,p);
     if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
-        return csound->InitError(csound, "%s",
+        return csoundInitError(csound, "%s",
                                  Str("Error: index out of range\n"));
     if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                  Str("Error: New column too short\n"));
     int32_t j,i,row = p->out->sizes[1], col = p->out->sizes[0];
     for (j=0,i=start; j < col; i+=row, j++)
@@ -4154,7 +4161,7 @@ int32_t set_cols_perf_S(CSOUND *csound, FFT *p) {
       }
       return OK;
     }
-    else return csound->PerfError(csound,  &(p->h),
+    else return csoundPerfError(csound,  &(p->h),
                                   Str("requested col is out of range\n"));    
 }
 
@@ -4199,7 +4206,7 @@ int32_t shiftout_init(CSOUND *csound, FFT *p) {
     int32_t siz = p->in->sizes[0];
     p->n = ((int32_t)*((MYFLT *)p->in2) % siz);
     if (UNLIKELY((uint32_t) siz < CS_KSMPS))
-      return csound->InitError(csound, "%s", Str("input array too small\n"));
+      return csoundInitError(csound, "%s", Str("input array too small\n"));
     return OK;
 }
 
@@ -4275,14 +4282,14 @@ int32_t init_dct(CSOUND *csound, FFT *p) {
    int32_t   N = p->in->sizes[0];
    if (LIKELY(isPowerOfTwo(N))) {
      if (UNLIKELY(p->in->dimensions > 1))
-    return csound->InitError(csound, "%s",
+    return csoundInitError(csound, "%s",
                              Str("dct: only one-dimensional arrays allowed"));
     tabinit(csound, p->out, N);
     p->setup =  csoundDCTSetup(csound,N,FFT_FWD);
     return OK;
    }
    else return
-          csound->InitError(csound, "%s",
+          csoundInitError(csound, "%s",
                             Str("dct: non-pow-of-two sizes not yet implemented"));
 }
 
@@ -4305,7 +4312,7 @@ int32_t init_dctinv(CSOUND *csound, FFT *p) {
    int32_t   N = p->in->sizes[0];
    if (LIKELY(isPowerOfTwo(N))) {
      if (UNLIKELY(p->in->dimensions > 1))
-       return csound->InitError(csound, "%s",
+       return csoundInitError(csound, "%s",
                                 Str("dctinv: only one-dimensional arrays allowed"));
      tabinit(csound, p->out, N);
      p->setup =  csoundDCTSetup(csound,N,FFT_INV);
@@ -4313,7 +4320,7 @@ int32_t init_dctinv(CSOUND *csound, FFT *p) {
    }
    else
      return
-       csound->InitError(csound, "%s",
+       csoundInitError(csound, "%s",
                          Str("dctinv: non-pow-of-two sizes not yet implemented"));
 }
 
@@ -4363,10 +4370,10 @@ int32_t mfb_init(CSOUND *csound, MFB *p) {
       tabinit(csound, p->out, L);
     }
     else
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                        Str("mfb: filter bank size exceeds input array length"));
     if (p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int32_t))
-      csound->AuxAlloc(csound, (L+2)*sizeof(MYFLT), &p->bins);
+      csoundAuxAlloc(csound, (L+2)*sizeof(MYFLT), &p->bins);
     return OK;
 }
 
@@ -4381,7 +4388,7 @@ int32_t mfb(CSOUND *csound, MFB *p) {
     MYFLT sum = FL(0.0);
     MYFLT *out = p->out->data;
     MYFLT *in = p->in->data;
-    MYFLT sr = csound->GetSr(csound);
+    MYFLT sr = csoundGetSr(csound);
 
     start = f2mel(*p->low);
     end = f2mel(*p->up);
@@ -4436,7 +4443,7 @@ int32_t array_centroid(CSOUND *csound, CENTR *p) {
 
     MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
     int32_t NP1 = p->in->sizes[0];
-    MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
+    MYFLT f = csoundGetSr(csound)/(2*(NP1 - 1)),cf;
     int32_t i;
     cf = f*FL(0.5);
     for (i=0; i < NP1-1; i++, cf+=f) {
@@ -4482,7 +4489,7 @@ int32_t interleave_i (CSOUND *csound, INTERL *p) {
       }
       return OK;
     }
-    return csound->InitError(csound, Str("array inputs not in correct format\n"));
+    return csoundInitError(csound, Str("array inputs not in correct format\n"));
 }
 
 int32_t interleave_perf (CSOUND *csound, INTERL *p) {
@@ -4506,7 +4513,7 @@ int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
     }
     return OK;
   }
-  return csound->InitError(csound, Str("array inputs not in correct format\n"));
+  return csoundInitError(csound, Str("array inputs not in correct format\n"));
 }
 
 int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {

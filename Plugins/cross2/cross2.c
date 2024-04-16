@@ -26,6 +26,9 @@
 #include "fhtfun.h"
 #include "interlocks.h"
 #include <math.h>
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 #define CH_THRESH       1.19209e-7
 #define CHOP(a) (a < CH_THRESH ? CH_THRESH : a)
@@ -315,7 +318,7 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
 
     flen = (int32)*p->len;
     if (UNLIKELY(flen<1))
-      return csound->InitError(csound, Str("cross2: length must be at least 1"));
+      return csoundInitError(csound, Str("cross2: length must be at least 1"));
     p->m = plog2(flen);
     flen = 1L << p->m;
 
@@ -326,7 +329,7 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
     bufsize = 10 * flen * sizeof(MYFLT);
 
     if (p->mem.auxp == NULL || bufsize > p->mem.size)
-      csound->AuxAlloc(csound, bufsize, &p->mem);
+      csoundAuxAlloc(csound, bufsize, &p->mem);
     else
       memset(p->mem.auxp, 0, (size_t)bufsize); /* Replaces loop */
 
@@ -337,7 +340,7 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
     p->in1 = b;            b += 2 * flen;
     p->in2 = b;            //b += 2 * flen;
 
-    if ((ftp = csound->FTnp2Finde(csound, p->iwin)) != NULL)
+    if ((ftp = csoundFTnp2Finde(csound, p->iwin)) != NULL)
       p->win = ftp;
     else return NOTOK;
 

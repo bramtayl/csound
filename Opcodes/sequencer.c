@@ -24,6 +24,8 @@
 
 #include "csoundCore_internal.h"
 #include <math.h>
+#include "insert_public.h"
+
 typedef struct {
     OPDS        h;
     MYFLT       *res;           /*  state */
@@ -74,7 +76,7 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
         (p->data->dimensions == 2 && p->max_length != p->data->sizes[1]) ||
         (p->data->dimensions == 1 && p->max_length != p->data->sizes[0]) ||
         p->max_length >= 128) {
-      return csound->InitError(csound, Str("sequ: arrays have differing sizes"));
+      return csoundInitError(csound, Str("sequ: arrays have differing sizes"));
     }
     p->time = 0;
     p->next = 0;
@@ -87,12 +89,12 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
     SEQ **q;
 
     if ((int)(*p->id)<0 || (int)(*p->id)>9)
-      return csound->InitError(csound, Str("sequ: id out of range"));
+      return csoundInitError(csound, Str("sequ: id out of range"));
     
-    q = (SEQ**)csound->QueryGlobalVariable(csound, "sequGlobals");
+    q = (SEQ**)csoundQueryGlobalVariable(csound, "sequGlobals");
     if (q == NULL) {
-      csound->CreateGlobalVariable(csound, "sequGlobals", 10*sizeof(SEQ*));
-      q = (SEQ**)csound->QueryGlobalVariable(csound, "sequGlobals");
+      csoundCreateGlobalVariable(csound, "sequGlobals", 10*sizeof(SEQ*));
+      q = (SEQ**)csoundQueryGlobalVariable(csound, "sequGlobals");
     }
     q[(int)*p->id] = p;
     return OK;
@@ -248,14 +250,14 @@ static int sequState(CSOUND *csound, SEQSTATE* p);
 static int sequStateInit(CSOUND *csound, SEQSTATE* p)
 {
     int id = (int)*p->id;
-    SEQ **r = (SEQ**)csound->QueryGlobalVariable(csound, "sequGlobals");
+    SEQ **r = (SEQ**)csoundQueryGlobalVariable(csound, "sequGlobals");
     if (r==NULL || r[id]==NULL) {
-      csound->Warning(csound, Str("No sequs"));
+      csoundWarning(csound, Str("No sequs"));
       return OK;
     }
     p->q = r[id];
     if (p->riff->sizes[0] != p->q->max_length)
-      csound->InitError(csound, Str("sequstate: Wrong sizeof output array"));
+      csoundInitError(csound, Str("sequstate: Wrong sizeof output array"));
     sequState(csound, p);
     return OK;
 }

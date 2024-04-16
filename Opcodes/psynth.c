@@ -65,6 +65,9 @@ PLUS a number of track processing opcodes.
 
 #include "pvs_ops.h"
 #include "pstream.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 typedef struct _psyn {
     OPDS    h;
@@ -93,12 +96,12 @@ static int32_t psynth_init(CSOUND *csound, _PSYN *p)
     int32_t     numbins = p->fin->N / 2 + 1;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("psynth: first input not in TRACKS format\n"));
     }
-    p->func = csound->FTnp2Find(p->h.insdshead->csound, p->ftb);
+    p->func = csoundFTnp2Find(p->h.insdshead->csound, p->ftb);
     if (UNLIKELY(p->func == NULL)) {
-      return csound->InitError(csound, Str("psynth: function table not found\n"));
+      return csoundInitError(csound, Str("psynth: function table not found\n"));
     }
 
     p->tracks = 0;
@@ -107,32 +110,32 @@ static int32_t psynth_init(CSOUND *csound, _PSYN *p)
     p->numbins = numbins;
     p->factor = p->hopsize * csound->onedsr;
     p->facsqr = p->factor * p->factor;
-    if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
-    else p->min = *p->thresh*csound->Get0dBFS(csound);
+    if(*p->thresh == -1) p->min = 0.00002*csoundGet0dBFS(csound);
+    else p->min = *p->thresh*csoundGet0dBFS(csound);
 
     if (p->amps.auxp == NULL ||
         (uint32_t) p->amps.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
+      csoundAuxAlloc(csound, sizeof(double) * numbins, &p->amps);
     else
       memset(p->amps.auxp, 0, sizeof(double) * numbins );
     if (p->freqs.auxp == NULL ||
         (uint32_t) p->freqs.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
+      csoundAuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
     else
       memset(p->freqs.auxp, 0, sizeof(double) * numbins );
     if (p->phases.auxp == NULL ||
         (uint32_t) p->phases.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->phases);
+      csoundAuxAlloc(csound, sizeof(double) * numbins, &p->phases);
     else
       memset(p->phases.auxp, 0, sizeof(double) * numbins );
     if (p->sum.auxp == NULL ||
         (uint32_t) p->sum.size < sizeof(double) * p->hopsize)
-      csound->AuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
+      csoundAuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
     else
       memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
     if (p->trackID.auxp == NULL ||
         (uint32_t) p->trackID.size < sizeof(int32_t) * numbins)
-      csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
+      csoundAuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
     else
       memset(p->trackID.auxp, 0, sizeof(int32_t) * numbins );
 
@@ -260,12 +263,12 @@ static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
     int32_t     numbins = p->fin->N / 2 + 1;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("psynth: first input not in TRACKS format\n"));
     }
-    p->func = csound->FTnp2Find(p->h.insdshead->csound, p->ftb);
+    p->func = csoundFTnp2Find(p->h.insdshead->csound, p->ftb);
     if (UNLIKELY(p->func == NULL)) {
-      return csound->InitError(csound, Str("psynth: function table not found\n"));
+      return csoundInitError(csound, Str("psynth: function table not found\n"));
     }
 
     p->tracks = 0;
@@ -274,32 +277,32 @@ static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
     p->numbins = numbins;
     p->factor = p->hopsize * csound->onedsr;
     p->facsqr = p->factor * p->factor;
-    if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
-    else p->min = *p->thresh*csound->Get0dBFS(csound);
+    if(*p->thresh == -1) p->min = 0.00002*csoundGet0dBFS(csound);
+    else p->min = *p->thresh*csoundGet0dBFS(csound);
 
     if (p->amps.auxp == NULL ||
         (uint32_t) p->amps.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->amps);
+      csoundAuxAlloc(csound, sizeof(double) * numbins, &p->amps);
     else
       memset(p->amps.auxp, 0, sizeof(double) * numbins );
     if (p->freqs.auxp == NULL ||
         (uint32_t) p->freqs.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
+      csoundAuxAlloc(csound, sizeof(double) * numbins, &p->freqs);
     else
       memset(p->freqs.auxp, 0, sizeof(double) * numbins );
     if (p->phases.auxp == NULL ||
         (uint32_t) p->phases.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->phases);
+      csoundAuxAlloc(csound, sizeof(double) * numbins, &p->phases);
     else
       memset(p->phases.auxp, 0, sizeof(double) * numbins  );
     if (p->sum.auxp == NULL ||
         (uint32_t) p->sum.size < sizeof(double) * p->hopsize)
-      csound->AuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
+      csoundAuxAlloc(csound, sizeof(double) * p->hopsize, &p->sum);
     else
       memset(p->sum.auxp, 0, sizeof(double) * p->hopsize );
     if (p->trackID.auxp == NULL ||
         (uint32_t) p->trackID.size < sizeof(int32_t) * numbins)
-      csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
+      csoundAuxAlloc(csound, sizeof(int32_t) * numbins, &p->trackID);
     else
       memset(p->trackID.auxp, 0, sizeof(int32_t) * numbins );
 
@@ -606,13 +609,13 @@ static int32_t trans_init(CSOUND *csound, _PTRANS *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
-      return csound->InitError(csound, Str("Input not in TRACKS format\n"));
+      return csoundInitError(csound, Str("Input not in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fout->N = p->fin->N) / 2 + 1;
     if (p->fout->frame.auxp == NULL ||
         p->fout->frame.size < sizeof(float) * numbins * 4)
-      csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
+      csoundAuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
     ((float *) p->fout->frame.auxp)[3] = -1.0f;
 
     p->fout->overlap = p->fin->overlap;
@@ -699,13 +702,13 @@ static int32_t trlowest_init(CSOUND *csound, _PLOW *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
-      return csound->InitError(csound, Str("Input not in TRACKS format\n"));
+      return csoundInitError(csound, Str("Input not in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fout->N = p->fin->N) / 2 + 1;
     if (p->fout->frame.auxp == NULL ||
         p->fout->frame.size < sizeof(float) * numbins * 4)
-      csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
+      csoundAuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
     ((float *) p->fout->frame.auxp)[3] = -1.0f;
 
     p->fout->overlap = p->fin->overlap;
@@ -746,7 +749,7 @@ static int32_t trlowest_process(CSOUND *csound, _PLOW *p)
       *p->kfr = (MYFLT) lowest;
       *p->kamp = (MYFLT) frameout[0];
       p->fout->framecount = p->lastframe = p->fin->framecount;
-/*csound->Message(csound, "lowest %f\n", lowest);*/
+/*csoundMessage(csound, "lowest %f\n", lowest);*/
     }
 
     return OK;
@@ -780,7 +783,7 @@ static int32_t trhighest_process(CSOUND *csound, _PLOW *p)
       *p->kfr = (MYFLT) highest;
       *p->kamp = (MYFLT) frameout[0];
       p->fout->framecount = p->lastframe = p->fin->framecount;
-/*csound->Message(csound, "lowest %f\n", lowest);*/
+/*csoundMessage(csound, "lowest %f\n", lowest);*/
     }
 
     return OK;
@@ -805,14 +808,14 @@ static int32_t trsplit_init(CSOUND *csound, _PSPLIT *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
-      return csound->InitError(csound, Str("trsplit: input not "
+      return csoundInitError(csound, Str("trsplit: input not "
                                            "in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fsig2->N = p->fsig1->N = p->fsig3->N) / 2 + 1;
     if (p->fsig1->frame.auxp == NULL ||
         p->fsig1->frame.size < sizeof(float) * numbins * 4)
-      csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
+      csoundAuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
     ((float *) p->fsig1->frame.auxp)[3] = -1.0f;
 
     p->fsig1->overlap = p->fsig3->overlap;
@@ -822,7 +825,7 @@ static int32_t trsplit_init(CSOUND *csound, _PSPLIT *p)
     p->fsig1->format = PVS_TRACKS;
     if (p->fsig2->frame.auxp == NULL ||
         p->fsig2->frame.size < sizeof(float) * numbins * 4)
-      csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig2->frame);
+      csoundAuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig2->frame);
 
     ((float *) p->fsig2->frame.auxp)[3] = -1.0f;
     p->fsig2->overlap = p->fsig3->overlap;
@@ -881,7 +884,7 @@ static int32_t trsplit_process(CSOUND *csound, _PSPLIT *p)
         frameout2[trkcnt2 - 1] = -1.0f;
       p->fsig2->framecount = p->fsig1->framecount = p->lastframe =
           p->fsig3->framecount;
-/*csound->Message(csound, "split %d : %d\n", trkcnt1/4, trkcnt2/4);*/
+/*csoundMessage(csound, "split %d : %d\n", trkcnt1/4, trkcnt2/4);*/
     }
 
     return OK;
@@ -901,19 +904,19 @@ static int32_t trmix_init(CSOUND *csound, _PSMIX *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("trmix: first input not in TRACKS format\n"));
     }
 
     if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("trmix: second input not in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fsig1->N = p->fsig2->N) / 2 + 1;
     if (p->fsig1->frame.auxp == NULL ||
         p->fsig1->frame.size < sizeof(float) * numbins * 4)
-      csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
+      csoundAuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
     ((float *) p->fsig1->frame.auxp)[3] = -1.0f;
 
     p->fsig1->overlap = p->fsig2->overlap;
@@ -980,19 +983,19 @@ static int32_t trfil_init(CSOUND *csound, _PSFIL *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("trfil: input not in TRACKS format\n"));
     }
-    p->tab = csound->FTnp2Find(csound, p->ifn);
+    p->tab = csoundFTnp2Find(csound, p->ifn);
     if (UNLIKELY(p->tab == NULL)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("trfil: could not find function table\n"));
     }
     p->len = p->tab->flen;
     p->numbins = numbins = (p->fout->N = p->fin->N) / 2 + 1;
     if (p->fout->frame.auxp == NULL ||
         p->fout->frame.size < sizeof(float) * numbins * 4)
-      csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
+      csoundAuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
     ((float *) p->fout->frame.auxp)[3] = -1.0f;
 
     p->fout->overlap = p->fin->overlap;
@@ -1064,19 +1067,19 @@ static int32_t trcross_init(CSOUND *csound, _PSCROSS *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("trmix: first input not in TRACKS format\n"));
     }
 
     if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("trmix: second input not in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fsig1->N = p->fsig2->N) / 2 + 1;
     if (p->fsig1->frame.auxp == NULL ||
         p->fsig1->frame.size < sizeof(float) * numbins * 4)
-      csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
+      csoundAuxAlloc(csound, sizeof(float) * numbins * 4, &p->fsig1->frame);
     ((float *) p->fsig1->frame.auxp)[3] = -1.0f;
 
     p->fsig1->overlap = p->fsig2->overlap;
@@ -1152,7 +1155,7 @@ static int32_t trcross_process(CSOUND *csound, _PSCROSS *p)
         frameout[i + 3] = -1.0f;
       p->fsig1->framecount = p->lastframe = p->fsig2->framecount;
 
-/*csound->Message(csound, "mix %d : %d\n", k/4, j/4);*/
+/*csoundMessage(csound, "mix %d : %d\n", k/4, j/4);*/
     }
 
     return OK;
@@ -1173,7 +1176,7 @@ static int32_t binit_init(CSOUND *csound, _PSBIN *p)
     int32_t     numbins, N;
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("binit: first input not in TRACKS format\n"));
     }
 
@@ -1181,7 +1184,7 @@ static int32_t binit_init(CSOUND *csound, _PSBIN *p)
     p->numbins = numbins = p->fsig2->N / 2 + 1;
     if (p->fsig1->frame.auxp == NULL ||
         p->fsig1->frame.size < sizeof(float) * (N + 2))
-      csound->AuxAlloc(csound, sizeof(float) * (N + 2), &p->fsig1->frame);
+      csoundAuxAlloc(csound, sizeof(float) * (N + 2), &p->fsig1->frame);
 
     p->fsig1->overlap = p->fsig2->overlap;
     p->fsig1->winsize = p->fsig2->winsize;
@@ -1282,7 +1285,7 @@ static OENTRY localops[] =
 
 int32_t psynth_init_(CSOUND *csound)
 {
-  return csound->AppendOpcodes(csound, &(localops[0]),
+  return csoundAppendOpcodes(csound, &(localops[0]),
                                (int32_t
                                 ) (sizeof(localops) / sizeof(OENTRY)));
 }

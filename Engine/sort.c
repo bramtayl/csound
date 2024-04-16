@@ -28,6 +28,7 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 */
 
 #include "csoundCore_internal.h"                         /*   SORT.C  */
+#include "memalloc.h"
 
 /* inline int ordering(SRTBLK *a, SRTBLK *b) */
 /* { */
@@ -269,7 +270,7 @@ void sort(CSOUND *csound)
       case 'y':
         break;
       default:
-        csound->Message(csound, Str("sort: illegal opcode %c(%.2x)\n"),
+        csoundMessage(csound, Str("sort: illegal opcode %c(%.2x)\n"),
                                 bp->text[0], bp->text[0]);
         break;
       }
@@ -277,7 +278,7 @@ void sort(CSOUND *csound)
 
     if (n>1) {
       /* Get a temporary array and populate it */
-      A = ((SRTBLK**) csound->Malloc(csound, n*sizeof(SRTBLK*)));
+      A = ((SRTBLK**) mmalloc(csound, n*sizeof(SRTBLK*)));
       bp = csound->frstbp;
       for (i=0; i<n; i++,bp = bp->nxtblk) {
         A[i] = bp;
@@ -294,7 +295,7 @@ void sort(CSOUND *csound)
       }
       if (n>1) { bp = A[n-1]; } bp->nxtblk = NULL; bp->prvblk = A[n-2];
       /* and return temporary space */
-      csound->Free(csound, A);
+      mfree(csound, A);
 
     }
 }

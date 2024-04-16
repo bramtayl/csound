@@ -36,6 +36,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #endif
+#include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 
 typedef struct {
@@ -58,17 +59,17 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
     WSADATA wsaData = {0};
     int err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      csound->Warning(csound, Str("UDP: Winsock2 failed to start: %d"), err);
+      csoundWarning(csound, Str("UDP: Winsock2 failed to start: %d"), err);
     return;
 #endif
     *sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(*sock < 0)) {
-      csound->Warning(csound, Str("UDP: error creating socket"));
+      csoundWarning(csound, Str("UDP: error creating socket"));
       return;
     }
 #ifndef _WIN32
     if (UNLIKELY(fcntl(*sock, F_SETFL, O_NONBLOCK)<0)) {
-      csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+      csoundWarning(csound, Str("UDP Server: Cannot set nonblock"));
       if (*sock>=0) close(*sock);
       return;
     }
@@ -77,7 +78,7 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
       u_long argp = 1;
       err = ioctlsocket(*sock, FIONBIO, &argp);
       if (UNLIKELY(err != NO_ERROR)) {
-        csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+        csoundWarning(csound, Str("UDP Server: Cannot set nonblock"));
         closesocket(*sock);
         return;
       }
@@ -96,7 +97,7 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
   if (UNLIKELY(sendto(*sock, (void*) msg, strlen(msg)+1, 0,
                       (const struct sockaddr *) &server_addr,
                       sizeof(server_addr)) < 0)) {
-    csound->Warning(csound,  Str("UDP: sock end failed"));
+    csoundWarning(csound,  Str("UDP: sock end failed"));
   }
 }
 
@@ -107,13 +108,13 @@ static uintptr_t udp_recv(void *pdata){
   UDPCOM *p = (UDPCOM *) pdata;
   CSOUND *csound = p->cs;
   int port = p->port;
-  char *orchestra = csound->Calloc(csound, MAXSTR);
+  char *orchestra = mcalloc(csound, MAXSTR);
   int sock = 0;
   int received, cont = 0;
   char *start = orchestra;
-  size_t timout = (size_t) lround(1000/csound->GetKr(csound));
+  size_t timout = (size_t) lround(1000/csoundGetKr(csound));
 
-  csound->Message(csound, Str("UDP server started on port %d\n"),port);
+  csoundMessage(csound, Str("UDP server started on port %d\n"),port);
   while (p->status) {
     if ((received =
          recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen)) <= 0) {
@@ -124,7 +125,7 @@ static uintptr_t udp_recv(void *pdata){
       orchestra[received] = '\0'; // terminate string
       if(strlen(orchestra) < 2) continue;
       if (csound->oparms->echo)
-        csound->Message(csound, "%s", orchestra);
+        csoundMessage(csound, "%s", orchestra);
       if (strncmp("!!close!!",orchestra,9)==0 ||
           strncmp("##close##",orchestra,9)==0) {
         csoundInputMessageAsync(csound, "e 0 0");
@@ -149,7 +150,7 @@ static uintptr_t udp_recv(void *pdata){
         sscanf(orchestra+1, "%s", chn);
         str = cs_strdup(csound, orchestra+1+strlen(chn));
         csoundSetStringChannel(csound, chn, str);
-        csound->Free(csound, str);
+        mfree(csound, str);
       }
       else if(*orchestra == ':') {
         char addr[128], chn[128], *msg;
@@ -160,7 +161,7 @@ static uintptr_t udp_recv(void *pdata){
         sport = atoi(orchestra+3+strlen(addr)+strlen(chn));
         if(*(orchestra+1) == '@') {
           val = csoundGetControlChannel(csound, chn, &err);
-          msg = (char *) csound->Calloc(csound, strlen(chn) + 32);
+          msg = (char *) mcalloc(csound, strlen(chn) + 32);
           sprintf(msg, "%s::%f", chn, val);
         }
         else if (*(orchestra+1) == '%') {
@@ -172,7 +173,7 @@ static uintptr_t udp_recv(void *pdata){
             int size = stringdat->size;
             spin_lock_t *lock =
               (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
-            msg = (char *) csound->Calloc(csound, strlen(chn) + size);
+            msg = (char *) mcalloc(csound, strlen(chn) + size);
             if (lock != NULL)
               csoundSpinLock(lock);
             sprintf(msg, "%s::%s", chn, stringdat->data);
@@ -183,10 +184,10 @@ static uintptr_t udp_recv(void *pdata){
         else err = -1;
         if(!err) {
           udp_socksend(csound, &sock, addr, sport,msg);
-          csound->Free(csound, msg);
+          mfree(csound, msg);
         }
         else
-          csound->Warning(csound, Str("could not retrieve channel %s"), chn);
+          csoundWarning(csound, Str("could not retrieve channel %s"), chn);
       }
       else if(*orchestra == '{' || cont) {
         char *cp;
@@ -205,19 +206,19 @@ static uintptr_t udp_recv(void *pdata){
         }
         if(!cont) {
           orchestra = start;
-          //csound->Message(csound, "%s\n", orchestra+1);
+          //csoundMessage(csound, "%s\n", orchestra+1);
           csoundCompileOrcAsync(csound, orchestra+1);
         }
       }
       else {
-        //csound->Message(csound, "%s\n", orchestra);
+        //csoundMessage(csound, "%s\n", orchestra);
         csoundCompileOrcAsync(csound, orchestra);
       }
     }
   }
-  csound->Message(csound, Str("UDP server on port %d stopped\n"),port);
-  csound->Free(csound, start);
-  // csound->Message(csound, "orchestra dealloc\n");
+  csoundMessage(csound, Str("UDP server on port %d stopped\n"),port);
+  mfree(csound, start);
+  // csoundMessage(csound, "orchestra dealloc\n");
   if(sock > 0)
 #ifndef _WIN32
     close(sock);
@@ -234,7 +235,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   WSADATA wsaData = {0};
   int err;
   if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)){
-    csound->Warning(csound, Str("Winsock2 failed to start: %d"), err);
+    csoundWarning(csound, Str("Winsock2 failed to start: %d"), err);
     return CSOUND_ERROR;
   }
 #endif
@@ -242,7 +243,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef _WIN32
   if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0)) {
-    csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+    csoundWarning(csound, Str("UDP Server: Cannot set nonblock"));
     if (p->sock>=0) close(p->sock);
     return CSOUND_ERROR;
   }
@@ -251,14 +252,14 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
     u_long argp = 1;
     err = ioctlsocket(p->sock, FIONBIO, &argp);
     if (UNLIKELY(err != NO_ERROR)) {
-      csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
+      csoundWarning(csound, Str("UDP Server: Cannot set nonblock"));
       closesocket(p->sock);
       return CSOUND_ERROR;
     }
   }
 #endif
   if (UNLIKELY(p->sock < 0)) {
-    csound->Warning(csound, Str("error creating socket"));
+    csoundWarning(csound, Str("error creating socket"));
     return CSOUND_ERROR;
   }
   /* create server address: where we want to send to and clear it out */
@@ -269,7 +270,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   /* associate the socket with the address and port */
   if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                     sizeof(p->server_addr)) < 0)) {
-    csound->Warning(csound, Str("bind failed"));
+    csoundWarning(csound, Str("bind failed"));
     p->thrid = NULL;
 #ifndef _WIN32
     close(p->sock);
@@ -287,7 +288,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
 
 int csoundUDPServerClose(CSOUND *csound)
 {
-  UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
+  UDPCOM *p = (UDPCOM *) csoundQueryGlobalVariable(csound,"::UDPCOM");
   if (p != NULL) {
     /* unset status flag */
     p->status = 0;
@@ -299,7 +300,7 @@ int csoundUDPServerClose(CSOUND *csound)
 #else
     closesocket(p->sock);
 #endif
-    csound->DestroyGlobalVariable(csound,"::UDPCOM");
+    csoundDestroyGlobalVariable(csound,"::UDPCOM");
     return CSOUND_SUCCESS;
   }
   else return CSOUND_ERROR;
@@ -307,32 +308,32 @@ int csoundUDPServerClose(CSOUND *csound)
 
 int csoundUDPServerStart(CSOUND *csound, unsigned int port){
   UDPCOM *connection;
-  csound->CreateGlobalVariable(csound, "::UDPCOM", sizeof(UDPCOM));
-  connection = (UDPCOM *) csound->QueryGlobalVariable(csound, "::UDPCOM");
+  csoundCreateGlobalVariable(csound, "::UDPCOM", sizeof(UDPCOM));
+  connection = (UDPCOM *) csoundQueryGlobalVariable(csound, "::UDPCOM");
   if (connection != NULL){
     connection->port = port;
     if(connection->status) {
-      csound->Warning(csound,  Str("UDP Server: already running"));
+      csoundWarning(csound,  Str("UDP Server: already running"));
       return CSOUND_ERROR;
     }
     else {
       int res = udp_start(csound, connection);
       if (res  != CSOUND_SUCCESS) {
-        csound->Warning(csound,  Str("UDP Server: could not start"));
-        csound->DestroyGlobalVariable(csound,"::UDPCOM");
+        csoundWarning(csound,  Str("UDP Server: could not start"));
+        csoundDestroyGlobalVariable(csound,"::UDPCOM");
         return CSOUND_ERROR;
       }
       else return CSOUND_SUCCESS;
     }
   }
   else {
-    csound->Warning(csound,  Str("UDP Server: failed to allocate memory"));
+    csoundWarning(csound,  Str("UDP Server: failed to allocate memory"));
     return CSOUND_ERROR;
   }
 }
 
 int csoundUDPServerStatus(CSOUND *csound) {
-  UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
+  UDPCOM *p = (UDPCOM *) csoundQueryGlobalVariable(csound,"::UDPCOM");
   if (p != NULL) {
     return p->port;
   }
@@ -352,7 +353,7 @@ typedef struct {
 static void udp_msg_callback(CSOUND *csound, int attr, const char *format,
                              va_list args) {
   UDPCONS *p;
-  p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
+  p = (UDPCONS *) csoundQueryGlobalVariable(csound, "::UDPCONS");
   if(p) {
     char string[UDPMSG];
     va_list nargs;
@@ -374,7 +375,7 @@ static int udp_console_stop(CSOUND *csound, void *pp) {
 #else
     closesocket(p->sock);
 #endif
-    csound->DestroyGlobalVariable(csound,"::UDPCONS");
+    csoundDestroyGlobalVariable(csound,"::UDPCONS");
   }
   return CSOUND_SUCCESS;
 }
@@ -382,20 +383,20 @@ static int udp_console_stop(CSOUND *csound, void *pp) {
 
 int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
                      mirror) {
-  UDPCONS *p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
+  UDPCONS *p = (UDPCONS *) csoundQueryGlobalVariable(csound, "::UDPCONS");
   if(p == NULL) {
-    csound->CreateGlobalVariable(csound, "::UDPCONS", sizeof(UDPCONS));
-    p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
+    csoundCreateGlobalVariable(csound, "::UDPCONS", sizeof(UDPCONS));
+    p = (UDPCONS *) csoundQueryGlobalVariable(csound, "::UDPCONS");
     if(p) {
       p->port = port;
       p->addr = cs_strdup(csound, (char *) addr);
       p->sock = 0;
       if(mirror)
         p->cb = csound->csoundMessageCallback_;
-      csound->SetMessageCallback(csound, udp_msg_callback);
-      csound->RegisterResetCallback(csound, p, udp_console_stop);
+      csoundSetMessageCallback(csound, udp_msg_callback);
+      csoundRegisterResetCallback(csound, p, udp_console_stop);
     } else {
-      csound->Warning(csound, "Could not set UDP console\n");
+      csoundWarning(csound, "Could not set UDP console\n");
       return CSOUND_ERROR;
     }
     return CSOUND_SUCCESS;
@@ -405,8 +406,8 @@ int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
 
 void csoundStopUDPConsole(CSOUND *csound) {
   UDPCONS *p;
-  csound->CreateGlobalVariable(csound, "::UDPCONS", sizeof(UDPCONS));
-  p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
+  csoundCreateGlobalVariable(csound, "::UDPCONS", sizeof(UDPCONS));
+  p = (UDPCONS *) csoundQueryGlobalVariable(csound, "::UDPCONS");
   udp_console_stop(csound, p);
 }
 

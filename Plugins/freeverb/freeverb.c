@@ -23,6 +23,8 @@
 
 #include "csdl.h"
 #include <math.h>
+#include "auxfd.h"
+#include "insert_public.h"
 
 #define DEFAULT_SRATE   44100.0
 #define STEREO_SPREAD   23.0
@@ -131,7 +133,7 @@ static int32_t freeverb_init(CSOUND *csound, FREEVERB *p)
     nbytes += (int32_t) sizeof(MYFLT) * (int32_t) CS_KSMPS;
     /* allocate space if size has changed */
     if (nbytes != (int32_t) p->auxData.size)
-      csound->AuxAlloc(csound, (int32) nbytes, &(p->auxData));
+      csoundAuxAlloc(csound, (int32) nbytes, &(p->auxData));
     else if (*(p->iSkipInit) != FL(0.0))    /* skip initialisation */
       return OK;                            /*   if requested      */
     /* set up comb and allpass filters */
@@ -268,7 +270,7 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("freeverb: not initialised"));
 }
 

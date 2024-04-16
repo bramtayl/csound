@@ -34,6 +34,8 @@
 #include "interlocks.h"
 
 #include <math.h>
+#include "auxfd.h"
+#include "insert_public.h"
 
 
 typedef struct {
@@ -47,7 +49,7 @@ static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
     p->maxamplitude = *p->ifullscale;
     if (UNLIKELY(p->maxamplitude<= 0.0))
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("powershape: ifullscale must be strictly positive"));
     p->one_over_maxamp = FL(1.0) / p->maxamplitude;
     return OK;
@@ -108,7 +110,7 @@ static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t   ncoeff =    /* index of the last coefficient */
-                   csound->GetInputArgCnt(p) - 2;
+                   csoundGetInputArgCnt(p) - 2;
     MYFLT *out = p->aout;
     MYFLT *in = p->ain;
     MYFLT **coeff = p->kcoefficients;
@@ -141,12 +143,12 @@ typedef struct {
 
 static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
 {
-    int32_t     ncoeff = csound->GetInputArgCnt(p) - 1;
+    int32_t     ncoeff = csoundGetInputArgCnt(p) - 1;
 
     /* Need two MYFLT arrays of length ncoeff: first for the coefficients
        of the sum of polynomials, and the second for the coefficients of
        the individual chebyshev polynomials as we are adding them up. */
-    csound->AuxAlloc(csound, (2*ncoeff + 1)*sizeof(MYFLT), &(p->coeff));
+    csoundAuxAlloc(csound, (2*ncoeff + 1)*sizeof(MYFLT), &(p->coeff));
     p->chebn = ((MYFLT*)p->coeff.auxp) + ncoeff;
     return OK;
 }
@@ -162,7 +164,7 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t     ncoeff =            /* index of the last coefficient */
-                     csound->GetInputArgCnt(p) - 2;
+                     csoundGetInputArgCnt(p) - 2;
     MYFLT   *out = p->aout;
     MYFLT   *in = p->ain;
     MYFLT   **chebcoeff = p->kcoefficients;
@@ -426,7 +428,7 @@ int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 
     if ((phs = *p->initphase) >= FL(0.0)) {
       if (UNLIKELY((longphs = (int32)phs))) {
-        csound->Warning(csound, Str("init phase truncation\n"));
+        csoundWarning(csound, Str("init phase truncation\n"));
       }
       p->curphase = phs - (MYFLT)longphs;
     }

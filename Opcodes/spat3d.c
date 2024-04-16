@@ -28,6 +28,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include "memalloc.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 #define CSOUND_SPAT3D_C 1
 
@@ -46,7 +49,7 @@ static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 
     i = ((o + 1) * (sizeof(int32_t) + sizeof(MYFLT)));      /* allocate */
     if ((p->fltr.auxp == NULL) || (p->fltr.size < (uint32_t)i)) /* space */
-      csound->AuxAlloc(csound, i, &(p->fltr));
+      csoundAuxAlloc(csound, i, &(p->fltr));
     p->sample = (int32_t *) p->fltr.auxp;             /* sample number */
     p->window = (MYFLT *) (p->sample + o + 1);        /* window value  */
 
@@ -240,7 +243,7 @@ static int32_t spat3d_init_delay(CSOUND *csound, SPAT3D *p)
     if (p->o_num == 1) i += 4;      /* extra samples for spat3d */
     j = i * (int32_t) sizeof(MYFLT) * (int32_t) (p->zout > 3 ? 4 : p->zout + 1);
     if ((p->del.auxp == NULL) || (p->del.size < (uint32_t)j)) /* allocate */
-      csound->AuxAlloc(csound, j, &(p->del));               /* space    */
+      csoundAuxAlloc(csound, j, &(p->del));               /* space    */
     p->Wb = (MYFLT *) p->del.auxp;                  /* W */
     if (p->zout > 0) p->Yb = p->Wb + i;             /* Y */
     if (p->zout > 1) p->Xb = p->Yb + i;             /* X */
@@ -359,7 +362,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
         p->mdist = p->ftable[4];
       p->rseed = (int32_t) MYFLT2LRND(p->ftable[5]);     /* seed      */
       if (p->rseed < 0L)
-        p->rseed = (int32_t) csound->GetRandomSeedFromTime() & 0xFFFFL;
+        p->rseed = (int32_t) csoundGetRandomSeedFromTime() & 0xFFFFL;
       for (i = 6; i; i--) {                   /* wall mask         */
         wmask <<= 1; if (p->ftable[i*8 - 2] > FL(0.5)) wmask++;
       }
@@ -384,11 +387,11 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
       i = d = 0; spat3d_count_refl(&i, &d, 0, p->maxdep, 0, wmask);
       i *= (int32_t) sizeof(SPAT3D_WALL);
       if ((p->ws.auxp == NULL) || (p->ws.size < (uint32_t)i))
-        csound->AuxAlloc(csound, i, &(p->ws));
+        csoundAuxAlloc(csound, i, &(p->ws));
       i = (int32_t) p->bs * (int32_t) d;
       i *= (int32_t) sizeof(MYFLT);
       if ((p->y.auxp == NULL) || (p->y.size < (uint32_t)i))
-        csound->AuxAlloc(csound, i, &(p->y));
+        csoundAuxAlloc(csound, i, &(p->y));
     }
     return OK;
 }
@@ -668,7 +671,7 @@ static int32_t    spat3d(CSOUND *csound, SPAT3D *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csoundPerfError(csound, &(p->h), "%s",
                              Str("spat3d: not initialised"));
 }
 
@@ -789,7 +792,7 @@ static int32_t    spat3di(CSOUND *csound, SPAT3D *p)
     } while (--nn);
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csoundPerfError(csound, &(p->h), "%s",
                              Str("spat3di: not initialised"));
 }
 
@@ -864,7 +867,7 @@ static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
 
     /* initialise IR */
 
-    ir = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT) * (int32_t) p->bs);
+    ir = (MYFLT *) mmalloc(csound, sizeof(MYFLT) * (int32_t) p->bs);
     ir[0] = FL(1.0);
     wmax = 0; while (++wmax <  p->bs)
       ir[wmax] = (sizeof(MYFLT) < 8 ? FL(1.0e-24) : FL(1.0e-48));
@@ -877,7 +880,7 @@ static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
 
     spat3dt_wall_perf(p, ir, (SPAT3D_WALL *) p->ws.auxp);
 
-    csound->Free(csound, ir);               /* free tmp memory */
+    mfree(csound, ir);               /* free tmp memory */
     return OK;
 }
 
@@ -895,7 +898,7 @@ static OENTRY localops[] =
 
 int32_t spat3d_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

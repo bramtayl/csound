@@ -31,12 +31,14 @@
 #include "std_util.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include "utility.h"
+#include "memfiles.h"
 
 #define END  32767
 
 void het_export_usage(CSOUND *csound)
 {
-    csound->Message(csound, "%s", Str("Usage: het_export het_file cstext_file\n"));
+    csoundMessage(csound, "%s", Str("Usage: het_export het_file cstext_file\n"));
 }
 
 static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
@@ -51,14 +53,14 @@ static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
       het_export_usage(csound);
       return 1;
     }
-    inf = csound->ldmemfile2withCB(csound, argv[1], CSFTYPE_HETRO,NULL);
+    inf = ldmemfile2withCB(csound, argv[1], CSFTYPE_HETRO,NULL);
     if (UNLIKELY(inf == NULL)) {
-      csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
+      csoundMessage(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
     outf = fopen(argv[2], "w");
     if (UNLIKELY(outf == NULL)) {
-      csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
+      csoundMessage(csound, Str("Cannot open output file %s\n"), argv[2]);
       return 1;
     }
     adp = (int16 *) inf->beginp;
@@ -78,10 +80,10 @@ static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t het_export_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "het_export", het_export);
+    int32_t retval = csoundAddUtility(csound, "het_export", het_export);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "het_export",
+        csoundSetUtilityDescription(csound, "het_export",
                                       Str("translate hetro analysis file "
                                           "to text form"));
     }

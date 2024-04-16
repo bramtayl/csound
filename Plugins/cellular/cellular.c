@@ -24,6 +24,9 @@
 
 #include "csdl.h"
 #include "interlocks.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 // classical 1-D Cellular Automaton by Gleb Rogozinsky.
 // It is the modified version of vcella opcode by Gabriel Maldonado
@@ -43,32 +46,32 @@ static int32_t cell_set(CSOUND *csound,CELL *p)
     int32_t elements=0;
     MYFLT *currLine, *initVec = NULL;
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound,p->ioutFunc)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Finde(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
       elements = (p->elements = (int32_t) *p->ielements);
 
       if (UNLIKELY( elements > (int32_t)ftp->flen ))
-        return csound->InitError(csound, "%s",
+        return csoundInitError(csound, "%s",
                                  Str("cell: invalid num of elements"));
     }
-    else return csound->InitError(csound, "%s", Str("cell: invalid output table"));
-    if (LIKELY((ftp = csound->FTnp2Finde(csound,p->initStateFunc)) != NULL)) {
+    else return csoundInitError(csound, "%s", Str("cell: invalid output table"));
+    if (LIKELY((ftp = csoundFTnp2Finde(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
       if (UNLIKELY(elements > (int32_t)ftp->flen ))
-        return csound->InitError(csound, "%s",
+        return csoundInitError(csound, "%s",
                                  Str("cell: invalid num of elements"));
     }
     else
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("cell: invalid initial state table"));
-    if (LIKELY((ftp = csound->FTnp2Finde(csound,p->iRuleFunc)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Finde(csound,p->iRuleFunc)) != NULL)) {
       p->ruleVec = ftp->ftable;
     }
     else
-      return csound->InitError(csound, "%s", Str("cell: invalid rule table"));
+      return csoundInitError(csound, "%s", Str("cell: invalid rule table"));
 
     if (p->auxch.auxp == NULL)
-      csound->AuxAlloc(csound, elements * sizeof(MYFLT) * 2, &p->auxch);
+      csoundAuxAlloc(csound, elements * sizeof(MYFLT) * 2, &p->auxch);
     currLine = (p->currLine = (MYFLT *) p->auxch.auxp);
     p->NewOld = 0;
     memcpy(currLine, initVec, sizeof(MYFLT)*elements);

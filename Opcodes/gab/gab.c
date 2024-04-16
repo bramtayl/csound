@@ -33,6 +33,9 @@
 #include "gab.h"
 #include <math.h>
 #include "interlocks.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 #define FLT_MAX ((MYFLT)0x7fffffff)
 
@@ -45,10 +48,10 @@ static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
       p->loop = 4; /*default value*/
     if (!*p->istor && (p->aux.auxp == NULL ||
                        (uint32_t)(p->loop*2*sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (int64_t)(p->loop*2*sizeof(MYFLT)), &p->aux);
+      csoundAuxAlloc(csound, (int64_t)(p->loop*2*sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
-      return csound->InitError(csound,Str("illegal reson iscl value, %f"),
+      return csoundInitError(csound,Str("illegal reson iscl value, %f"),
                                *p->iscl);
     }
     if (LIKELY(!(*p->istor))) {
@@ -109,8 +112,8 @@ static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modifie
 static int32_t fastab_set(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
-      return csound->InitError(csound, Str("fastab: incorrect table number"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->xfn)) == NULL)) {
+      return csoundInitError(csound, Str("fastab: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->tablen = ftp->flen;
@@ -127,7 +130,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    FUNC *ftp = csound->FTnp2Finde(csound, p->xfn);
+    FUNC *ftp = csoundFTnp2Finde(csound, p->xfn);
     p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
@@ -140,8 +143,8 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
       for (n=offset; n<nsmps; n++)  { /* for loops compile better */
         int32_t i = (int32_t)MYFLT2LRND(ndx[n]*xbmul);
         if (UNLIKELY(i > len || i<0)) {
-          csound->Message(csound, "ndx: %f\n", ndx[n]);
-          return csound->PerfError(csound, &(p->h), Str("tabw off end"));
+          csoundMessage(csound, "ndx: %f\n", ndx[n]);
+          return csoundPerfError(csound, &(p->h), Str("tabw off end"));
         }
         tab[i] = rslt[n];
       }
@@ -151,7 +154,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
       for (n=offset; n<nsmps; n++) {
         int32_t i = MYFLT2LRND(ndx[n]);
         if (UNLIKELY(i > len || i<0)) {
-          return csound->PerfError(csound, &(p->h), Str("tabw off end"));
+          return csoundPerfError(csound, &(p->h), Str("tabw off end"));
         }
         tab[i] = rslt[n];
       }
@@ -167,7 +170,7 @@ static int32_t fastabk(CSOUND *csound, FASTAB *p)
     else
       i = (int32_t) MYFLT2LRND(*p->xndx);
     if (UNLIKELY(i > p->tablen || i<0)) {
-      return csound->PerfError(csound, &(p->h), Str("tab off end %i"), i);
+      return csoundPerfError(csound, &(p->h), Str("tab off end %i"), i);
     }
     *p->rslt =  p->table[i];
     return OK;
@@ -181,7 +184,7 @@ static int32_t fastabkw(CSOUND *csound, FASTAB *p)
     else
       i = (int32_t) MYFLT2LRND(*p->xndx);
     if (UNLIKELY(i > p->tablen || i<0)) {
-      return csound->PerfError(csound, &(p->h), Str("tabw off end"));
+      return csoundPerfError(csound, &(p->h), Str("tabw off end"));
     }
     p->table[i] = *p->rslt;
     return OK;
@@ -192,15 +195,15 @@ static int32_t fastabi(CSOUND *csound, FASTAB *p)
     FUNC *ftp;
     int32 i;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
-      return csound->InitError(csound, Str("tab_i: incorrect table number"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->xfn)) == NULL)) {
+      return csoundInitError(csound, Str("tab_i: incorrect table number"));
     }
     if (*p->ixmode)
       i = (int32) MYFLT2LRND(*p->xndx * ftp->flen);
     else
       i = (int32) MYFLT2LRND(*p->xndx);
     if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
-      return csound->InitError(csound, Str("tab_i off end: table number: %d\n"),
+      return csoundInitError(csound, Str("tab_i off end: table number: %d\n"),
                                (int32_t) *p->xfn);
     }
     *p->rslt =  ftp->ftable[i];
@@ -211,16 +214,16 @@ static int32_t fastabiw(CSOUND *csound, FASTAB *p)
 {
     FUNC *ftp;
     int32 i;
-    /*ftp = csound->FTFind(p->xfn); */
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
-      return csound->InitError(csound, Str("tabw_i: incorrect table number"));
+    /*ftp = csoundFTFind(p->xfn); */
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->xfn)) == NULL)) {
+      return csoundInitError(csound, Str("tabw_i: incorrect table number"));
     }
     if (*p->ixmode)
       i = (int32) MYFLT2LRND(*p->xndx * ftp->flen);
     else
       i = (int32) MYFLT2LRND(*p->xndx);
     if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
-      return csound->PerfError(csound, &(p->h), Str("tabw_i off end"));
+      return csoundPerfError(csound, &(p->h), Str("tabw_i off end"));
     }
     ftp->ftable[i] = *p->rslt;
     return OK;
@@ -231,7 +234,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    FUNC *ftp = csound->FTnp2Finde(csound, p->xfn);
+    FUNC *ftp = csoundFTnp2Finde(csound, p->xfn);
     p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
@@ -246,7 +249,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
       for (i=offset; i<nsmps; i++) {
         int32_t n = (int32_t) MYFLT2LRND(ndx[i] * xbmul);
         if (UNLIKELY(n > len || n<0)) {
-          return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
+          return csoundPerfError(csound, &(p->h), Str("tab off end %d"),n);
         }
         rslt[i] = tab[n];
       }
@@ -256,7 +259,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
       for (i=offset; i<nsmps; i++) {
         int32_t n = (int32_t) MYFLT2LRND(ndx[i]);
         if (UNLIKELY(n > len || n<0)) {
-          return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
+          return csoundPerfError(csound, &(p->h), Str("tab off end %d"),n);
         }
         rslt[i] = tab[n];
       }
@@ -269,7 +272,7 @@ static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
     MYFLT             *ft;
     STDOPCOD_GLOBALS  *pp;
     if (UNLIKELY(csoundGetTable(csound, &ft, MYFLT2LRND(*p->ifn)) < 0))
-      return csound->InitError(csound, Str("tab_init: incorrect table number"));
+      return csoundInitError(csound, Str("tab_init: incorrect table number"));
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     pp->tb_ptrs[ndx] = ft;
     return OK;
@@ -424,56 +427,56 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
 
     p->inerr = 0;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
     }
     else {
       p->inerr = 1;
-      return csound->InitError(csound, Str("adsynt2: wavetable not found!"));
+      return csoundInitError(csound, Str("adsynt2: wavetable not found!"));
     }
 
     count = (uint32_t)*p->icnt;
     if (UNLIKELY(count < 1)) count = 1;
     p->count = count;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifreqtbl)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ifreqtbl)) != NULL)) {
       p->freqtp = ftp;
     }
     else {
       p->inerr = 1;
-      return csound->InitError(csound, Str("adsynt2: freqtable not found!"));
+      return csoundInitError(csound, Str("adsynt2: freqtable not found!"));
     }
     if (UNLIKELY(ftp->flen < count)) {
       p->inerr = 1;
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("adsynt2: partial count is greater "
                                    "than freqtable size!"));
     }
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->iamptbl)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->iamptbl)) != NULL)) {
       p->amptp = ftp;
     }
     else {
       p->inerr = 1;
-      return csound->InitError(csound, Str("adsynt2: amptable not found!"));
+      return csoundInitError(csound, Str("adsynt2: amptable not found!"));
     }
     if (UNLIKELY(ftp->flen < count)) {
       p->inerr = 1;
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("adsynt2: partial count is greater "
                                    "than amptable size!"));
     }
 
     if (p->lphs.auxp==NULL ||
         p->lphs.size < sizeof(int32)*count)
-      csound->AuxAlloc(csound, sizeof(int32)*count, &p->lphs);
+      csoundAuxAlloc(csound, sizeof(int32)*count, &p->lphs);
     lphs = (int32*)p->lphs.auxp;
 
     if (iphs > 1) {
       uint32_t c;
       for (c=0; c<count; c++) {
         lphs[c] = ((int32)
-                   ((MYFLT) ((double) (csound->Rand31(&(csound->randSeed1)) - 1)
+                   ((MYFLT) ((double) (csoundRand31(&(csound->randSeed1)) - 1)
                              / 2147483645.0) * FMAXLEN)) & PHMASK;
       }
     }
@@ -485,7 +488,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
     if (p->pamp.auxp==NULL ||
         p->pamp.size < (uint32_t)(sizeof(MYFLT)*p->count))
-      csound->AuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
+      csoundAuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
     else  if (iphs >= 0)        /* AuxAlloc clear anyway */
       memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
     return OK;
@@ -506,7 +509,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
     /* I believe this can never happen as InitError will remove instance */
     /* The check should be on p->amptp and p->freqtp  -- JPff            */
     if (UNLIKELY(p->inerr || p->amptp==NULL || p->freqtp==NULL)) {
-      return csound->InitError(csound, Str("adsynt2: not initialised"));
+      return csoundInitError(csound, Str("adsynt2: not initialised"));
     }
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -551,7 +554,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
 static int32_t exitnow(CSOUND *csound, EXITNOW *p)
 {
     (void) p;
-    csound->LongJmp(csound, MYFLT2LRND(*p->retval));
+    csoundLongJmp(csound, MYFLT2LRND(*p->retval));
     return OK;  /* compiler only */
 }
 
@@ -572,7 +575,7 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
         int32_t flen;
         if (UNLIKELY((flen = csoundGetTable(csound,&(p->table),
                                             (int32_t)*p->kfn)) < 0))
-          return csound->PerfError(csound, &(p->h),
+          return csoundPerfError(csound, &(p->h),
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (int64_t) flen;
         *(p->table++) = *p->numtics;
@@ -608,8 +611,8 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
 static int32_t tabplay_set(CSOUND *csound,TABPLAY *p)
 {
     /*   FUNC *ftp; */
-    /* if ((ftp = csound->FTFind(p->ifn)) == NULL) { */
-    /*   csound->InitError(csound, Str("tabplay: incorrect table number")); */
+    /* if ((ftp = csoundFTFind(p->ifn)) == NULL) { */
+    /*   csoundInitError(csound, Str("tabplay: incorrect table number")); */
     /*   return; */
     /* } */
     /*  p->table = ftp->ftable; */
@@ -629,7 +632,7 @@ static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
         int32_t flen;
         if (UNLIKELY((flen = csoundGetTable(csound, &(p->table),
                                             (int32_t)*p->kfn)) < 0))
-          return csound->PerfError(csound, &(p->h),
+          return csoundPerfError(csound, &(p->h),
                                    Str("Invalid ftable no. %f"), *p->kfn);
         p->tablen = (int64_t) flen;
         p->currtic = 0;
@@ -711,7 +714,7 @@ static int32_t isAChanged_set(CSOUND *csound, ISACHANGED *p)
     //char *tmp;
     for (i=0; i<arr->dimensions; i++) size += arr->sizes[i];
     size *= arr->arrayMemberSize;
-    csound->AuxAlloc(csound, size, &p->old_chk);
+    csoundAuxAlloc(csound, size, &p->old_chk);
     /* tmp = (char*)p->old_chk.auxp; */
     /* for (i=0; i<size; i++) tmp[i]=rand()&0xff; */
     /* memset(p->old_chk.auxp, '\0', size); */
@@ -794,7 +797,7 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
       }
       break;
     default:
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("max_k: invalid imaxflag value"));
     }
     if (*p->ktrig) {
@@ -949,7 +952,7 @@ OENTRY gab_localops[] = {
 
 int32_t gab_gab_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(gab_localops[0]),
+    return csoundAppendOpcodes(csound, &(gab_localops[0]),
                                  (int32_t) (sizeof(gab_localops) / sizeof(OENTRY)));
 }
 

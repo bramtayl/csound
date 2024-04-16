@@ -23,6 +23,7 @@
 
 //#include "csdl.h"
 #include "csdl.h"
+#include "linevent_public.h"
 //extern void csoundInputMessageInternal(CSOUND *, const char *);
 
 typedef struct _inmess {
@@ -39,24 +40,24 @@ typedef struct _scorepos {
 
 int32_t messi(CSOUND *csound, INMESS *p)
 {
-    csound->InputMessage(csound, (char *)p->SMess->data);
+    csoundInputMessageInternal(csound, (char *)p->SMess->data);
     return OK;
 }
 
 int32_t messk(CSOUND *csound, INMESS *p){
-    if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess->data);
+    if (*p->ktrig) csoundInputMessageInternal(csound, (char *)p->SMess->data);
     return OK;
 }
 
 int32_t setscorepos(CSOUND *csound, SCOREPOS *p){
-    csound->SetScoreOffsetSeconds(csound, *p->spos);
+    csoundSetScoreOffsetSeconds(csound, *p->spos);
     return OK;
 }
 
 int32_t
 rewindscore(CSOUND *csound, SCOREPOS *p){
     IGN(p);
-    csound->RewindScore(csound);
+    csoundRewindScore(csound);
     return OK;
 }
 

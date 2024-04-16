@@ -24,6 +24,7 @@
 #include "interlocks.h"
 #include "bbcut.h"
 #include <math.h>
+#include "auxfd.h"
 
 /* my auxilliary functions */
 
@@ -39,14 +40,14 @@ static inline int32_t roundoffint(MYFLT x)
 static int32_t random_number(CSOUND *csound, int32_t a, int32_t b)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
+    x = (MYFLT) (csoundRand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
     return roundoffint((MYFLT) a + x * (MYFLT) (b - a));
 }
 
 static MYFLT myfltrandom(CSOUND *csound, MYFLT a, MYFLT b)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
+    x = (MYFLT) (csoundRand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
     return (a + x * (b - a));
 }
 
@@ -59,7 +60,7 @@ static int32_t BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 
     /* allocate space for a 256 point quarter sine/ exponential wavetable  */
 /*     if (p->envbuffer.auxp == NULL) { */
-/*       csound->AuxAlloc(csound, 256*sizeof(MYFLT),&p->envbuffer); */
+/*       csoundAuxAlloc(csound, 256*sizeof(MYFLT),&p->envbuffer); */
 
 /*       for (i=0;i<256;++i) { */
 /*         t= (PI*0.5*(MYFLT)i)/255.0; */
@@ -81,7 +82,7 @@ static int32_t BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
        tempo and barlength */
     M = ((size_t)(CS_ESR*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
-      csound->AuxAlloc(csound, M, &p->repeatbuffer);
+      csoundAuxAlloc(csound, M, &p->repeatbuffer);
     }
 
     p->repeatsampdone = 0;
@@ -294,7 +295,7 @@ static int32_t BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
 
        /* allocate space for a 256 point quarter sine/ exponential wavetable  */
 /*     if (p->envbuffer.auxp == NULL) { */
-/*       csound->AuxAlloc(csound, ((int32_t)(256*sizeof(MYFLT),&p->envbuffer); */
+/*       csoundAuxAlloc(csound, ((int32_t)(256*sizeof(MYFLT),&p->envbuffer); */
 
 /*                 for (i=0;i<256;++i) */
 /*       { */
@@ -320,7 +321,7 @@ static int32_t BBCutStereoInit(CSOUND *csound, BBCUTSTEREO * p)
     M = 2*((size_t)(CS_ESR*(*p->barlength)/(*p->bps)))*sizeof(MYFLT);
     if (p->repeatbuffer.auxp == NULL || p->repeatbuffer.size<M) {
       /* multiply by 2 for stereo buffer */
-      csound->AuxAlloc(csound, M, &p->repeatbuffer);
+      csoundAuxAlloc(csound, M, &p->repeatbuffer);
     }
 
     p->repeatsampdone = 0;
@@ -544,7 +545,7 @@ static OENTRY localops[] = {
 
 int32_t bbcut_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

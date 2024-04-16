@@ -85,7 +85,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
           sscanf(s, "%d", &i);
           //printf("i: %d\n", i);
           if (LIKELY(i>=0 && i < INSMAX)) extractStatics->inslst[i] = 1;
-          else csound->Message(csound, Str("instrument number out of range"));
+          else csoundMessage(csound, Str("instrument number out of range"));
           all = 0;
           break;
         case 'f':

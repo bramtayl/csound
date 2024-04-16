@@ -18,8 +18,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "modmatrix.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
-#define INITERROR(x) csound->InitError(csound, Str("modmatrix: " x))
+#define INITERROR(x) csoundInitError(csound, Str("modmatrix: " x))
 
 #if defined(__SSE2__)
 #include <emmintrin.h>
@@ -31,10 +34,10 @@ static int32_t modmatrix_init(CSOUND *csound, MODMATRIX *m)
 {
     uint32_t size;
 
-    m->restab = csound->FTnp2Find(csound, m->ires);
-    m->modtab = csound->FTnp2Find(csound, m->imod);
-    m->parmtab = csound->FTnp2Find(csound, m->iparm);
-    m->mattab = csound->FTnp2Find(csound, m->imatrix);
+    m->restab = csoundFTnp2Find(csound, m->ires);
+    m->modtab = csoundFTnp2Find(csound, m->imod);
+    m->parmtab = csoundFTnp2Find(csound, m->iparm);
+    m->mattab = csoundFTnp2Find(csound, m->imatrix);
     if (UNLIKELY(!m->restab))
         return INITERROR("unable to load result table");
     if (UNLIKELY(!m->modtab))
@@ -57,7 +60,7 @@ static int32_t modmatrix_init(CSOUND *csound, MODMATRIX *m)
     size =  (m->nummod*m->numparm + m->nummod + m->numparm)*sizeof(MYFLT) +
             (m->nummod + m->numparm)*sizeof(int32_t);
     if (m->aux.auxp == NULL || m->aux.size < size)
-        csound->AuxAlloc(csound, size, &m->aux);
+        csoundAuxAlloc(csound, size, &m->aux);
     if (UNLIKELY(m->aux.auxp == NULL))
         return INITERROR("memory allocation error");
 

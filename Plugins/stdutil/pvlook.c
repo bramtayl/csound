@@ -31,6 +31,8 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <inttypes.h>
+#include "memalloc.h"
+#include "utility.h"
 
 typedef struct PVLOOK_ {
     CSOUND  *csound;
@@ -51,14 +53,14 @@ static CS_NOINLINE CS_PRINTF2 void pvlook_print(PVLOOK *p, const char *fmt, ...)
     len = (int32_t) vsnprintf(s, 1024, fmt, args);
     va_end(args);
  /* fprintf(p->outfd, "%s", s); */
-    p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "%s", s);
+    csoundMessageS(p->csound, CSOUNDMSG_ORCH, "%s", s);
     tmp = strrchr(s, '\n');
     if (tmp == NULL)
       p->linePos += len;
     else
       p->linePos = (len - (int32_t) (tmp - s)) - 1;
     if (p->linePos >= 70) {
-      p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "\n");
+      csoundMessageS(p->csound, CSOUNDMSG_ORCH, "\n");
       p->linePos = 0;
     }
 }
@@ -110,18 +112,18 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
 
     {
       int32_t   tmp = 0;
-      csound->SetConfigurationVariable(csound, "msg_color", (void*) &tmp);
+      csoundSetConfigurationVariable(csound, "msg_color", (void*) &tmp);
     }
 
     if (UNLIKELY(argc < 2)) {
       for (i = 0; pvlook_usage_txt[i] != NULL; i++)
-        csound->Message(csound, "%s\n", Str(pvlook_usage_txt[i]));
+        csoundMessage(csound, "%s\n", Str(pvlook_usage_txt[i]));
       return -1;
     }
 
-    if (UNLIKELY((fp = csound->PVOC_OpenFile(csound, argv[argc - 1],
+    if (UNLIKELY((fp = pvoc_openfile(csound, argv[argc - 1],
                                              &data, &fmt)) < 0)) {
-      csound->ErrorMsg(csound, Str("pvlook: Unable to open '%s'\n Does it exist?"),
+      csoundErrorMsg(csound, Str("pvlook: Unable to open '%s'\n Does it exist?"),
                                argv[argc - 1]);
       return -1;
     }
@@ -150,7 +152,7 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
     numBins = (lastBin - firstBin) + 1;
     if (firstFrame < 1)
       firstFrame = 1;
-    numframes = (int32_t) csound->PVOC_FrameCount(csound, fp);
+    numframes = (int32_t) pvoc_framecount(csound, fp);
     if (lastFrame > (uint32_t) numframes)
       lastFrame = (uint32_t) numframes;
     numframes = (lastFrame - firstFrame) + 1;
@@ -190,14 +192,14 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
       pvlook_print(&p, "; First Bin Shown: %d\n", (int32_t) firstBin);
       pvlook_print(&p, "; Number of Bins Shown: %d\n", (int32_t) numBins);
 /*    pvlook_print(&p, "; Frames in Analysis: %" PRId64d "\n",
-                   (int64_t) csound->PVOC_FrameCount(csound, fp)); */
+                   (int64_t) pvoc_framecount(csound, fp)); */
       pvlook_print(&p, "; First Frame Shown: %d\n", (int32_t) firstFrame);
       pvlook_print(&p, "; Number of Data Frames Shown: %d\n", (int32_t) numframes);
       framesize = data.nAnalysisBins * 2 * sizeof(float);
-      frames = (float*) csound->Malloc(csound, framesize * numframes);
+      frames = (float*) mmalloc(csound, framesize * numframes);
       for (j = 1; j < firstFrame; j++)
-        csound->PVOC_GetFrames(csound, fp, frames, 1);  /* Skip */
-      csound->PVOC_GetFrames(csound, fp, frames, numframes);
+        pvoc_getframes(csound, fp, frames, 1);  /* Skip */
+      pvoc_getframes(csound, fp, frames, numframes);
       for (k = (firstBin - 1); k < (int32_t) lastBin; k++) {
         pvlook_print(&p, "\nBin %d Freqs.\n", k + 1);
         for (j = 0; j < numframes; j++) {
@@ -211,16 +213,16 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
             pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]);
           else
             pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]
-                              * (float) csound->Get0dBFS(csound));
+                              * (float) csoundGet0dBFS(csound));
         }
         if (p.linePos != 0)
           pvlook_print(&p, "\n");
       }
-      csound->Free(csound, frames);
+      mfree(csound, frames);
     }
     pvlook_print(&p, "\n");
 
-    csound->PVOC_CloseFile(csound, fp);
+    pvoc_closefile(csound, fp);
     if (outfd != stdout)
       fclose(outfd);
 
@@ -231,9 +233,9 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
 
 int32_t pvlook_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "pvlook", pvlook);
+    int32_t retval = csoundAddUtility(csound, "pvlook", pvlook);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "pvlook",
+      retval = csoundSetUtilityDescription(csound, "pvlook",
                     "Prints information about PVOC analysis files");
     }
     return retval;

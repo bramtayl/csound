@@ -32,6 +32,7 @@
 #include "csoundCore_internal.h"
 #include <ctype.h>
 #include "interlocks.h"
+#include "memalloc.h"
 
 static int opcode_cmp_func(const void *a, const void *b)
 {
@@ -105,7 +106,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     }
     nBytes += sizeof(opcodeListEntry);
     /* allocate memory for opcode list */
-    lst = csound->Malloc(csound, nBytes);
+    lst = mmalloc(csound, nBytes);
     if (UNLIKELY(lst == NULL))
       return CSOUND_MEMORY;
     (*lstp) = (opcodeListEntry*) lst;
@@ -160,7 +161,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
 
 PUBLIC void csoundDisposeOpcodeList(CSOUND *csound, opcodeListEntry *lst)
 {
-    csound->Free(csound, lst);
+    mfree(csound, lst);
 }
 
 void list_opcodes(CSOUND *csound, int level)
@@ -173,7 +174,7 @@ void list_opcodes(CSOUND *csound, int level)
 
     cnt = csoundNewOpcodeList(csound, &lst);
     if (UNLIKELY(cnt <= 0)) {
-      csound->ErrorMsg(csound, Str("Error creating opcode list"));
+      csoundErrorMsg(csound, Str("Error creating opcode list"));
       csoundDisposeOpcodeList(csound, lst);
       return;
     }
@@ -189,15 +190,15 @@ void list_opcodes(CSOUND *csound, int level)
         k++;
         xlen = 0;
         if (!(k & 3))
-          csound->Message(csound, "\n");
+          csoundMessage(csound, "\n");
         else {
           if (len > 19) {
             xlen = len - 19;
             len = 19;
           }
-          csound->Message(csound, "%s", sp + len);
+          csoundMessage(csound, "%s", sp + len);
         }
-        csound->Message(csound, "%s", lst[j].opname);
+        csoundMessage(csound, "%s", lst[j].opname);
         len = (int) strlen(lst[j].opname) + xlen;
       }
       else {
@@ -206,25 +207,25 @@ void list_opcodes(CSOUND *csound, int level)
           //printf("dropping %s\n", lst[j].opname);
           continue;
         }
-        csound->Message(csound, "%s", lst[j].opname);
+        csoundMessage(csound, "%s", lst[j].opname);
         len = (int) strlen(lst[j].opname);
         if (len > 11) {
           xlen = len - 11;
           len = 11;
         }
-        csound->Message(csound, "%s", sp + (len + 8));
+        csoundMessage(csound, "%s", sp + (len + 8));
         if (ans == NULL || *ans == '\0') ans = "(null)";
         if (arg == NULL || *arg == '\0') arg = "(null)";
-        csound->Message(csound, "%s", ans);
+        csoundMessage(csound, "%s", ans);
         len = (int) strlen(ans) + xlen;
         len = (len < 11 ? len : 11);
         xlen = 0;
-        csound->Message(csound, "%s", sp + (len + 8));
-        csound->Message(csound, "%s\n", arg);
+        csoundMessage(csound, "%s", sp + (len + 8));
+        csoundMessage(csound, "%s\n", arg);
       }
       count++;
     }
-    csound->Message(csound, "\n");
-    csound->Message(csound, Str("%d opcodes\n\n"), count);
+    csoundMessage(csound, "\n");
+    csoundMessage(csound, Str("%d opcodes\n\n"), count);
     csoundDisposeOpcodeList(csound, lst);
 }

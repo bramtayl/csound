@@ -48,24 +48,24 @@ using namespace csound;
  */
 static void createBuss(CSOUND *csound, size_t buss) {
 #ifdef ENABLE_MIXER_IDEBUG
-  csound->Message(csound, "createBuss: csound %p buss %d...\n", csound, buss);
+  csoundMessage(csound, "createBuss: csound %p buss %d...\n", csound, buss);
 #endif
   std::map<CSOUND *, std::map<size_t, std::vector<std::vector<MYFLT>>>>
       *busses = 0;
   csound::QueryGlobalPointer(csound, "busses", busses);
   if ((*busses)[csound].find(buss) == (*busses)[csound].end()) {
-    size_t channels = csound->GetNchnls(csound);
-    size_t frames = csound->GetKsmps(csound);
+    size_t channels = csoundGetNchnls(csound);
+    size_t frames = csoundGetKsmps(csound);
     (*busses)[csound][buss].resize(channels);
     for (size_t channel = 0; channel < channels; channel++) {
       (*busses)[csound][buss][channel].resize(frames);
     }
 #ifdef ENABLE_MIXER_IDEBUG
-    csound->Message(csound, "createBuss: created buss.\n");
+    csoundMessage(csound, "createBuss: created buss.\n");
 #endif
   } else {
 #ifdef ENABLE_MIXER_IDEBUG
-    csound->Message(csound, "createBuss: buss already exists.\n");
+    csoundMessage(csound, "createBuss: buss already exists.\n");
 #endif
   }
 }
@@ -332,7 +332,7 @@ PUBLIC int csoundModuleInit_mixer(CSOUND *csound) {
   int err = 0;
 
   while (ep->opname != NULL) {
-    err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
+    err |= csoundAppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
                                 ep->thread, ep->outypes, ep->intypes,
                                 (int (*)(CSOUND *, void *))ep->iopadr,
                                 (int (*)(CSOUND *, void *))ep->kopadr,
@@ -367,7 +367,7 @@ PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound) {
       busi->second.clear();
     }
     busses->clear();
-    csound->DestroyGlobalVariable(csound, "busses");
+    csoundDestroyGlobalVariable(csound, "busses");
     delete busses;
     busses = nullptr;
   }
@@ -381,7 +381,7 @@ PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound) {
       matrixi->second.clear();
     }
     matrix->clear();
-    csound->DestroyGlobalVariable(csound, "matrix");
+    csoundDestroyGlobalVariable(csound, "matrix");
     delete matrix;
     matrix = nullptr;
   }

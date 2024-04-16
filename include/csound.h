@@ -225,7 +225,7 @@
  * the Csound API function pointers off the Csound instance pointer.
  *
  * \code
- * MYFLT sr = csound->GetSr(csound);
+ * MYFLT sr = csoundGetSr(csound);
  * \endcode
  *
  * In general, plugins should ONLY access Csound functionality through the
@@ -365,12 +365,12 @@ extern "C" {
 #define CSOUND_CALLBACK_KBD_TEXT    (0x00000002U)
 
   /**
-   * The following constants are used with csound->FileOpen2() and
+   * The following constants are used with csoundFileOpenWithType() and
    * csound->ldmemfile2() to specify the format of a file that is being
    * opened.  This information is passed by Csound to a host's FileOpen
    * callback and does not influence the opening operation in any other
    * way. Conversion from Csound's TYP_XXX macros for audio formats to
-   * CSOUND_FILETYPES values can be done with csound->type2csfiletype().
+   * CSOUND_FILETYPES values can be done with type2csfiletype().
    */
   typedef enum {
     CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */
@@ -1562,7 +1562,7 @@ typedef struct instr {
    *       malloc(n*sizeof(CS_AUDIODEVICE));
    *   csoundGetAudioDevList(csound,devs,1);
    *   for(i=0; i < n; i++)
-   *       csound->Message(csound, " %d: %s (%s)\n",
+   *       csoundMessage(csound, " %d: %s (%s)\n",
    *             i, devs[i].device_id, devs[i].device_name);
    *   free(devs);
    * \endcode

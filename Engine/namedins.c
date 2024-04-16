@@ -25,7 +25,11 @@
 #include "namedins.h"
 #include "csound_orc_semantics.h"
 #include <ctype.h>
+#include "rdscor.h"
 #include "namedins_public.h"
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
@@ -84,7 +88,7 @@ int32 strarg2insno_p(CSOUND *csound, char *s)
     int32    insno;
 
     if (UNLIKELY(!(insno = named_instr_find(csound, s)))) {
-      csound->ErrorMsg(csound, Str("instr %s not found"), s);
+      csoundErrorMsg(csound, Str("instr %s not found"), s);
       return NOT_AN_INSTRUMENT;
     }
     return insno;
@@ -107,7 +111,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
         insno = (int32) *((MYFLT*) p);
         if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                      !csound->engineState.instrtxtp[insno])) {
-          csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
+          csoundInitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
           return NOT_AN_INSTRUMENT;
         }
       }
@@ -118,7 +122,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
       if (inm) insno = (int32) inm->instno;
     }
     if (UNLIKELY(insno < 1)) {
-      csound->InitError(csound,
+      csoundInitError(csound,
                         Str("cannot find the specified instrument or opcode"));
       insno = NOT_AN_INSTRUMENT;
     }
@@ -164,7 +168,7 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csound,
     if (cs_hash_table_get(csound, csound->namedGlobals, (char*)name) != NULL)
       return CSOUND_ERROR;
 
-    p = csound->Calloc(csound, nbytes);
+    p = mcalloc(csound, nbytes);
     if (UNLIKELY(p == NULL))
       return CSOUND_MEMORY;
 
@@ -210,7 +214,7 @@ PUBLIC int csoundDestroyGlobalVariable(CSOUND *csound, const char *name)
     if (UNLIKELY(p == NULL))
       return CSOUND_ERROR;
 
-    csound->Free(csound, p);
+    mfree(csound, p);
     cs_hash_table_remove(csound, csound->namedGlobals, (char*) name);
 
     return CSOUND_SUCCESS;

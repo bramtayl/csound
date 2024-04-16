@@ -27,6 +27,11 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <signal.h>
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 #if defined(__MACH__)
 #include <unistd.h>
@@ -35,16 +40,16 @@
 static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)
 {
     CONTROL_GLOBALS *p;
-    p = (CONTROL_GLOBALS*) csound->QueryGlobalVariable(csound,
+    p = (CONTROL_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                        "controlGlobals_");
     if (p != NULL)
       return p;
-    if (csound->CreateGlobalVariable(csound, "controlGlobals_",
+    if (csoundCreateGlobalVariable(csound, "controlGlobals_",
                                      sizeof(CONTROL_GLOBALS)) != 0){
-      csound->Warning(csound, "%s", Str("control: failed to allocate globals"));
+      csoundWarning(csound, "%s", Str("control: failed to allocate globals"));
       return NULL;
     }
-    p = (CONTROL_GLOBALS*) csound->QueryGlobalVariable(csound,
+    p = (CONTROL_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                        "controlGlobals_");
     p->csound = csound;
     return p;
@@ -59,13 +64,13 @@ static inline CONTROL_GLOBALS *get_globals(CSOUND *csound, CONTROL_GLOBALS **p)
 
 static int32_t kill_wish(CSOUND *csound, CONTROL_GLOBALS *p)
 {
-    csound->Message(csound, Str("Closing down wish(%d)\n"), p->wish_pid);
+    csoundMessage(csound, Str("Closing down wish(%d)\n"), p->wish_pid);
     kill(p->wish_pid, 9);
-    if (p->values != NULL)  csound->Free(csound,p->values);
-    if (p->minvals != NULL) csound->Free(csound,p->minvals);
-    if (p->maxvals != NULL) csound->Free(csound,p->maxvals);
-    if (p->buttons != NULL) csound->Free(csound,p->buttons);
-    if (p->checks != NULL)  csound->Free(csound,p->checks);
+    if (p->values != NULL)  mfree(csound,p->values);
+    if (p->minvals != NULL) mfree(csound,p->minvals);
+    if (p->maxvals != NULL) mfree(csound,p->maxvals);
+    if (p->buttons != NULL) mfree(csound,p->buttons);
+    if (p->checks != NULL)  mfree(csound,p->checks);
     fclose(p->wish_cmd);
     fclose(p->wish_res);
     return OK;
@@ -75,7 +80,7 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
 {
     int32_t i;
 
-    p->csound->Message(p->csound, "TCL/Tk\n");
+    csoundMessage(p->csound, "TCL/Tk\n");
     if (UNLIKELY(pipe(p->pip1) || pipe(p->pip2))) {
       printf("Failed to create pipes");
       return;
@@ -105,47 +110,47 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
     p->wish_cmd = fdopen(p->pip2[1], "w");
     setvbuf(p->wish_cmd, (char*) NULL, _IOLBF, 0);
     setvbuf(p->wish_res, (char*) NULL, _IOLBF, 0);
-    p->csound->RegisterResetCallback(p->csound, (void*) p,
+    csoundRegisterResetCallback(p->csound, (void*) p,
                                      (int32_t (*)(CSOUND *, void *)) kill_wish);
     fprintf(p->wish_cmd, "source nsliders.tk\n");
     if (UNLIKELY(NULL==fgets(p->cmd, 100, p->wish_res))) {
       printf("Failed to read from child");
       return;
     };
-    p->csound->Message(p->csound, "Wish %s\n", p->cmd);
-    p->values = (int32_t*) p->csound->Calloc(p->csound,8*sizeof(int32_t));
-    p->minvals = (int32_t*) p->csound->Calloc(p->csound,8* sizeof(int32_t));
-    p->maxvals = (int32_t*) p->csound->Calloc(p->csound,8* sizeof(int32_t));
-    p->buttons = (int32_t*) p->csound->Calloc(p->csound,8* sizeof(int32_t));
-    p->checks  = (int32_t*) p->csound->Calloc(p->csound,8* sizeof(int32_t));
+    csoundMessage(p->csound, "Wish %s\n", p->cmd);
+    p->values = (int32_t*) mcalloc(p->csound,8*sizeof(int32_t));
+    p->minvals = (int32_t*) mcalloc(p->csound,8* sizeof(int32_t));
+    p->maxvals = (int32_t*) mcalloc(p->csound,8* sizeof(int32_t));
+    p->buttons = (int32_t*) mcalloc(p->csound,8* sizeof(int32_t));
+    p->checks  = (int32_t*) mcalloc(p->csound,8* sizeof(int32_t));
     p->max_sliders = 8;
     p->max_button = 8;
     p->max_check = 8;
     for (i = 0; i < p->max_sliders; i++) {
       p->minvals[i] = 0; p->maxvals[i] = 127;
     }
-    p->csound->Sleep(1500);
+    csoundSleep(1500);
 }
 
 static void ensure_slider(CONTROL_GLOBALS *p, int32_t n)
 {
-/*  p->csound->Message(p->csound, "Ensure_slider %d\n", n); */
+/*  csoundMessage(p->csound, "Ensure_slider %d\n", n); */
     if (p->wish_pid == 0)
       start_tcl_tk(p);
     if (n > p->max_sliders) {
       int32_t i, nn = n + 1;
-      p->values  = (int32_t*) p->csound->ReAlloc(p->csound,
+      p->values  = (int32_t*) mrealloc(p->csound,
                                                  p->values, nn * sizeof(int32_t));
-      p->minvals = (int32_t*) p->csound->ReAlloc(p->csound,
+      p->minvals = (int32_t*) mrealloc(p->csound,
                                                  p->minvals,nn * sizeof(int32_t));
-      p->maxvals = (int32_t*) p->csound->ReAlloc(p->csound,
+      p->maxvals = (int32_t*) mrealloc(p->csound,
                                                  p->maxvals,nn * sizeof(int32_t));
       for (i = p->max_sliders + 1; i < nn; i++) {
         p->values[i] = 0; p->minvals[i] = 0; p->maxvals[i] = 127;
       }
       p->max_sliders = n;
     }
-/*  p->csound->Message(p->csound, "displayslider %d\n", n); */
+/*  csoundMessage(p->csound, "displayslider %d\n", n); */
     fprintf(p->wish_cmd, "displayslider %d\n", n);
 }
 
@@ -195,7 +200,7 @@ static int32_t ocontrol_(CSOUND *csound, SCNTRL *p, int32_t istring)
     int32_t c = (int32_t) *p->which;
     int32_t slider = (int32_t) MYFLT2LONG(*p->kcntl);
 
-/*  csound->Message(csound, "ocontrol: %d %d %f\n", slider, c, *p->val); */
+/*  csoundMessage(csound, "ocontrol: %d %d %f\n", slider, c, *p->val); */
     ensure_slider(pp, slider);
     switch (c) {
     case 1:
@@ -218,17 +223,17 @@ static int32_t ocontrol_(CSOUND *csound, SCNTRL *p, int32_t istring)
       {
         char buffer[100];
         if (istring) {
-          csound->strarg2name(csound, buffer,
+          strarg2name(csound, buffer,
                               ((STRINGDAT *)p->val)->data, "Control ",istring);
         }
         else
-         csound->strarg2name(csound, buffer, p->val, "Control ",istring);
-        csound->Message(csound, Str("Slider %d set to %s\n"), slider, buffer);
+         strarg2name(csound, buffer, p->val, "Control ",istring);
+        csoundMessage(csound, Str("Slider %d set to %s\n"), slider, buffer);
         fprintf(pp->wish_cmd, "setlab %d \"%s\"\n", slider, buffer);
         break;
       }
     default:
-      return csound->InitError(csound, Str("Unknown control %d"), c);
+      return csoundInitError(csound, Str("Unknown control %d"), c);
     }
     return OK;
 }
@@ -249,7 +254,7 @@ static int32_t button_set(CSOUND *csound, CNTRL *p)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_button) {
-      pp->buttons = (int32_t*) csound->ReAlloc(csound, pp->buttons,
+      pp->buttons = (int32_t*) mrealloc(csound, pp->buttons,
                                            (n + 1) * sizeof(int32_t));
       do {
         pp->buttons[++(pp->max_button)] = 0;
@@ -277,7 +282,7 @@ static int32_t check_set(CSOUND *csound, CNTRL *p)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (n > pp->max_check) {
-      pp->checks = (int32_t*) csound->ReAlloc(csound,pp->checks,
+      pp->checks = (int32_t*) mrealloc(csound,pp->checks,
                                               (n + 1) * sizeof(int32_t));
       do {
         pp->checks[++(pp->max_check)] = 0;
@@ -306,12 +311,12 @@ static int32_t textflash_(CSOUND *csound, TXTWIN *p, int32_t istring)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (istring) {
-      csound->strarg2name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
+      strarg2name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
-    else if (csound->ISSTRCOD(*p->val)) {
-      csound->strarg2name(csound, buffer,
-                          csound->GetString(csound, *p->val), "", 1);
+    else if (isstrcod(*p->val)) {
+      strarg2name(csound, buffer,
+                          get_arg_string(csound, *p->val), "", 1);
     }
     else {
       fprintf(pp->wish_cmd, "deltext %d\n", wind);

@@ -66,7 +66,7 @@ static inline double process(double st[7], double in/*, char *s */)
      */
 static inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q)
 {
-    double omega= (TWOPI*fc/(double)csound->GetSr(csound));
+    double omega= (TWOPI*fc/(double)csoundGetSr(csound));
     double sn=sin(omega);
     double cs=cos(omega);
     double alpha=(double)(sn/(2.0*q));
@@ -110,11 +110,11 @@ static int32_t exciter_init(CSOUND *csound, EXCITER *p)
     p->rdrive = p->rbdr = p->kpa = p->kpb = p->kna = p->knb = p->ap =
       p->an = p->imr = p->kc = p->srct = p->sq = p->pwrq = p->prev_med =
       p->prev_out = 0.0;
-    p->over = csound->GetSr(csound) * 2 > 96000 ? 1 : 2;
+    p->over = csoundGetSr(csound) * 2 > 96000 ? 1 : 2;
     p->blend_old = p->drive_old = -1.0;
     //resample_set_params(csound, p);
     {
-      double srate = (double)csound->GetSr(csound);
+      double srate = (double)csoundGetSr(csound);
       double ff = 25000.0;
       if (srate>50000) ff = srate*0.5;
       // set all filters
@@ -202,7 +202,7 @@ static inline void set_distort(CSOUND *csound, EXCITER *p)
 {
     // set distortion coeffs
     if ((p->drive_old != *p->pdrive) || (p->blend_old != *p->pblend)) {
-      double srate = csound->GetSr(csound);
+      double srate = csoundGetSr(csound);
       /* printf("drive %f->%f; blend %f->%f\n", */
       /*        p->drive_old, *p->pdrive, p->blend_old, *p->pblend); */
       p->drive_old = *p->pdrive;
@@ -242,7 +242,7 @@ static inline void params_changed(CSOUND *csound, EXCITER *p)
     }
     // set the params of all filters
     if (UNLIKELY(*p->pceil != p->ceil_old)) {
-      set_lp_rbj(p->lp1, *p->pceil, 0.707, (double)csound->GetSr(csound));
+      set_lp_rbj(p->lp1, *p->pceil, 0.707, (double)csoundGetSr(csound));
       memcpy(p->lp2, p->lp1, 5*sizeof(double));
       p->ceil_old = *p->pceil;
     }
@@ -256,7 +256,7 @@ int32_t exciter_perf(CSOUND *csound, EXCITER *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT zerodb = csound->Get0dBFS(csound);
+    MYFLT zerodb = csoundGet0dBFS(csound);
 
     if (UNLIKELY(offset)) memset(p->aout, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {

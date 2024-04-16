@@ -25,7 +25,11 @@
 #include <math.h>
 #include "cwindow.h"
 #include "disprep.h"
+#include "memalloc.h"
+#include "fftlib.h"
 #include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */
@@ -38,13 +42,13 @@ int32_t printv(CSOUND *csound, PRINTV *p)
     char   **txtp = p->h.optext->t.inlist->arg;
     MYFLT  **valp = p->iargs;
 
-    csound->MessageS(csound, CSOUNDMSG_ORCH,
+    csoundMessageS(csound, CSOUNDMSG_ORCH,
                      "instr %d:", (int32_t) p->h.insdshead->p1.value);
     while (nargs--) {
-      csound->MessageS(csound, CSOUNDMSG_ORCH,
+      csoundMessageS(csound, CSOUNDMSG_ORCH,
                        "  %s = %5.3f", *txtp++, **valp++);
     }
-    csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
+    csoundMessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
 }
 
@@ -56,7 +60,7 @@ int32_t fdspset(CSOUND *csound, FSIGDISP *p){
     }
     if ((p->fdata.auxp == NULL) ||
         (p->fdata.size < (uint32_t) (p->size*sizeof(MYFLT)))) {
-      csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
+      csoundAuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
     }
     snprintf(strmsg, 256, Str("instr %d, pvs-signal %s:"),
             (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
@@ -91,7 +95,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
       npts = (int32)(*p->iprd * CS_EKR);
     else npts = (int32)(*p->iprd * csound->esr);
     if (UNLIKELY(npts <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd in display"));
+      return csoundInitError(csound, Str("illegal iprd in display"));
 
     }
     if ((nprds = (int32_t)*p->inprds) <= 1) {
@@ -104,7 +108,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
       totpts = bufpts * 2;
     }
     if ((auxp = p->auxch.auxp) == NULL || totpts != p->totpts) {
-      csound->AuxAlloc(csound, totpts * sizeof(MYFLT), &p->auxch);
+      csoundAuxAlloc(csound, totpts * sizeof(MYFLT), &p->auxch);
       auxp      = p->auxch.auxp;
       p->begp   = (MYFLT *) auxp;
       p->endp   = p->begp + bufpts;
@@ -151,7 +155,7 @@ int32_t kdsplay(CSOUND *csound, DSPLAY *p)
     p->nxtp = fp;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("display: not initialised"));
 }
 
@@ -241,26 +245,26 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
     maxbin = *p->imax;
 
     if (p->smpbuf.auxp == NULL)
-      csound->AuxAlloc(csound, sizeof(MYFLT)*WINDMAX, &(p->smpbuf));
+      csoundAuxAlloc(csound, sizeof(MYFLT)*WINDMAX, &(p->smpbuf));
 
     p->sampbuf = (MYFLT *) p->smpbuf.auxp;
 
     window_size = (int32_t)*p->inpts;
     if (UNLIKELY(window_size > WINDMAX)) {
-      return csound->InitError(csound, Str("too many points requested (%d)"), window_size);
+      return csoundInitError(csound, Str("too many points requested (%d)"), window_size);
     }
     if (UNLIKELY(window_size < WINDMIN)) {
-      return csound->InitError(csound, Str("too few points requested (%d), minimum is %d"),
+      return csoundInitError(csound, Str("too few points requested (%d), minimum is %d"),
                                window_size, WINDMIN);
     }
     if (UNLIKELY(window_size < 1L || (window_size & (window_size - 1L)) != 0L)) {
-      return csound->InitError(csound, Str("window size must be power of two"));
+      return csoundInitError(csound, Str("window size must be power of two"));
     }
     if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       step_size = (int32)(*p->iprd * CS_EKR);
     else step_size = (int32)(*p->iprd * csound->esr);
     if (UNLIKELY(step_size <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd in ffy display"));
+      return csoundInitError(csound, Str("illegal iprd in ffy display"));
     }
     hanning = (int32_t)*p->ihann;
     p->dbout   = (int32_t)*p->idbout;
@@ -281,13 +285,13 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
       p->overN   = FL(1.0)/(*p->inpts);
       p->ncoefs  = window_size >>1;
       auxsiz = (window_size/2 + 1) * sizeof(MYFLT);  /* size for half window */
-      csound->AuxAlloc(csound, (int32_t)auxsiz, &p->auxch); /* alloc or realloc */
+      csoundAuxAlloc(csound, (int32_t)auxsiz, &p->auxch); /* alloc or realloc */
       hWin = (MYFLT *) p->auxch.auxp;
       FillHalfWin(hWin, window_size,
                   FL(1.0), hanning);            /* fill with proper values */
       if (csound->disprep_fftcoefs == NULL) {
         /* room for WINDMAX*2 floats (fft size) */
-        csound->disprep_fftcoefs = (MYFLT*) csound->Malloc(csound, WINDMAX * 2
+        csound->disprep_fftcoefs = (MYFLT*) mmalloc(csound, WINDMAX * 2
                                                             * sizeof(MYFLT));
       }
       snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),
@@ -358,7 +362,7 @@ static void d_fft(      /* perform an FFT as reqd below */
 {
     memcpy(dst, sce, sizeof(MYFLT) * size);     /* copy into scratch buffer */
     ApplyHalfWin(dst, hWin, size);
-    csound->RealFFT(csound, dst, (int32_t) size);   /* perform the FFT */
+    csoundRealFFT(csound, dst, (int32_t) size);   /* perform the FFT */
     dst[size] = dst[1];
     dst[1] = dst[size + 1L] = FL(0.0);
     Rect2Polar(dst, (size >> 1) + 1, scal);
@@ -404,7 +408,7 @@ int32_t kdspfft(CSOUND *csound, DSPFFT *p)
     p->bufp = bufp;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("dispfft: not initialised"));
 }
 
@@ -456,7 +460,7 @@ int32_t dspfft(CSOUND *csound, DSPFFT *p)
     p->bufp = bufp;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("dispfft: not initialised"));
 }
 
@@ -472,24 +476,24 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
     char  strmsg[256];
 
     if (UNLIKELY((p->timcount = (int32_t)(CS_EKR * iperiod)) <= 0))
-      return csound->InitError(csound, Str("illegal iperiod"));
+      return csoundInitError(csound, Str("illegal iperiod"));
     if (UNLIKELY((p->dtimcnt = (int32_t)(CS_EKR * *p->idisprd)) < 0))
-      return csound->InitError(csound, Str("illegal idisprd"));
+      return csoundInitError(csound, Str("illegal idisprd"));
     if (UNLIKELY((p->tweek = *p->itweek) <= 0))
-      return csound->InitError(csound, Str("illegal itweek"));
+      return csoundInitError(csound, Str("illegal itweek"));
     if (iperiod != FL(0.0)) {
       if (UNLIKELY((minlam = (int32_t)(*p->imindur/iperiod)) <= 0))
-        return csound->InitError(csound, Str("illegal imindur"));
+        return csoundInitError(csound, Str("illegal imindur"));
       if (UNLIKELY((npts = (int32_t)(*p->imemdur / iperiod)) <= 0))
-        return csound->InitError(csound, Str("illegal imemdur"));
+        return csoundInitError(csound, Str("illegal imemdur"));
     }
     if (UNLIKELY(*p->ihtim <= FL(0.0)))
-      return csound->InitError(csound, Str("illegal ihtim"));
+      return csoundInitError(csound, Str("illegal ihtim"));
     if (UNLIKELY(*p->istartempo <= FL(0.0)))
-      return csound->InitError(csound, Str("illegal startempo"));
-    ftp = csound->FTFind(csound, p->ifn);
+      return csoundInitError(csound, Str("illegal startempo"));
+    ftp = csoundFTFind(csound, p->ifn);
     if (UNLIKELY(ftp != NULL && *ftp->ftable == FL(0.0)))
-      return csound->InitError(csound, Str("ifn table begins with zero"));
+      return csoundInitError(csound, Str("ifn table begins with zero"));
     if (UNLIKELY(ftp==NULL)) return NOTOK;
 
     if (npts==0) return NOTOK;
@@ -501,7 +505,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
       p->maxlam = maxlam = nptsm1/(NTERMS-1);
       lamspan = maxlam - minlam + 1;          /* alloc 8 bufs: 2 circ, 6 lin */
       auxsiz = (npts * 5 + lamspan * 3) * sizeof(MYFLT);
-      csound->AuxAlloc(csound, (int32_t)auxsiz, &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)auxsiz, &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->hbeg   = fltp;   fltp += npts;
       p->hend   = fltp;
@@ -567,7 +571,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
     p->fwdcoef = POWER(FL(0.5), p->timcount*CS_ONEDKR/(*p->ihtim));
     p->fwdmask = FL(0.0);
 #ifdef DEBUG
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("kin lopass coef1 %6.4f, fwd mask coef1 %6.4f\n"),
                     p->coef1, p->fwdcoef);
 #endif
@@ -610,7 +614,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
       if (xcur >= p->xend) xcur = p->xbeg;  /* xcur now points to cur xarray  */
       p->xcur = xcur;
 #ifdef DEBUG
-      csound->Message(csound, "**kin -> %f (%f,%f)\n",
+      csoundMessage(csound, "**kin -> %f (%f,%f)\n",
                       *p->kin - p->yt1, *p->kin, p->yt1);
 #endif
       if ((kin = *p->kin - p->yt1) < FL(0.0))
@@ -646,7 +650,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
           sumsqr += *memp * *memp;
         RMStot = (MYFLT)sqrt(sumsqr/npts);
 #ifdef DEBUG
-        csound->Message(csound, "RMStot = %6.1f\n", RMStot);
+        csoundMessage(csound, "RMStot = %6.1f\n", RMStot);
 #endif
         mults = lenmults;                     /* use the static lentables  */
         fracs = lenfracs;
@@ -686,7 +690,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
           if (RMScross < FL(1.4) * RMStot)    /* if RMScross significant:   */
             continue;
 #ifdef DEBUG
-          csound->Message(csound, "RMScross = %6.1f, lambda = %ld\n",
+          csoundMessage(csound, "RMScross = %6.1f, lambda = %ld\n",
                                   RMScross, lambda);
 #endif
        /* RMS *= *xscale++; */
@@ -711,7 +715,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
         p->avglam /= p->tweek;
         p->tempo = p->tempscal / p->avglam;   /*   & cvt to tempo    */
 #ifdef DEBUG
-        csound->Message(csound, "lamtot %6.2f, weightot %6.2f, "
+        csoundMessage(csound, "lamtot %6.2f, weightot %6.2f, "
                                 "newavglam %6.2f, tempo %6.2f\n",
                         lamtot, weightot, p->avglam, p->tempo);
 #endif
@@ -739,6 +743,6 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
     *p->kout = p->tempo;                    /* put current tempo */
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                                Str("tempest: not initialised"));
 }

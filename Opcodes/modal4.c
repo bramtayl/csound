@@ -35,15 +35,18 @@
 #include "vibraphn.h"
 #include <math.h>
 #include "interlocks.h"
+#include "fgens_public.h"
+#include "insert_public.h"
+
 static int32_t make_Modal4(CSOUND *csound,
                        Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound,ifn)) != NULL))
+    if (LIKELY((ftp = csoundFTnp2Find(csound,ifn)) != NULL))
       m->vibr = ftp;
     else {                                              /* Expect sine wave */
-     csound->ErrorMsg(csound, Str("No table for Modal4 case"));
+     csoundErrorMsg(csound, Str("No table for Modal4 case"));
      return NOTOK;
     }
     make_Envelope(&m->envelope);
@@ -241,10 +244,10 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     int32_t         itemp;
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ifn)) != NULL))
       p->m4.wave = ftp;
     else {                                    /* Expect an impulslything */
-      return csound->InitError(csound, Str("No table for Marimba strike"));
+      return csoundInitError(csound, Str("No table for Marimba strike"));
     }
 
     if (UNLIKELY(make_Modal4(csound,
@@ -280,16 +283,16 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     {
       int32_t triples = (*p->triples<=FL(0.0) ? 20 : (int32_t)*p->triples);
       int32_t doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int32_t)*p->doubles);
-      itemp = csound->Rand31(&(csound->randSeed1)) % 100;
+      itemp = csoundRand31(&(csound->randSeed1)) % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
         if (csound->oparms->msglevel & CS_RNGEMSG)
-          csound->Message(csound, Str("striking three times here!!!\n"));
+          csoundMessage(csound, Str("striking three times here!!!\n"));
       }
       else if (itemp < doubles) {
         p->multiStrike = 1;
         if (csound->oparms->msglevel & CS_RNGEMSG)
-          csound->Message(csound, Str("striking twice here!!\n"));
+          csoundMessage(csound, Str("striking twice here!!\n"));
       }
       else p->multiStrike = 0;
     }
@@ -363,10 +366,10 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
     MYFLT       temp;
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ifn)) != NULL))
       p->m4.wave = ftp;         /* Expect an impulslything */
     else {
-      return csound->InitError(csound, Str("No table for Vibraphone strike"));
+      return csoundInitError(csound, Str("No table for Vibraphone strike"));
     }
 
     if (UNLIKELY(make_Modal4(csound, m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK))
@@ -452,9 +455,9 @@ int32_t agogobelset(CSOUND *csound, VIBRAPHN *p)
     MYFLT       temp;
 
     /* Expect an impulslything */
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->m4.wave = ftp;
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ifn)) != NULL)) p->m4.wave = ftp;
     else {
-      return csound->InitError(csound, Str("No table for Agogobell strike"));
+      return csoundInitError(csound, Str("No table for Agogobell strike"));
     }
 
     if (UNLIKELY(make_Modal4(csound, m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK))

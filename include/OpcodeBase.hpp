@@ -66,7 +66,7 @@
  *     // *mutex member pointers:
  *     void *mutex1;
  *     void *mutex2;
- *     // and create them usind csound->Create_Mutex() in csoundModuleCreate
+ *     // and create them usind csoundCreateMutex() in csoundModuleCreate
  *     // and destroy them  using csound->DeleteMutex(mutex)
  *     // csoundModuleDestroy, and lock them using LockGuard guard(mutex).
  *     int init();
@@ -83,7 +83,7 @@ static bool diagnostics_enabled = false;
 
 /**
  * Use this to guard against data races in opcode functions. The mutex should
- * be created by csound->Create_Mutex() in csoundModuleCreate(), and should
+ * be created by csoundCreateMutex() in csoundModuleCreate(), and should
  * be destroyed by csound->DeleteMutex() in csoundModuleDestroy().
  *
  * If data is shared between opcode instances, the mutex should be global to
@@ -93,11 +93,11 @@ static bool diagnostics_enabled = false;
 struct LockGuard {
     LockGuard(CSOUND *csound_, void *mutex_) : csound(csound_), mutex(mutex_)
     {
-        csound->LockMutex(mutex);
+        csoundLockMutex(mutex);
     }
     ~LockGuard()
     {
-        csound->UnlockMutex(mutex);
+        csoundUnlockMutex(mutex);
     }
     CSOUND *csound;
     void *mutex;
@@ -111,8 +111,8 @@ struct LockGuard {
 template<typename T> int CreateGlobalPointer(CSOUND *csound, const char *name, T *pointer)
 {
     T **pointer_to_pointer = 0;
-    int result = csound->CreateGlobalVariable(csound, name, sizeof(pointer_to_pointer));
-    pointer_to_pointer = static_cast<T **>(csound->QueryGlobalVariable(csound, name));
+    int result = csoundCreateGlobalVariable(csound, name, sizeof(pointer_to_pointer));
+    pointer_to_pointer = static_cast<T **>(csoundQueryGlobalVariable(csound, name));
     *pointer_to_pointer = pointer;
     return result;
 }
@@ -123,7 +123,7 @@ template<typename T> int CreateGlobalPointer(CSOUND *csound, const char *name, T
  */
 template<typename T> T *QueryGlobalPointer(CSOUND *csound, const char *name, T*& pointer)
 {
-    T **pointer_to_pointer = static_cast<T **>(csound->QueryGlobalVariableNoCheck(csound, name));
+    T **pointer_to_pointer = static_cast<T **>(csoundQueryGlobalVariableNoCheck(csound, name));
     if (pointer_to_pointer != 0) {
         pointer = *pointer_to_pointer;
     } else {
@@ -224,7 +224,7 @@ public:
         va_list args;
         va_start(args, format);
         if(csound) {
-            csound->MessageV(csound, 0, format, args);
+            csoundMessageV(csound, 0, format, args);
         } else {
             vfprintf(stdout, format, args);
         }
@@ -233,10 +233,10 @@ public:
     void warn(CSOUND *csound, const char *format,...)
     {
         if(csound) {
-            if(csound->GetMessageLevel(csound) & CS_WARNMSG) {
+            if(csoundGetMessageLevel(csound) & CS_WARNMSG) {
                 va_list args;
                 va_start(args, format);
-                csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
+                csoundMessageV(csound, CSOUNDMSG_WARNING, format, args);
                 va_end(args);
             }
         } else {
@@ -260,8 +260,8 @@ public:
     }
     static int init_(CSOUND *csound, void *opcode)
     {
-        if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
-            csound->RegisterDeinitCallback(csound, opcode,
+        if (!csoundGetReinitFlag(csound) && !csoundGetTieFlag(csound)) {
+            csoundRegisterDeinitCallback(csound, opcode,
                                            &OpcodeNoteoffBase<T>::noteoff_);
         }
         return reinterpret_cast<T *>(opcode)->init(csound);
@@ -344,7 +344,7 @@ public:
         va_list args;
         va_start(args, format);
         if(csound) {
-            csound->MessageV(csound, 0, format, args);
+            csoundMessageV(csound, 0, format, args);
         } else {
             vfprintf(stdout, format, args);
         }
@@ -353,10 +353,10 @@ public:
     void warn(CSOUND *csound, const char *format,...)
     {
         if(csound) {
-            if(csound->GetMessageLevel(csound) & CS_WARNMSG) {
+            if(csoundGetMessageLevel(csound) & CS_WARNMSG) {
                 va_list args;
                 va_start(args, format);
-                csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
+                csoundMessageV(csound, CSOUNDMSG_WARNING, format, args);
                 va_end(args);
             }
         } else {

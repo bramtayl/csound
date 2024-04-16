@@ -25,6 +25,9 @@
 //#include "csdl.h"
 #include "csoundCore_internal.h"
 #include <math.h>
+#include "memalloc.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
 {
@@ -33,7 +36,7 @@ static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
     MYFLT   resc  = ff->e.p[7];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return fterror(ff, Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -52,7 +55,7 @@ static int32_t exptable(FGDATA *ff, FUNC *ftp)
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
     MYFLT   resc  = ff->e.p[7];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return fterror(ff, Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -74,7 +77,7 @@ static int32_t sonetable(FGDATA *ff, FUNC *ftp)
     MYFLT   end   = ff->e.p[6];
     MYFLT   eqlp  = ff->e.p[7];
     MYFLT   resc  = ff->e.p[8];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return fterror(ff, Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -132,15 +135,15 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     WAVELET wave, *pwaveS;
 
     if (ftp->flen <= 0)
-      return csound->ftError(ff, Str("Illegal zero table size %d"));
+      return fterror(ff, Str("Illegal zero table size %d"));
     if (ffilno >csound->maxfnum || csound->flist[ffilno]==NULL)
-      return csound->InitError(csound, Str("ftable number does not exist\n"));
+      return csoundInitError(csound, Str("ftable number does not exist\n"));
     srcfil = csound->flist[ffilno];
     if (UNLIKELY(nargs < 3))
-      csound->Warning(csound, Str("insufficient arguments"));
+      csoundWarning(csound, Str("insufficient arguments"));
     fp_filter = srcfil->ftable;
     newLen  = srcfil->flen;
-    mirr = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*srcfil->flen);
+    mirr = (MYFLT*) mmalloc(csound, sizeof(MYFLT)*srcfil->flen);
     pnewLen = &newLen;
     pwaveS  = &wave;
     pwaveS->pSF  = fp_filter;
@@ -151,11 +154,11 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
       pwaveS->pWF[i] = POWER(FL(-1.0),i)*pwaveS->pSF[srcfil->flen-1-i];
     pwaveS->pFil[0] = pwaveS->pSF;
     pwaveS->pFil[1] = pwaveS->pWF;
-    pInp = (MYFLT*) csound->Calloc(csound, ftp->flen* sizeof(MYFLT));
-    pBuf = (MYFLT*) csound->Calloc(csound, ftp->flen* sizeof(MYFLT));
+    pInp = (MYFLT*) mcalloc(csound, ftp->flen* sizeof(MYFLT));
+    pBuf = (MYFLT*) mcalloc(csound, ftp->flen* sizeof(MYFLT));
     *pInp = FL(1.0);
     steps = (int32_t)LOG2(ftp->flen/srcfil->flen);
-    xfree = pOrder = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*steps);
+    xfree = pOrder = (int32_t*)mmalloc(csound, sizeof(int32_t)*steps);
     /* DEC to BIN */
     for (i = 0; i < steps; i++)
       pOrder[i] = ((int32_t
@@ -165,8 +168,8 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
       deconvolve(pInp, pwaveS, pnewLen, pBuf, pOrder++);
     for (i = 0; i < *pnewLen; i++)
       fp[i] = pInp[i];
-    csound->Free(csound,pBuf); csound->Free(csound,pInp);
-    csound->Free(csound,xfree); csound->Free(csound,mirr);
+    mfree(csound,pBuf); mfree(csound,pInp);
+    mfree(csound,xfree); mfree(csound,mirr);
     if (resc!=FL(0.0)) ff->e.p[4] *= -1;
     /*else ff->e.p[4] = 1;*/
     return OK;

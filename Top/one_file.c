@@ -30,6 +30,7 @@ int mkstemp(char *);
 #endif
 #include <stdlib.h>
 #include "corfile.h"
+#include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "envvar_public.h"
 
@@ -86,7 +87,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 #endif      
         /* ensure exclusive access on buggy implementations of mkstemp */
       if (UNLIKELY((fd = mkstemp(lbuf)) < 0))
-        csound->Die(csound, Str(" *** cannot create temporary file"));
+        csoundDie(csound, Str(" *** cannot create temporary file"));
       close(fd);
       //unlink(lbuf);
 #else
@@ -96,7 +97,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
           s = (char*) csoundGetEnv(csound, "HOME");
         s = _tempnam(s, "cs");
         if (UNLIKELY(s == NULL))
-          csound->Die(csound, Str(" *** cannot create temporary file"));
+          csoundDie(csound, Str(" *** cannot create temporary file"));
         strNcpy(lbuf, s, nBytes);
         free(s);
       }
@@ -176,8 +177,8 @@ void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
       if (UNLIKELY(remove(STA(toremove)->name)))
         csoundMessage(csound, Str("WARNING: could not remove %s\n"),
                               STA(toremove)->name);
-      csound->Free(csound, STA(toremove)->name);
-      csound->Free(csound, STA(toremove));
+      mfree(csound, STA(toremove)->name);
+      mfree(csound, STA(toremove));
       STA(toremove) = nxt;
     }
 }
@@ -186,8 +187,8 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
 {                               /* add temporary file to delete list */
     NAMELST *tmp;
     alloc_globals(csound);
-    tmp = (NAMELST*) csound->Malloc(csound, sizeof(NAMELST));
-    tmp->name = (char*) csound->Malloc(csound, strlen(name) + 1);
+    tmp = (NAMELST*) mmalloc(csound, sizeof(NAMELST));
+    tmp->name = (char*) mmalloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
     tmp->next = STA(toremove);
     STA(toremove) = tmp;
@@ -399,7 +400,7 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
           (q = strstr(p, "</CsInstruments>")) &&
           all_blank(buffer,q)) {
         if(csound->oparms->odebug)
-          csound->Message(csound, "closing tag\n");
+          csoundMessage(csound, "closing tag\n");
         //corfile_flush(incore);
         corfile_puts(csound, "\n#exit\n", incore);
         corfile_putc(csound, '\0', incore);
@@ -477,13 +478,13 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
       p = buffer;
       while (isblank(*p)) p++;
       if(*p == '/' && *(p+1) == '*') {
-        //csound->Message(csound, "comment start\n");
+        //csoundMessage(csound, "comment start\n");
         comm = 1; p += 2;
       }
 
       if (comm == 0 &&
           strstr(p, "</CsInstruments>") == p) {
-        //csound->Message(csound, "closing tag\n");
+        //csoundMessage(csound, "closing tag\n");
         //corfile_flush(incore);
         corfile_puts(csound, "\n#exit\n", incore);
         corfile_putc(csound, '\0', incore);
@@ -494,7 +495,7 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
         while (p < buffer + CSD_MAX_LINE_LEN){
           if(*p == '*' && *(p+1) == '/') {
            comm = 0;
-           // csound->Message(csound, "comment end\n");
+           // csoundMessage(csound, "comment end\n");
            break;
           } else p++;
         }
@@ -641,7 +642,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
 #endif
     if (UNLIKELY(fd == NULL)) {
-      csound->Free(csound, extname);
+      mfree(csound, extname);
       return FALSE;
     }
 
@@ -656,7 +657,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
           csoundErrorMsg(csound, Str("External generation failed"));
           if (UNLIKELY(remove(extname) || remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove"));
-          csound->Free(csound, extname);
+          mfree(csound, extname);
           return FALSE;
         }
        if (UNLIKELY(remove(extname)))
@@ -670,7 +671,7 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
           csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
           if (UNLIKELY(remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
-          csound->Free(csound, extname);
+          mfree(csound, extname);
           return FALSE;
         }
         csoundMessage(csound, Str("opened %s\n"), STA(sconame));
@@ -684,13 +685,13 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
         corfile_putc(csound, '\0', csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr);
         //corfile_rewind(csound->scorestr); /* necessary? */
-        csound->Free(csound, extname); //27363
+        mfree(csound, extname); //27363
         return TRUE;
       }
       else fputs(buffer, scof);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
-    csound->Free(csound, extname);
+    mfree(csound, extname);
     return FALSE;
 #endif
 }
@@ -1070,22 +1071,22 @@ static int checkLicence(CSOUND *csound, CORFIL *cf)
     char  buffer[CSD_MAX_LINE_LEN];
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    licence = (char*) csound->Calloc(csound, len);
+    licence = (char*) mcalloc(csound, len);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
       p = buffer;
       if (strstr(p, "</CsLicence>") != NULL ||
           strstr(p, "</CsLicense>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
-        csound->Free(csound, csound->SF_csd_licence);
+        mfree(csound, csound->SF_csd_licence);
         csound->SF_csd_licence = licence;
         return TRUE;
       }
       csoundMessage(csound, "%s", p);
       len += strlen(p);
-      licence = csound->ReAlloc(csound, licence, len);
+      licence = mrealloc(csound, licence, len);
       strlcat(licence, p, len);
     }
-    csound->Free(csound, licence);
+    mfree(csound, licence);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));
     return FALSE;
 }

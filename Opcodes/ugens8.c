@@ -24,6 +24,12 @@
 #include "pvoc.h"         /*      UGENS8.C        */
 #include <math.h>
 #include "rdscor.h"
+#include "namedins_public.h"
+#include "fftlib.h"
+#include "fgens_public.h"
+#include "auxfd.h"
+#include "memfiles.h"
+#include "insert_public.h"
 
 /* RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
@@ -50,9 +56,9 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
     p->pp = PVOC_GetGlobals(csound);
 
      if (stringname==0){
-      if (csound->ISSTRCOD(*p->ifilno))
+      if (isstrcod(*p->ifilno))
         strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
-      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      else strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
@@ -70,7 +76,7 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
       MYFLT *fltp;
-      csound->AuxAlloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
+      csoundAuxAlloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->lastPhase = fltp;   fltp += PVDATASIZE;    /* and insert addresses */
       p->fftBuf = fltp;      fltp += PVFFTSIZE;
@@ -99,14 +105,14 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
     /*   p->lastPhase[i] = FL(0.0); */
     /* } */
     if (UNLIKELY((OPWLEN/2 + 1)>PVWINLEN )) {
-      return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
+      return csoundInitError(csound, Str("ksmps of %d needs wdw of %d, "
                                            "max is %d for pv %s"),
                                        CS_KSMPS, (OPWLEN/2 + 1), PVWINLEN,
                                        pvfilnam);
     }
 
     if (*p->igatefun > 0)
-      if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL))
+      if (UNLIKELY((AmpGateFunc = csoundFTnp2Find(csound, p->igatefun)) == NULL))
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
@@ -128,7 +134,7 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
 
     if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
-        csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
+        csoundAuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
 
     return OK;
 }
@@ -172,7 +178,7 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
       frIndx = (MYFLT)p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csoundWarning(csound, Str("PVOC ktimpnt truncated to last frame"));
       }
     }
     FetchIn(p->frPtr, buf, size, frIndx);
@@ -221,15 +227,15 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("pvoc: not initialised"));
+    return csoundPerfError(csound, &(p->h), Str("pvoc: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("PVOC transpose too low"));
  err3:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("PVOC timpnt < 0"));
 }
 
@@ -242,18 +248,18 @@ static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
 {
     PVOCEX_MEMFILE  pp;
 
-    if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
-      return csound->InitError(csound, Str("PVOC cannot load %s"), fname);
+    if (UNLIKELY(PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
+      return csoundInitError(csound, Str("PVOC cannot load %s"), fname);
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
     if (UNLIKELY(pp.fftsize > PVFRAMSIZE)) {
-      return csound->InitError(csound, Str("pvoc-ex file %s: "
+      return csoundInitError(csound, Str("pvoc-ex file %s: "
                                            "FFT size %d too large for Csound"),
                                fname, (int32_t) pp.fftsize);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (UNLIKELY(pp.chans > 1)) {
-      return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+      return csoundInitError(csound, Str("pvoc-ex file %s is not mono"), fname);
     }
     /* ignore the window spec until we can use it! */
     p->frSiz    = pp.fftsize;
@@ -268,7 +274,7 @@ static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
  /* p->scale = (MYFLT) pp.fftsize * ((MYFLT) pp.fftsize / (MYFLT) pp.winsize);
   */
     p->scale = (MYFLT) pp.fftsize * FL(0.5);
-    p->scale *= csound->GetInverseRealFFTScale(csound, pp.fftsize);
+    p->scale *= csoundGetInverseRealFFTScale(csound, pp.fftsize);
 
     return OK;
 }

@@ -25,6 +25,7 @@
 #include "soundio.h"
 #include "envvar.h"
 #include "envvar_public.h"
+#include "envvar_public.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -179,7 +180,7 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
     ep = (searchPathCacheEntry_t*) csound->searchPathCache;
     while (ep != NULL) {
       nxt = ep->nxt;
-      csound->Free(csound, ep);
+      mfree(csound, ep);
       ep = nxt;
     }
     csound->searchPathCache = NULL;
@@ -187,7 +188,7 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
 
     oldValue = cs_hash_table_get(csound, csound->envVarDB, (char*)name);
     if (oldValue != NULL) {
-      csound->Free(csound, oldValue);
+      mfree(csound, oldValue);
     }
 
     cs_hash_table_put(csound, csound->envVarDB,
@@ -229,7 +230,7 @@ int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
     if (value == NULL || value[0] == '\0')
       return CSOUND_SUCCESS;
     /* allocate new value (+ 2 bytes for ENVSEP and null character) */
-    newval = (char*) csound->Malloc(csound, (size_t) strlen(oldval)
+    newval = (char*) mmalloc(csound, (size_t) strlen(oldval)
                              + (size_t) strlen(value) + (size_t) 2);
     /* append to old value */
     strcpy(newval, oldval);     /* These are safe as space calculated above */
@@ -242,7 +243,7 @@ int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
     //    printf("%d: newval = %s\n", __LINE__, newval);
     /* set variable */
     retval = csoundSetEnv(csound, name, newval);
-    csound->Free(csound, newval);
+    mfree(csound, newval);
     /* return with error code */
     return retval;
 }
@@ -270,7 +271,7 @@ int csoundPrependEnv(CSOUND *csound, const char *name, const char *value)
     if (value == NULL || value[0] == '\0')
       return CSOUND_SUCCESS;
     /* allocate new value (+ 2 bytes for ';' and null character) */
-    newval = (char*) csound->Malloc(csound, (size_t) strlen(oldval)
+    newval = (char*) mmalloc(csound, (size_t) strlen(oldval)
                                      + (size_t) strlen(value) + (size_t) 2);
     /* prepend to old value */
     strcpy(newval, value);
@@ -282,7 +283,7 @@ int csoundPrependEnv(CSOUND *csound, const char *name, const char *value)
     //    printf("%d: newval = %s\n", __LINE__,  newval);
     /* set variable */
     retval = csoundSetEnv(csound, name, newval);
-    csound->Free(csound, newval);
+    mfree(csound, newval);
     /* return with error code */
     return retval;
 }
@@ -339,7 +340,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
     int   append_mode, retval;
 
     /* copy string constant */
-    name = (char*) csound->Malloc(csound, (size_t) strlen(s) + (size_t) 1);
+    name = (char*) mmalloc(csound, (size_t) strlen(s) + (size_t) 1);
     strcpy(name, s);
     /* check assignment format */
     value = strchr(name, '=');
@@ -372,7 +373,7 @@ int csoundParseEnv(CSOUND *csound, const char *s)
  err_return:
     if (UNLIKELY(retval != CSOUND_SUCCESS))
       csoundMessage(csound, "%s", msg);
-    csound->Free(csound, name);
+    mfree(csound, name);
     return retval;
 }
 
@@ -396,7 +397,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     for (i = j = 0; i <= len; i++) {
       if (envList[i] == ';' || envList[i] == ':' || envList[i] == '\0') {
         if (i > j) {
-          tmp = (nameChain_t*)csound->Malloc(csound, sizeof(nameChain_t) + (i-j));
+          tmp = (nameChain_t*)mmalloc(csound, sizeof(nameChain_t) + (i-j));
           for (k = 0; j < i; j++, k++)
             tmp->s[k] = envList[j];
           tmp->s[k] = '\0';
@@ -412,7 +413,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
             if (nxt == NULL)
               prv->nxt = tmp;
             else
-              csound->Free(csound, tmp);       /* and remove if there is any */
+              mfree(csound, tmp);       /* and remove if there is any */
           }
           else
             env_lst = tmp;
@@ -424,7 +425,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     while (env_lst != NULL) {
       nxt = env_lst->nxt;
       s = (char*) csoundGetEnv(csound, env_lst->s);
-      csound->Free(csound, env_lst);
+      mfree(csound, env_lst);
       env_lst = nxt;
       if (s != NULL && s[0] != '\0')
         len = (int) strlen(s);
@@ -435,7 +436,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
         if (i==0 && isalpha(s[i]) && s[i+1]==':') i++;
         else if (s[i] == ';' || s[i] == ':' || s[i] == '\0') {
           if (i > j) {
-            tmp = (nameChain_t*) csound->Malloc(csound, sizeof(nameChain_t)
+            tmp = (nameChain_t*) mmalloc(csound, sizeof(nameChain_t)
                                                  + (i - j) + 1);
             /* copy with converting pathname delimiters */
             /* FIXME: should call csoundConvertPathname instead */
@@ -453,7 +454,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
             if (tmp != NULL) {
               /* and remove if there is any */
               prv->nxt = tmp->nxt;
-              csound->Free(csound, tmp);
+              mfree(csound, tmp);
             }
             else {
               /* calculate storage requirement */
@@ -467,7 +468,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     }
     totLen += ((int) strlen(envList) + 1);
     /* create path cache entry */
-    p = (searchPathCacheEntry_t*) csound->Malloc(csound,
+    p = (searchPathCacheEntry_t*) mmalloc(csound,
                                                  sizeof(searchPathCacheEntry_t)
                                                  + sizeof(char*) * pathCnt
                                                  + sizeof(char) * totLen);
@@ -477,17 +478,17 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     s += ((int) strlen(envList) + 1);
     p->nxt = (searchPathCacheEntry_t*) csound->searchPathCache;
     if (UNLIKELY(csound->oparms->odebug))
-      csound->DebugMsg(csound, Str("Creating search path cache for '%s':"),
+      csoundDebugMsg(csound, Str("Creating search path cache for '%s':"),
                                p->name);
     for (i = 0; (i < pathCnt) && (path_lst != NULL); i++) {
       p->lst[i] = s;
       strcpy(s, path_lst->s);
       s += ((int) strlen(path_lst->s) + 1);
       nxt = path_lst->nxt;
-      csound->Free(csound, path_lst);
+      mfree(csound, path_lst);
       path_lst = nxt;
       if (UNLIKELY(csound->oparms->odebug))
-        csound->DebugMsg(csound, "%5d: \"%s\"", (i + 1), p->lst[i]);
+        csoundDebugMsg(csound, "%5d: \"%s\"", (i + 1), p->lst[i]);
     }
     p->lst[i] = NULL;
     /* link into database */
@@ -508,7 +509,7 @@ char *csoundConvertPathname(CSOUND *csound, const char *filename)
    collapse multiple slashes "//" or "\\\\" ??  */
     if (filename == NULL || filename[0] == '\0')
       return NULL;
-    name = (char*) csound->Malloc(csound, (size_t) strlen(filename) + (size_t) 1);
+    name = (char*) mmalloc(csound, (size_t) strlen(filename) + (size_t) 1);
     do {
       if (filename[i] != '/' && filename[i] != '\\')
         name[i] = filename[i];
@@ -520,7 +521,7 @@ char *csoundConvertPathname(CSOUND *csound, const char *filename)
         || (isalpha(name[0]) && name[1] == ':' && name[2] == '\0')
 #endif
         ) {
-      csound->Free(csound, name);
+      mfree(csound, name);
       return NULL;
     }
     return name;
@@ -577,7 +578,7 @@ char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
 
     /* cannot join two full pathnames -- so just return path2 ? */
     if (csoundIsNameFullpath(path2)) {
-        result = (char*) csound->Malloc(csound, (size_t)len2+1);
+        result = (char*) mmalloc(csound, (size_t)len2+1);
         strcpy(result, path2);
         return result;
     }
@@ -586,7 +587,7 @@ char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
     /* ignore "./" at the beginning */
     if (path2[0] == '.' && path2[1] == DIRSEP) start2 = path2 + 2;
 
-    result = (char*) csound->Malloc(csound, (size_t)len1+(size_t)len2+2);
+    result = (char*) mmalloc(csound, (size_t)len1+(size_t)len2+2);
     strcpy(result, path1);
     /* check for final DIRSEP in path1 */
     if (path1[len1-1] != DIRSEP) {
@@ -618,24 +619,24 @@ char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
     if (lastIndex == NULL) {  /* no DIRSEP before filename */
 #ifdef _WIN32  /* e.g. C:filename */
         if (isalpha(convPath[0]) && convPath[1] == ':') {
-            partialPath = (char*) csound->Malloc(csound, (size_t) 3);
+            partialPath = (char*) mmalloc(csound, (size_t) 3);
             partialPath[0] = convPath[0];
             partialPath[1] = convPath[1];
             partialPath[2] = '\0';
-            csound->Free(csound, convPath);
+            mfree(csound, convPath);
             return partialPath;
         }
 #endif
-        partialPath = (char*) csound->Malloc(csound, (size_t) 1);
+        partialPath = (char*) mmalloc(csound, (size_t) 1);
         partialPath[0] = '\0';
     }
     else {
         len = lastIndex - convPath;
-        partialPath = (char*) csound->Malloc(csound, len+1);
+        partialPath = (char*) mmalloc(csound, len+1);
         strNcpy(partialPath, convPath, len+1);
         //partialPath[len] = '\0';
    }
-   csound->Free(csound, convPath);
+   mfree(csound, convPath);
    return partialPath;
 }
 
@@ -651,9 +652,9 @@ char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path)
       return NULL;
     lastIndex = strrchr(convPath, DIRSEP);
     len = strlen(lastIndex);
-    filename = (char*) csound->Malloc(csound, len+1);
+    filename = (char*) mmalloc(csound, len+1);
     strcpy(filename, lastIndex+1);
-    csound->Free(csound, convPath);
+    mfree(csound, convPath);
     return filename;
 }
 
@@ -680,11 +681,11 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     if (tempPath && csoundIsNameFullpath(tempPath)) {
       /* check if root directory */
       if (lastIndex == tempPath) {
-        partialPath = (char *)csound->Malloc(csound, 2);
+        partialPath = (char *)mmalloc(csound, 2);
         partialPath[0] = DIRSEP;
         partialPath[1] = '\0';
 
-        csound->Free(csound, tempPath);
+        mfree(csound, tempPath);
 
         return partialPath;
       }
@@ -692,23 +693,23 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
 #  ifdef _WIN32
       /* check if root directory of Windows drive */
       if ((lastIndex - tempPath) == 2 && tempPath[1] == ':') {
-        partialPath = (char *)csound->Malloc(csound, 4);
+        partialPath = (char *)mmalloc(csound, 4);
         partialPath[0] = tempPath[0];
         partialPath[1] = tempPath[1];
         partialPath[2] = tempPath[2];
         partialPath[3] = '\0';
 
-        csound->Free(csound, tempPath);
+        mfree(csound, tempPath);
 
         return partialPath;
       }
 #  endif
       len = (lastIndex - tempPath);
 
-      partialPath = (char *)csound->Calloc(csound, len + 1);
+      partialPath = (char *)mcalloc(csound, len + 1);
       strNcpy(partialPath, tempPath, len+1);
 
-      csound->Free(csound, tempPath);
+      mfree(csound, tempPath);
 
       return partialPath;
     }
@@ -716,12 +717,12 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     /* do we need to worry about ~/ on *nix systems ? */
     /* we have a relative path or just a filename */
     len = 32;
-    cwd = csound->Malloc(csound, len);
+    cwd = mmalloc(csound, len);
  again:
     if (UNLIKELY(getcwd(cwd, len)==NULL)) {
       // Should check ERANGE==errno
       //csoundDie(csound, Str("Current directory path name too long\n"));
-      len =len+len; cwd = csound->ReAlloc(csound, cwd, len);
+      len =len+len; cwd = mrealloc(csound, cwd, len);
       if (UNLIKELY(len>1024*1024))
         csoundDie(csound, Str("Current directory path name too long\n"));
       goto again;
@@ -733,14 +734,14 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
 
     len = (lastIndex - tempPath);  /* could be 0 on OS 9 */
 
-    partialPath = (char *)csound->Calloc(csound, len + 1);
+    partialPath = (char *)mcalloc(csound, len + 1);
     strNcpy(partialPath, tempPath, len+1);
 
     retval = csoundConcatenatePaths(csound, cwd, partialPath);
 
-    csound->Free(csound, cwd);
-    csound->Free(csound, partialPath);
-    csound->Free(csound, tempPath);
+    mfree(csound, cwd);
+    mfree(csound, partialPath);
+    mfree(csound, tempPath);
 
     return retval;
 #endif  
@@ -765,7 +766,7 @@ FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
       }
       /* if full path, and not found: */
       if (csoundIsNameFullpath(name)) {
-        csound->Free(csound, name);
+        mfree(csound, name);
         return (FILE*) NULL;
       }
     }
@@ -775,7 +776,7 @@ FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
       if (f != NULL)
         *fullName = name;
       else
-        csound->Free(csound, name);
+        mfree(csound, name);
       return f;
     }
     /* search paths defined by environment variable list */
@@ -787,11 +788,11 @@ FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
         f = fopen(name2, mode);
         if (f != NULL) {
-          csound->Free(csound, name);
+          mfree(csound, name);
           *fullName = name2;
           return f;
         }
-        csound->Free(csound, name2);
+        mfree(csound, name2);
         searchPath++;
       }
     }
@@ -804,7 +805,7 @@ FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
       }
     }
     /* not found */
-    csound->Free(csound, name);
+    mfree(csound, name);
     return (FILE*) NULL;
 }
 
@@ -827,7 +828,7 @@ int csoundFindFile_Fd(CSOUND *csound, char **fullName,
       }
       /* if full path, and not found: */
       if (csoundIsNameFullpath(name)) {
-        csound->Free(csound, name);
+        mfree(csound, name);
         return -1;
       }
     }
@@ -837,7 +838,7 @@ int csoundFindFile_Fd(CSOUND *csound, char **fullName,
       if (fd >= 0)
         *fullName = name;
       else
-        csound->Free(csound, name);
+        mfree(csound, name);
       return fd;
     }
     /* search paths defined by environment variable list */
@@ -852,11 +853,11 @@ int csoundFindFile_Fd(CSOUND *csound, char **fullName,
         else
           fd = open(name2, WR_OPTS);
         if (fd >= 0) {
-          csound->Free(csound, name);
+          mfree(csound, name);
           *fullName = name2;
           return fd;
         }
-        csound->Free(csound, name2);
+        mfree(csound, name2);
         searchPath++;
       }
     }
@@ -869,7 +870,7 @@ int csoundFindFile_Fd(CSOUND *csound, char **fullName,
       }
     }
     /* not found */
-    csound->Free(csound, name);
+    mfree(csound, name);
     return -1;
 }
 
@@ -881,10 +882,10 @@ void close_all_files(CSOUND *csound)
       csoundFileClose(csound, csound->open_files);
     if (csound->file_io_start) {
 #ifndef __EMSCRIPTEN__
-      csound->JoinThread(csound->file_io_thread);
+      csoundJoinThread(csound->file_io_thread);
 #endif
       if (csound->file_io_threadlock != NULL)
-        csound->DestroyThreadLock(csound->file_io_threadlock);
+        csoundDestroyThreadLock(csound->file_io_threadlock);
     }
 }
 
@@ -897,7 +898,7 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
     int  csftype = (fromScore ? CSFTYPE_SCO_INCLUDE : CSFTYPE_ORC_INCLUDE);
 
     /* First try to open name given */
-    fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "r", NULL,
+    fd = csoundFileOpenWithType(csound, fp, CSFILE_STD, name, "r", NULL,
                            csftype, 0);
     if (fd != NULL)
       return fd;
@@ -906,16 +907,16 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
       char *dir, *name_full;
       if ((dir = csoundSplitDirectoryFromPath(csound, basename)) != NULL) {
         name_full = csoundConcatenatePaths(csound, dir, name);
-        fd = csound->FileOpen2(csound, fp, CSFILE_STD, name_full, "r", NULL,
+        fd = csoundFileOpenWithType(csound, fp, CSFILE_STD, name_full, "r", NULL,
                                csftype, 0);
-        csound->Free(csound, dir);
-        csound->Free(csound, name_full);
+        mfree(csound, dir);
+        mfree(csound, name_full);
         if (fd != NULL)
           return fd;
       }
     }
     /* or use env argument */
-    fd = csound->FileOpen2(csound, fp, CSFILE_STD, name, "r", env,
+    fd = csoundFileOpenWithType(csound, fp, CSFILE_STD, name, "r", env,
                            csftype, 0);
     return fd;
 }
@@ -940,14 +941,14 @@ static int read_files(CSOUND *csound){
             n = sflib_read_MYFLT(current->sf, buf, items);
             m = 0;
           }
-          l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n);
+          l = csoundWriteCircularBuffer(csound,current->cb,&buf[m],n);
           m += l;
           n -= l;
           current->items = n;
           current->pos = m;
           break;
         case CSFILE_SND_W:
-          items = csound->ReadCircularBuffer(csound, current->cb, buf, items);
+          items = csoundReadCircularBuffer(csound, current->cb, buf, items);
           if (items == 0) { csoundSleep(10); break;}
           sflib_write_MYFLT(current->sf, buf, items);
           break;
@@ -969,9 +970,9 @@ uintptr_t file_iothread(void *p){
     if (wakeup == 0) wakeup = 1;
     while (res){
       csoundSleep(wakeup);
-      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+      csoundWaitThreadLockNoTimeout(csound->file_io_threadlock);
       res = read_files(csound);
-      csound->NotifyThreadLock(csound->file_io_threadlock);
+      csoundNotifyThreadLock(csound->file_io_threadlock);
     }
     csound->file_io_start = 0;
     return (uintptr_t)NULL;

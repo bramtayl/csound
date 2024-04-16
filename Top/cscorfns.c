@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"     /*                      CSCORFNS.C      */
 #include "cscore.h"
 #include "corfile.h"
+#include "memalloc.h"
 #include "envvar_public.h"
 
 #define TYP_FREE   0
@@ -78,7 +79,7 @@ void cscoreRESET(CSOUND *csound)
       SPACE *n;
       do {
         n = p->nxtspace;
-        csound->Free(csound, p);
+        mfree(csound, p);
         p = n;
       }
       while (p != NULL);
@@ -99,7 +100,7 @@ static SPACE *morespace(CSOUND *csound)
     prvspace = &spaceanchor;
     while ((space = prvspace->nxtspace) != NULL)
       prvspace = space;
-    space = (SPACE *) csound->Malloc(csound, (long) MAXALLOC);
+    space = (SPACE *) mmalloc(csound, (long) MAXALLOC);
     prvspace->nxtspace = space;
     space->nxtspace = NULL;
     space->h.prvblk = NULL;
@@ -174,7 +175,7 @@ PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int nslots)
     int   minfreesiz = needsiz + sizeof(CSHDR);
 
     if (UNLIKELY(minfreesiz > MAXALLOC)) {
-      csound->Message(csound, Str("Not enough memory\n"));
+      csoundMessage(csound, Str("Not enough memory\n"));
       exit(1);
     }
     if (nxtfree != NULL && nxtfree->size >= minfreesiz)
@@ -205,7 +206,7 @@ PUBLIC EVENT * cscoreCreateEvent(CSOUND *csound, int pcnt)
     int   minfreesiz = needsiz + sizeof(CSHDR);
 
     if (UNLIKELY(minfreesiz > MAXALLOC)) {
-      csound->Message(csound, Str("Not enough memory\n"));
+      csoundMessage(csound, Str("Not enough memory\n"));
       exit(1);
     }
     if (nxtfree != NULL && nxtfree->size >= minfreesiz)
@@ -282,7 +283,7 @@ PUBLIC EVENT * cscoreDefineEvent(CSOUND *csound, char *s)
         s++;
       if (UNLIKELY(p > q && *s != '\0'))  {           /* too many ? */
         p++;
-        csound->Message(csound,
+        csoundMessage(csound,
                         Str("PMAX exceeded, string event truncated.\n"));
         break;
       }
@@ -673,7 +674,7 @@ static void fp2chk(CSOUND *csound, EVLIST *a, char *s)
       if ((e = *ep++) && e->op == 'f' && e->p[2] != 0.)
         count++;
     if (count)
-      csound->Message(csound, Str("%s found %d f event%s with non-zero p2\n"),
+      csoundMessage(csound, Str("%s found %d f event%s with non-zero p2\n"),
                               s, count, count==1 ? "" : Str("s"));
 }
 
@@ -771,7 +772,7 @@ static void savinfdata(         /* store input file data */
     int    n;
 
     if ((infp = infiles) == NULL) {
-      infp = infiles = (INFILE *) csound->Calloc(csound, MAXOPEN * sizeof(INFILE));
+      infp = infiles = (INFILE *) mcalloc(csound, MAXOPEN * sizeof(INFILE));
       goto save;
     }
     for (n = MAXOPEN; n--; infp++)
@@ -780,7 +781,7 @@ static void savinfdata(         /* store input file data */
     for (infp = infiles, n = MAXOPEN; n--; infp++)
       if (infp->iscfp == NULL)
         goto save;
-    csound->ErrorMsg(csound, Str("cscore: too many input files open"));
+    csoundErrorMsg(csound, Str("cscore: too many input files open"));
     exit(0);     /* FIXME: should not call exit */
 
  save:
@@ -820,7 +821,7 @@ static void makecurrent(CSOUND *csound, FILE *fp)
             }
           return;
         }
-    csound->ErrorMsg(csound, Str("cscore: tried to set an unknown file pointer"
+    csoundErrorMsg(csound, Str("cscore: tried to set an unknown file pointer"
                                  " as the current file"));
     exit(0);     /* FIXME: should not call exit */
 }
@@ -839,7 +840,7 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
       csound->scstr = inf;
     }
     if (outsco == NULL) {
-      csound->ErrorMsg(csound,
+      csoundErrorMsg(csound,
                        Str("csoundInitializeCscore: no output score given."));
       return CSOUND_INITIALIZATION;
     }
@@ -871,11 +872,11 @@ PUBLIC FILE *cscoreFileOpen(CSOUND *csound, char *name)
        program and who knows what they will do with it ... */
     pathname = csoundFindInputFile(csound, name, "INCDIR");
     if (pathname == NULL || (fp = fopen(pathname, "r")) == NULL) {
-      csound->ErrorMsg(csound, Str("cscoreFileOpen: error opening %s"), name);
+      csoundErrorMsg(csound, Str("cscoreFileOpen: error opening %s"), name);
       exit(0);     /* FIXME: should not call exit */
     }
     csoundNotifyFileOpened(csound, pathname, CSFTYPE_SCORE, 0, 0);
-    csound->Free(csound, pathname);
+    mfree(csound, pathname);
     /* alloc a receiving evtblk */
     next = cscoreCreateEvent(csound,PMAX);  /* FIXME: need next->op = '\0' ?? */
     /* save all, wasend, non-warped, not eof */
@@ -889,25 +890,25 @@ PUBLIC void cscoreFileClose(CSOUND *csound, FILE *fp)
     int n;
 
     if (fp == NULL) {
-      csound->Message(csound, Str("cscoreFileClose: NULL file pointer\n"));
+      csoundMessage(csound, Str("cscoreFileClose: NULL file pointer\n"));
       return;
     }
     if ((infp = infiles) != NULL)
       for (n = MAXOPEN; n--; infp++)
         if (infp->iscfp == fp) {
           infp->iscfp = NULL;
-          csound->Free(csound, (char *)infp->next);
+          mfree(csound, (char *)infp->next);
           fclose(fp);
           if (csound->scfp == fp) csound->scfp = NULL;
           return;
         }
-    csound->Message(csound, Str("cscoreFileClose: fp not recorded\n"));
+    csoundMessage(csound, Str("cscoreFileClose: fp not recorded\n"));
 }
 
 PUBLIC FILE *cscoreFileGetCurrent(CSOUND *csound)
 {
     if (csound->scfp == NULL) {
-      csound->ErrorMsg(csound, Str("cscoreFileGetCurrent: no fp current"));
+      csoundErrorMsg(csound, Str("cscoreFileGetCurrent: no fp current"));
       exit(0);     /* FIXME: should not call exit */
     }
     return(csound->scfp);

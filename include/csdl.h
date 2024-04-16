@@ -76,7 +76,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     OENTRY  *ep = (OENTRY *) &(localops[0]);
     int     err = 0;
     while (ep->opname != NULL) {
-      err |= csound->AppendOpcode(csound,
+      err |= csoundAppendOpcode(csound,
                                   ep->opname, ep->dsblksiz, ep->thread,
                                   ep->outypes, ep->intypes,
                                   (int (*)(CSOUND *, void *)) ep->iopadr,
@@ -132,7 +132,7 @@ extern "C" {
 //#ifndef GNU_GETTEXT
 //#define Str(x)  (x)
 //#else
-#define Str(x)  (csound->LocalizeString(x))
+#define Str(x)  (csoundLocalizeString(x))
 //#endif
 
 PUBLIC  int64_t  csound_opcode_init(CSOUND *, OENTRY **);

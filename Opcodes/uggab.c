@@ -30,6 +30,9 @@
 #include "stdopcod.h"
 #include "uggab.h"
 #include <math.h>
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 static int32_t wrap(CSOUND *csound, WRAP *p)
 {
@@ -178,7 +181,7 @@ static int32_t trig(CSOUND *csound, TRIG *p)
       break;
     default:
       return
-        csound->PerfError(csound, &(p->h),
+        csoundPerfError(csound, &(p->h),
                           Str(" bad imode value"));
     }
     p->old_sig = sig;
@@ -200,7 +203,7 @@ static int32_t nterpol_init(CSOUND *csound, INTERPOL *p)
     if (LIKELY(*p->imax != *p->imin))
       p->point_factor = FL(1.0)/(*p->imax - *p->imin);
     else
-      return csound->InitError(csound, Str("Min and max the same"));
+      return csoundInitError(csound, Str("Min and max the same"));
     return OK;
  }
 
@@ -238,8 +241,8 @@ static int32_t posc_set(CSOUND *csound, POSC *p)
 {
     FUNC *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
-      return csound->InitError(csound, Str("table not found in poscil"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->ift)) == NULL))
+      return csoundInitError(csound, Str("table not found in poscil"));
     p->ftp        = ftp;
     p->tablen     = ftp->flen;
     p->tablenUPsr = p->tablen * csound->onedsr;
@@ -263,7 +266,7 @@ static int32_t posckk(CSOUND *csound, POSC *p)
     MYFLT       amp = *p->amp;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("poscil: not initialised"));
     ft = p->ftp->ftable;
     if (UNLIKELY(early)) nsmps -= early;
@@ -294,7 +297,7 @@ static int32_t poscaa(CSOUND *csound, POSC *p)
     MYFLT       *amp = p->amp; /*gab c3*/
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("poscil: not initialised"));
     ft = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -331,7 +334,7 @@ static int32_t poscka(CSOUND *csound, POSC *p)
     MYFLT       *freq = p->freq;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("poscil: not initialised"));
     ft = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -368,7 +371,7 @@ static int32_t poscak(CSOUND *csound, POSC *p)
     MYFLT       *amp = p->amp; /*gab c3*/
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("poscil: not initialised"));
     ft = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -424,7 +427,7 @@ static int32_t posc3kk(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -479,7 +482,7 @@ static int32_t posc3ak(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -535,7 +538,7 @@ static int32_t posc3ka(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -592,7 +595,7 @@ static int32_t posc3aa(CSOUND *csound, POSC *p)
     MYFLT       y0, y1, ym1, y2;
 
     if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("poscil3: not initialised"));
     ftab = p->ftp->ftable;
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -677,10 +680,10 @@ static int32_t lposc_set(CSOUND *csound, LPOSC *p)
     FUNC   *ftp;
     MYFLT  loop, end, looplength;
 
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ift)) == NULL))
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->ift)) == NULL))
       return NOTOK;
     if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
-      csound->Warning(csound, Str("losc: no sample rate stored in function "
+      csoundWarning(csound, Str("losc: no sample rate stored in function "
                                   "assuming=sr\n"));
       p->fsr=CS_ESR;
     }
@@ -787,7 +790,7 @@ static int32_t lposc3(CSOUND *csound, LPOSC *p)
 static int32_t sum_init(CSOUND *csound, SUM *p) {
     uint32_t nsmps = CS_KSMPS;
     if (p->aux.auxp == NULL || p->aux.size < nsmps * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (size_t)(nsmps*sizeof(MYFLT)), &p->aux);
+      csoundAuxAlloc(csound, (size_t)(nsmps*sizeof(MYFLT)), &p->aux);
     return OK;
 }
 
@@ -865,10 +868,10 @@ static int32_t rsnsety(CSOUND *csound, RESONY *p)
       p->loop = 4;  /* default value */
     if (!*p->istor && (p->aux.auxp == NULL ||
                       (uint32_t) (p->loop * 2 * sizeof(MYFLT)) > p->aux.size))
-      csound->AuxAlloc(csound, (size_t) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
+      csoundAuxAlloc(csound, (size_t) (p->loop * 2 * sizeof(MYFLT)), &p->aux);
     p->yt1 = (MYFLT*)p->aux.auxp; p->yt2 = (MYFLT*)p->aux.auxp + p->loop;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
-      return csound->InitError(csound, Str("illegal reson iscl value: %f"),
+      return csoundInitError(csound, Str("illegal reson iscl value: %f"),
                                        *p->iscl);
     }
     if (!(*p->istor)) {
@@ -878,7 +881,7 @@ static int32_t rsnsety(CSOUND *csound, RESONY *p)
       /*   p->yt1[j] = p->yt2[j] = FL(0.0); */
     }
     if (p->buffer.auxp == NULL || p->buffer.size<nsmps*sizeof(MYFLT))
-      csound->AuxAlloc(csound, (size_t)(nsmps*sizeof(MYFLT)), &p->buffer);
+      csoundAuxAlloc(csound, (size_t)(nsmps*sizeof(MYFLT)), &p->buffer);
     return OK;
 }
 
@@ -891,7 +894,7 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     double  cf;
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
-      return csound->InitError(csound, Str("loop cannot be zero"));
+      return csoundInitError(csound, Str("loop cannot be zero"));
     {
       MYFLT   sep = (*p->sep / (MYFLT) loop);
       int32_t     flag = (int32_t) *p->iflag;
@@ -993,7 +996,7 @@ static int32_t loopseg_set(CSOUND *csound, LOOPSEG *p)
     p->nsegs   = p->INOCOUNT-3;
     // Should check this is even
     if (UNLIKELY((p->nsegs&1)!=0))
-      csound->Warning(csound, Str("loop opcode: wrong argument count"));
+      csoundWarning(csound, Str("loop opcode: wrong argument count"));
     p->args[0] = FL(0.0);
     p->phs     = *p->iphase;
     return OK;
@@ -1336,12 +1339,12 @@ static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Finde(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0 && *p->iphs<1.0)
         p->lphs = (((int64_t)(*p->iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
       else if (UNLIKELY(*p->iphs>=1.0))
-        return csound->InitError(csound, Str("vibrato@ Phase out of range"));
+        return csoundInitError(csound, Str("vibrato@ Phase out of range"));
     }
     else return NOTOK;
     p->xcpsAmpRate = randGab *(*p->cpsMaxRate - *p->cpsMinRate) +
@@ -1400,7 +1403,7 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("vibrato(krate): not initialised"));
 }
 
@@ -1417,7 +1420,7 @@ static int32_t vibr_set(CSOUND *csound, VIBR *p)
 #define cpsMaxRate      FL(2.28100)
 #define iphs            FL(0.0)
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Finde(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->lphs = (((int32)(iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
     }
@@ -1443,7 +1446,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
     phs = p->lphs;
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("vibrato(krate): not initialised"));
     }
     fract = (MYFLT) (phs - (int32)phs); /*PFRAC(phs);*/
@@ -1678,14 +1681,14 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
 static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csoundFTFindP(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
     *p->out = p->ftp->ftable[(int32)(randGab * p->ftp->flen)];
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }
@@ -1705,7 +1708,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
     uint32_t n, nsmps = CS_KSMPS, flen;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csoundFTFindP(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
@@ -1721,7 +1724,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }
@@ -1731,7 +1734,7 @@ static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
     int32 indx;
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csoundFTFindP(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
@@ -1743,7 +1746,7 @@ static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
     *p->out = (v1 + (v2 - v1) * fract) * (*p->max - *p->min) + *p->min;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }
@@ -1773,7 +1776,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
     MYFLT findx, fract,v1,v2;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csoundFTFindP(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
@@ -1797,7 +1800,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }
@@ -2153,6 +2156,6 @@ static OENTRY localops[] = {
 
 int32_t uggab_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }

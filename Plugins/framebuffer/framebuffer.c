@@ -26,6 +26,8 @@
 
 #include "csdl.h"
 #include "interlocks.h"
+#include "memalloc.h"
+#include "auxfd.h"
 
     typedef struct OLABuffer {
 
@@ -94,13 +96,13 @@ int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     self->frameSamplesCount = self->inputArray->sizes[0];
     self->framesCount = *self->overlapArgument;
     self->overlapSamplesCount = self->frameSamplesCount / self->framesCount;
-    csound->AuxAlloc(csound,
+    csoundAuxAlloc(csound,
                      self->frameSamplesCount * self->framesCount * sizeof(MYFLT),
                      &self->frameSamplesMemory);
-    csound->AuxAlloc(csound, self->framesCount * sizeof(MYFLT *),
+    csoundAuxAlloc(csound, self->framesCount * sizeof(MYFLT *),
                      &self->framePointerMemory);
     self->frames = self->framePointerMemory.auxp;
-    self->ksmps = csound->GetKsmps(csound);
+    self->ksmps = csoundGetKsmps(csound);
 
     int32_t i;
     for (i = 0; i < self->framesCount; ++i) {
@@ -199,7 +201,7 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
     if (UNLIKELY(floor(overlapCount) != overlapCount)) {
 
-      csound->Die(csound,
+      csoundDie(csound,
                   "%s", Str("olabuffer: Error, overlap factor must be an integer"));
     }
 
@@ -207,7 +209,7 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
     if (UNLIKELY(array->dimensions != 1)) {
 
-      csound->Die(csound, "%s",
+      csoundDie(csound, "%s",
                   Str("olabuffer: Error, k-rate array must be one dimensional"));
     }
 
@@ -215,21 +217,21 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
     if (UNLIKELY(frameSampleCount <= (int32_t)overlapCount)) {
 
-      csound->Die(csound,
+      csoundDie(csound,
                   "%s", Str("olabuffer: Error, k-rate array size must be "
                       "larger than ovelap factor"));
     }
 
     if (UNLIKELY(frameSampleCount % (int32_t)overlapCount != 0)) {
 
-      csound->Die(csound, "%s", Str("olabuffer: Error, overlap factor must be "
+      csoundDie(csound, "%s", Str("olabuffer: Error, overlap factor must be "
                               "an integer multiple of k-rate array size"));
     }
 
     if (UNLIKELY(frameSampleCount / (int32_t)overlapCount <
-                 (int32_t) csound->GetKsmps(csound))) {
+                 (int32_t) csoundGetKsmps(csound))) {
 
-      csound->Die(csound, "%s", Str("olabuffer: Error, k-rate array size divided "
+      csoundDie(csound, "%s", Str("olabuffer: Error, k-rate array size divided "
                               "by overlap factor must be larger than or equal "
                               "to ksmps"));
     }
@@ -240,23 +242,23 @@ int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
     self->inputType = Framebuffer_getArgumentType(csound, self->inputArgument);
     self->outputType = Framebuffer_getArgumentType(csound, self->outputArgument);
     self->elementCount = *self->sizeArgument;
-    self->ksmps = csound->GetKsmps(csound);
+    self->ksmps = csoundGetKsmps(csound);
 
     Framebuffer_checkArgumentSanity(csound, self);
 
-    csound->AuxAlloc(csound, self->elementCount * sizeof(MYFLT),
+    csoundAuxAlloc(csound, self->elementCount * sizeof(MYFLT),
                      &self->bufferMemory);
     self->buffer = self->bufferMemory.auxp;
 
     if (self->outputType == KRATE_ARRAY) {
 
         ARRAYDAT *array = (ARRAYDAT *) self->outputArgument;
-        array->sizes = csound->Calloc(csound, sizeof(int32_t));
+        array->sizes = mcalloc(csound, sizeof(int32_t));
         array->sizes[0] = self->elementCount;
         array->dimensions = 1;
         CS_VARIABLE *var = array->arrayType->createVariable(csound, NULL);
         array->arrayMemberSize = var->memBlockSize;
-        array->data = csound->Calloc(csound,
+        array->data = mcalloc(csound,
                                      var->memBlockSize * self->elementCount);
     }
 
@@ -339,9 +341,9 @@ int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self)
 
 void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 {
-    if (UNLIKELY((uint32_t)self->elementCount < csound->GetKsmps(csound))) {
+    if (UNLIKELY((uint32_t)self->elementCount < csoundGetKsmps(csound))) {
 
-      csound->Die(csound, "%s", Str("framebuffer: Error, specified element "
+      csoundDie(csound, "%s", Str("framebuffer: Error, specified element "
                               "count less than ksmps value, Exiting"));
     }
 
@@ -349,7 +351,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
       if (UNLIKELY(self->outputType != KRATE_ARRAY)) {
 
-          csound->Die(csound, "%s", Str("framebuffer: Error, only k-rate arrays "
+          csoundDie(csound, "%s", Str("framebuffer: Error, only k-rate arrays "
                                   "allowed for a-rate var inputs, Exiting"));
         }
     }
@@ -357,7 +359,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
       if (UNLIKELY(self->outputType != ARATE_VAR)) {
 
-          csound->Die(csound, "%s", Str("framebuffer: Error, only a-rate vars "
+          csoundDie(csound, "%s", Str("framebuffer: Error, only a-rate vars "
                                   "allowed for k-rate array inputs, Exiting"));
         }
 
@@ -365,20 +367,20 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
         if (UNLIKELY(array->dimensions != 1)) {
 
-          csound->Die(csound, "%s", Str("framebuffer: Error, k-rate array input "
+          csoundDie(csound, "%s", Str("framebuffer: Error, k-rate array input "
                                   "must be one dimensional, Exiting"));
         }
 
         if (UNLIKELY(array->sizes[0] > self->elementCount)) {
 
-          csound->Die(csound, "%s", Str("framebuffer: Error, k-rate array input "
+          csoundDie(csound, "%s", Str("framebuffer: Error, k-rate array input "
                                   "element count must be less than\nor equal "
                                   "to specified framebuffer size, Exiting"));
         }
     }
     else {
 
-      csound->Die(csound,
+      csoundDie(csound,
                   "%s", Str("framebuffer: Error, only a-rate var input with k-rate "
                       "array output or k-rate\narray input with a-rate var "
                       "output are valid arguments, Exiting"));
@@ -387,7 +389,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
 ArgumentType Framebuffer_getArgumentType(CSOUND *csound, MYFLT *argument)
 {
-    const CS_TYPE *csoundType = csound->GetTypeForArg((void *)argument);
+    const CS_TYPE *csoundType = csoundGetTypeForArg((void *)argument);
     const char *type = csoundType->varTypeName;
     ArgumentType argumentType = UNKNOWN;
 

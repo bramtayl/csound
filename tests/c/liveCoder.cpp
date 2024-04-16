@@ -6,6 +6,8 @@
  */ 
 
 #include "liveCoder.hpp"
+#include "linevent_public.h"
+
 uintptr_t csThread(void *clientData);
 int main(int argc, char *argv[])
 {
@@ -15,7 +17,7 @@ int main(int argc, char *argv[])
   csound = new liveCsound();	
   csound->SetOption((char *)"-odac");
   csound->SetOption((char *)"-dm0");
-  csound->InputMessage("f2 0 16 2 .00 .02 .04 .05 .07 .08 .09 .11");
+  csoundInputMessageInternal("f2 0 16 2 .00 .02 .04 .05 .07 .08 .09 .11");
   csound->Start();
 
   if(!csound->result){

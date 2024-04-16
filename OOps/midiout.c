@@ -30,6 +30,7 @@
 #include <math.h>
 #include "csoundCore_internal.h"
 #include "midiout.h"
+#include "insert_public.h"
 
 #define MGLOB(x) (((CSOUND*)csound)->midiGlobals->x)
 
@@ -118,7 +119,7 @@ int32_t mrtmsg(CSOUND *csound, MRT *p)
       send_midi_message(csound, 0xFE, 0, 0); /* active_sensing */
       break;
     default:
-      return csound->InitError(csound, Str("illegal mrtmsg argument"));
+      return csoundInitError(csound, Str("illegal mrtmsg argument"));
     }
     return OK;
 }
@@ -317,7 +318,7 @@ int32_t out_controller (CSOUND *csound, OUT_CONTR *p)
       if (value != p->last_value ||
           *p->chn != p->lastchn ||
           *p->num != p->lastctrl) {
-        /* csound->Message(csound, "out contr value: %d\n", value); */
+        /* csoundMessage(csound, "out contr value: %d\n", value); */
         control_change(csound, (int32_t)*p->chn-1,(int32_t)*p->num ,value);
         p->last_value = value;
         p->lastchn = *p->chn;
@@ -398,7 +399,7 @@ int32_t out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
           *p->msb_num != p->lastctrl) {
         uint32_t msb = value >> 7;
         uint32_t lsb = value & 0x7F;
-        csound->Warning(csound, Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
+        csoundWarning(csound, Str("out contr14 msb:%x lsb:%x\n"), msb, lsb);
         control_change(csound, (int32_t)*p->chn-1, (int32_t)*p->msb_num, msb);
         control_change(csound, (int32_t)*p->chn-1, (int32_t)*p->lsb_num, lsb);
         p->last_value = value;

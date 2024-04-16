@@ -135,6 +135,12 @@
 #include "sysdep.h"
 #include "text.h"
 #include <pstream.h>
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "fgens_public.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "musmon.h"
 
 #define SIGNALFLOWGRAPH_DEBUG 0
 
@@ -156,8 +162,6 @@ struct AlwaysOn;
 struct FtGenOnce;
 
 static const int MAX_STRING = 256;
-
-static int (*isstrcod)(MYFLT) = nullptr;
 
 std::ostream &operator<<(std::ostream &stream, const EVTBLK &a) {
   stream << a.opcod;
@@ -236,8 +240,8 @@ struct SignalFlowGraphState {
   std::vector<std::vector<std::vector<Outletkid *> *> *> kidoutletVectors;
   SignalFlowGraphState(CSOUND *csound_) {
     csound = csound_;
-    signal_flow_ports_lock = csound->Create_Mutex(0);
-    signal_flow_ftables_lock = csound->Create_Mutex(0);
+    signal_flow_ports_lock = csoundCreateMutex(0);
+    signal_flow_ftables_lock = csoundCreateMutex(0);
   }
   ~SignalFlowGraphState() {}
   void clear() {
@@ -294,7 +298,7 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     sourceOutletId[0] = 0;
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -359,7 +363,7 @@ struct Inleta : public OpcodeBase<Inleta> {
     warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
     sinkInletId[0] = 0;
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -439,7 +443,7 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -498,7 +502,7 @@ struct Inletk : public OpcodeBase<Inletk> {
     }
     sinkInletId[0] = 0;
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -570,7 +574,7 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -632,7 +636,7 @@ struct Inletf : public OpcodeBase<Inletf> {
     }
     sinkInletId[0] = 0;
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -687,7 +691,7 @@ struct Inletf : public OpcodeBase<Inletf> {
           if (!fsignalInitialized) {
             int32 N = sourceOutlet->fsignal->N;
             if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
-              csound->Warning(csound,
+              csoundWarning(csound,
                               "%s", Str("Unsafe to have same fsig as in and out"));
             }
             fsignal->sliding = 0;
@@ -695,14 +699,14 @@ struct Inletf : public OpcodeBase<Inletf> {
               if (fsignal->frame.auxp == 0 ||
                   fsignal->frame.size <
                       sizeof(MYFLT) * opds.insdshead->ksmps * (N + 2))
-                csound->AuxAlloc(
+                csoundAuxAlloc(
                     csound, (N + 2) * sizeof(MYFLT) * opds.insdshead->ksmps,
                     &fsignal->frame);
               fsignal->NB = sourceOutlet->fsignal->NB;
               fsignal->sliding = 1;
             } else if (fsignal->frame.auxp == 0 ||
                        fsignal->frame.size < sizeof(float) * (N + 2)) {
-              csound->AuxAlloc(csound, (N + 2) * sizeof(float),
+              csoundAuxAlloc(csound, (N + 2) * sizeof(float),
                                &fsignal->frame);
             }
             fsignal->N = N;
@@ -714,7 +718,7 @@ struct Inletf : public OpcodeBase<Inletf> {
             lastframe = 0;
             if (UNLIKELY(!((fsignal->format == PVS_AMP_FREQ) ||
                            (fsignal->format == PVS_AMP_PHASE))))
-              result = csound->InitError(csound,
+              result = csoundInitError(csound,
                                          "%s", Str("inletf: signal format "
                                              "must be amp-phase or amp-freq."));
             fsignalInitialized = true;
@@ -768,7 +772,7 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     sourceOutletId[0] = 0;
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -846,7 +850,7 @@ struct Inletv : public OpcodeBase<Inletv> {
     warn(csound, "sourceOutlets: 0x%x\n", sourceOutlets);
     sinkInletId[0] = 0;
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -933,8 +937,8 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
-    instanceId = csound->strarg2name(csound, (char *)0, SinstanceId->data,
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
+    instanceId = strarg2name(csound, (char *)0, SinstanceId->data,
                                      (char *)"", 1);
     if (insname && instanceId) {
       std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
@@ -1001,10 +1005,10 @@ struct Inletkid : public OpcodeBase<Inletkid> {
       sourceOutlets->clear();
     }
     sinkInletId[0] = 0;
-    instanceId = csound->strarg2name(csound, (char *)0, SinstanceId->data,
+    instanceId = strarg2name(csound, (char *)0, SinstanceId->data,
                                      (char *)"", 1);
     const char *insname =
-        csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
+        csoundGetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
       std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
@@ -1076,22 +1080,22 @@ struct Connect : public OpcodeBase<Connect> {
   int init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
-    std::string sourceOutletId = csound->strarg2name(
+    std::string sourceOutletId = strarg2name(
         csound, (char *)0,
-        ((isstrcod(*Source)) ? csound->GetString(csound, *Source)
+        ((isstrcod(*Source)) ? get_arg_string(csound, *Source)
                                : (char *)Source),
         (char *)"", isstrcod(*Source));
     sourceOutletId += ":";
     sourceOutletId +=
-        csound->strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
 
-    std::string sinkInletId = csound->strarg2name(
+    std::string sinkInletId = strarg2name(
         csound, (char *)0,
-        ((isstrcod(*Sink)) ? csound->GetString(csound, *Sink) : (char *)Sink),
+        ((isstrcod(*Sink)) ? get_arg_string(csound, *Sink) : (char *)Sink),
         (char *)"", isstrcod(*Sink));
     sinkInletId += ":";
     sinkInletId +=
-        csound->strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
     warn(csound, Str("Connected outlet %s to inlet %s.\n"),
          sourceOutletId.c_str(), sinkInletId.c_str());
     sfg_globals->connections[sinkInletId].push_back(sourceOutletId);
@@ -1112,19 +1116,19 @@ struct Connecti : public OpcodeBase<Connecti> {
   int init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
-    std::string sourceOutletId = csound->strarg2name(
+    std::string sourceOutletId = strarg2name(
         csound, (char *)0,
-        ((isstrcod(*Source)) ? csound->GetString(csound, *Source)
+        ((isstrcod(*Source)) ? get_arg_string(csound, *Source)
                                : (char *)Source),
         (char *)"", isstrcod(*Source));
     sourceOutletId += ":";
     sourceOutletId +=
-        csound->strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
     std::string sinkInletId =
-        csound->strarg2name(csound, (char *)0, Sink->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Sink->data, (char *)"", 1);
     sinkInletId += ":";
     sinkInletId +=
-        csound->strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
     warn(csound, Str("Connected outlet %s to inlet %s.\n"),
          sourceOutletId.c_str(), sinkInletId.c_str());
     sfg_globals->connections[sinkInletId].push_back(sourceOutletId);
@@ -1146,18 +1150,18 @@ struct Connectii : public OpcodeBase<Connectii> {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId =
-        csound->strarg2name(csound, (char *)0, Source->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Source->data, (char *)"", 1);
     sourceOutletId += ":";
     sourceOutletId +=
-        csound->strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
-    std::string sinkInletId = csound->strarg2name(
+        strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
+    std::string sinkInletId = strarg2name(
         csound, (char *)0,
-        ((isstrcod(*Sink)) ? csound->GetString(csound, *Sink) : (char *)Sink),
+        ((isstrcod(*Sink)) ? get_arg_string(csound, *Sink) : (char *)Sink),
         (char *)"", isstrcod(*Sink));
     ;
     sinkInletId += ":";
     sinkInletId +=
-        csound->strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
     warn(csound, Str("Connected outlet %s to inlet %s.\n"),
          sourceOutletId.c_str(), sinkInletId.c_str());
     sfg_globals->connections[sinkInletId].push_back(sourceOutletId);
@@ -1179,15 +1183,15 @@ struct ConnectS : public OpcodeBase<ConnectS> {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId =
-        csound->strarg2name(csound, (char *)0, Source->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Source->data, (char *)"", 1);
     sourceOutletId += ":";
     sourceOutletId +=
-        csound->strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
     std::string sinkInletId =
-        csound->strarg2name(csound, (char *)0, Sink->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Sink->data, (char *)"", 1);
     sinkInletId += ":";
     sinkInletId +=
-        csound->strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
+        strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
     warn(csound, Str("Connected outlet %s to inlet %s.\n"),
          sourceOutletId.c_str(), sinkInletId.c_str());
     sfg_globals->connections[sinkInletId].push_back(sourceOutletId);
@@ -1206,14 +1210,14 @@ struct AlwaysOnS : public OpcodeBase<AlwaysOnS> {
    */
   EVTBLK evtblk;
   int init(CSOUND *csound) {
-    MYFLT offset = csound->GetScoreOffsetSeconds(csound);
+    MYFLT offset = csoundGetScoreOffsetSeconds(csound);
     evtblk.opcod = 'i';
     evtblk.strarg = 0;
     evtblk.p[0] = FL(0.0);
-    evtblk.p[1] = csound->strarg2insno(csound, Sinstrument->data, 1);
+    evtblk.p[1] = strarg2insno(csound, Sinstrument->data, 1);
     evtblk.p[2] = evtblk.p2orig = offset;
     evtblk.p[3] = evtblk.p3orig = FL(-1.0);
-    size_t inArgCount = csound->GetInputArgCnt(this);
+    size_t inArgCount = csoundGetInputArgCnt(this);
     // Add 2, for hard-coded p2 and p3.
     evtblk.pcnt = (int16)inArgCount + 2;
     // Subtract 1, for only required inarg p1.
@@ -1222,7 +1226,7 @@ struct AlwaysOnS : public OpcodeBase<AlwaysOnS> {
     for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
       evtblk.p[pfieldI] = *argums[argumI];
     }
-    csound->insert_score_event_at_sample(csound, &evtblk, 0);
+    insert_score_event_at_sample(csound, &evtblk, 0);
     return OK;
   }
 };
@@ -1239,8 +1243,8 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
   EVTBLK evtblk;
   int init(CSOUND *csound) {
     std::string source =
-        csound->strarg2name(csound, (char *)0, Sinstrument, (char *)"", (int)0);
-    MYFLT offset = csound->GetScoreOffsetSeconds(csound);
+        strarg2name(csound, (char *)0, Sinstrument, (char *)"", (int)0);
+    MYFLT offset = csoundGetScoreOffsetSeconds(csound);
     evtblk.opcod = 'i';
     evtblk.strarg = 0;
     evtblk.p[0] = FL(0.0);
@@ -1248,7 +1252,7 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
     evtblk.p[2] = evtblk.p2orig = offset;
     evtblk.p[3] = evtblk.p3orig = FL(-1.0);
 
-    size_t inArgCount = csound->GetInputArgCnt(this);
+    size_t inArgCount = csoundGetInputArgCnt(this);
     // Add 2, for hard-coded p2 and p3.
     evtblk.pcnt = (int16)inArgCount + 2;
     // Subtract 1, for only required inarg p1.
@@ -1257,7 +1261,7 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
     for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
       evtblk.p[pfieldI] = *argums[argumI];
     }
-    csound->insert_score_event_at_sample(csound, &evtblk, 0);
+    insert_score_event_at_sample(csound, &evtblk, 0);
     return OK;
   }
 };
@@ -1279,7 +1283,7 @@ static void log(CSOUND *csound, const char *format,...)
         va_list args;
         va_start(args, format);
         if (csound) {
-                csound->MessageV(csound, 0, format, args);
+                csoundMessageV(csound, 0, format, args);
         } else {
                 vfprintf(stdout, format, args);
         }
@@ -1288,10 +1292,10 @@ static void log(CSOUND *csound, const char *format,...)
 */
 static void warn(CSOUND *csound, const char *format, ...) {
   if (csound) {
-    if (csound->GetMessageLevel(csound) & CS_WARNMSG) {
+    if (csoundGetMessageLevel(csound) & CS_WARNMSG) {
       va_list args;
       va_start(args, format);
-      csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
+      csoundMessageV(csound, CSOUNDMSG_WARNING, format, args);
       va_end(args);
     }
   } else {
@@ -1329,7 +1333,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
   ftevt->p[2] = ftevt->p2orig = FL(0.0);
   ftevt->p[3] = ftevt->p3orig = *p->p3;
   if (isNamedGenerator) {
-    NAMEDGEN *named = (NAMEDGEN *)csound->GetNamedGens(csound);
+    NAMEDGEN *named = (NAMEDGEN *)csoundGetNamedGens(csound);
     while (named) {
       if (strcmp(named->name, ((STRINGDAT *)p->p4)->data) == 0) {
         /* Look up by name */
@@ -1339,9 +1343,9 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
     }
     if (UNLIKELY(named == 0)) {
       if (sfg_globals->signal_flow_ftables_lock != 0) {
-        csound->UnlockMutex(sfg_globals->signal_flow_ftables_lock);
+        csoundUnlockMutex(sfg_globals->signal_flow_ftables_lock);
       }
-      return csound->InitError(csound, Str("Named gen \"%s\" not defined"),
+      return csoundInitError(csound, Str("Named gen \"%s\" not defined"),
                                (char *)p->p4);
     } else {
       ftevt->p[4] = named->genum;
@@ -1364,15 +1368,15 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       break;
     default:
       if (sfg_globals->signal_flow_ftables_lock != 0) {
-        csound->UnlockMutex(sfg_globals->signal_flow_ftables_lock);
+        csoundUnlockMutex(sfg_globals->signal_flow_ftables_lock);
       }
-      return csound->InitError(csound, "%s", Str("ftgen string arg not allowed"));
+      return csoundInitError(csound, "%s", Str("ftgen string arg not allowed"));
     }
   } else {
     ftevt->p[5] = *p->p5;
   }
   // Copy the remaining parameters.
-  ftevt->pcnt = (int16)csound->GetInputArgCnt(p);
+  ftevt->pcnt = (int16)csoundGetInputArgCnt(p);
   int n = ftevt->pcnt - 5;
   if (n > 0) {
     MYFLT **argp = p->argums;
@@ -1396,9 +1400,9 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       warn(csound, Str("ftgenonce: re-using existing func: %f\n"), *p->ifno);
     } else {
       FUNC *func = 0;
-      int status = csound->hfgens(csound, &func, ftevt, 1);
+      int status = hfgens(csound, &func, ftevt, 1);
       if (UNLIKELY(status != 0)) {
-        result = csound->InitError(csound, "%s", Str("ftgenonce error"));
+        result = csoundInitError(csound, "%s", Str("ftgenonce error"));
       }
       if (func) {
         sfg_globals->functionTablesForEvtblks[eventBlock] = func->fno;
@@ -1481,24 +1485,23 @@ static OENTRY oentries[] = {
     {0, 0, 0, 0, 0, 0, (SUBR)0, (SUBR)0, (SUBR)0, NULL}};
 
 PUBLIC int csoundModuleCreate_signalflowgraph(CSOUND *csound) {
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n",
+  if (csoundGetDebug(csound)) {
+    csoundMessage(csound, "signalflowgraph: csoundModuleCreate(%p)\n",
                     csound);
   }
-  isstrcod = csound->ISSTRCOD;
   SignalFlowGraphState *sfg_globals = new SignalFlowGraphState(csound);
   CreateGlobalPointer(csound, "sfg_globals", sfg_globals);
   return 0;
 }
 
 PUBLIC int csoundModuleInit_signalflowgraph(CSOUND *csound) {
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
+  if (csoundGetDebug(csound)) {
+    csoundMessage(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
   }
   OENTRY *ep = (OENTRY *)&(oentries[0]);
   int err = 0;
   while (ep->opname != 0) {
-    err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
+    err |= csoundAppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
                                 ep->thread, ep->outypes, ep->intypes,
                                 (int (*)(CSOUND *, void *))ep->iopadr,
                                 (int (*)(CSOUND *, void *))ep->kopadr,
@@ -1517,8 +1520,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
 }
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound) {
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)...\n",
+  if (csoundGetDebug(csound)) {
+    csoundMessage(csound, "signalflowgraph: csoundModuleDestroy(%p)...\n",
                     csound);
   }
   SignalFlowGraphState *sfg_globals = 0;
@@ -1526,21 +1529,21 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
   if (sfg_globals != 0) {
     sfg_globals->clear();
     if (sfg_globals->signal_flow_ports_lock != 0) {
-      // Unlocked in clear(): csound->UnlockMutex(sfg_globals->signal_flow_ports_lock);
-      csound->DestroyMutex(sfg_globals->signal_flow_ports_lock);
+      // Unlocked in clear(): csoundUnlockMutex(sfg_globals->signal_flow_ports_lock);
+      csoundDestroyMutex(sfg_globals->signal_flow_ports_lock);
     }
     if (sfg_globals->signal_flow_ftables_lock != 0) {
-      csound->LockMutex(sfg_globals->signal_flow_ftables_lock);
+      csoundLockMutex(sfg_globals->signal_flow_ftables_lock);
       sfg_globals->functionTablesForEvtblks.clear();
-      csound->UnlockMutex(sfg_globals->signal_flow_ftables_lock);
-      csound->DestroyMutex(sfg_globals->signal_flow_ftables_lock);
+      csoundUnlockMutex(sfg_globals->signal_flow_ftables_lock);
+      csoundDestroyMutex(sfg_globals->signal_flow_ftables_lock);
     }
-    csound->DestroyGlobalVariable(csound, "sfg_globals");
+    csoundDestroyGlobalVariable(csound, "sfg_globals");
     delete sfg_globals;
     sfg_globals = nullptr;
   }
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p).\n",
+  if (csoundGetDebug(csound)) {
+    csoundMessage(csound, "signalflowgraph: csoundModuleDestroy(%p).\n",
                     csound);
   }
   return 0;

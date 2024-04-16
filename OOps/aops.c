@@ -44,9 +44,9 @@ void csound_aops_init_tables(CSOUND *csound)
 {
   int32_t   i;
   if (csound->cpsocfrc==NULL)
-    csound->cpsocfrc = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*OCTRES);
+    csound->cpsocfrc = (MYFLT *) mmalloc(csound, sizeof(MYFLT)*OCTRES);
   /* if (csound->powerof2==NULL) */
-  /*   csound->powerof2 = (MYFLT *) csound->Malloc(csound, */
+  /*   csound->powerof2 = (MYFLT *) mmalloc(csound, */
   /*                                               sizeof(MYFLT)*POW2TABSIZI); */
   for (i = 0; i < OCTRES; i++)
     csound->cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
@@ -129,21 +129,21 @@ int32_t minit(CSOUND *csound, ASSIGNM *p)
   uint32_t i;
   MYFLT *tmp;
   if (UNLIKELY(nargs > p->OUTOCOUNT))
-    return csound->InitError(csound,
+    return csoundInitError(csound,
                              Str("Cannot be more In arguments than Out in "
                                  "init (%d,%d)"),p->OUTOCOUNT, nargs);
   if (nout==1) {
     *p->r[0] =  *p->a[0];
     return OK;
   }
-  tmp = (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*p->OUTOCOUNT);
+  tmp = (MYFLT*)mmalloc(csound, sizeof(MYFLT)*p->OUTOCOUNT);
   for (i=0; i<nargs; i++)
     tmp[i] =  *p->a[i];
   for (; i<nout; i++)
     tmp[i] =  *p->a[nargs-1];
   for (i=0; i<nout; i++)
     *p->r[i] = tmp[i];
-  csound->Free(csound, tmp);
+  mfree(csound, tmp);
   return OK;
 }
 
@@ -157,7 +157,7 @@ int32_t mainit(CSOUND *csound, ASSIGNM *p)
   MYFLT aa = FL(0.0);
   early = nsmps - early;      /* Bit at end to ignore */
   if (UNLIKELY(nargs > nouts))
-    return csound->InitError(csound,
+    return csoundInitError(csound,
                              Str("Cannot be more In arguments than Out in "
                                  "init (%d,%d)"),p->OUTOCOUNT, nargs);
   for (i=0; i<nargs; i++) {
@@ -239,7 +239,7 @@ int32_t divkk(CSOUND *csound, AOP *p)
   MYFLT div = *p->b;
   IGN(csound);
   if (UNLIKELY(div==FL(0.0)))
-    csound->Warning(csound, Str("Division by zero"));
+    csoundWarning(csound, Str("Division by zero"));
   *p->r = *p->a / div;
   return OK;
 }
@@ -360,7 +360,7 @@ int32_t divak(CSOUND *csound, AOP *p) {
     a = p->a;
     b = *p->b;
     if (UNLIKELY(b==FL(0.0)))
-      csound->Warning(csound, Str("Division by zero"));
+      csoundWarning(csound, Str("Division by zero"));
     if (UNLIKELY(offset))
       memset(r, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -373,7 +373,7 @@ int32_t divak(CSOUND *csound, AOP *p) {
   }
   else {
     if (UNLIKELY(b==FL(0.0)))
-      csound->Warning(csound, Str("Division by zero"));
+      csoundWarning(csound, Str("Division by zero"));
     p->r[0] = p->a[0] / b;
     return OK;
   }
@@ -494,7 +494,7 @@ int32_t divaa(CSOUND *csound, AOP *p)
     for (n=offset; n<nsmps; n++ ) {
       MYFLT bb = b[n];
       if (UNLIKELY(bb==FL(0.0) && err==0)) {
-        csound->Warning(csound, Str("Division by zero"));
+        csoundWarning(csound, Str("Division by zero"));
         err = 1;
       }
       r[n] = a[n] / bb;
@@ -503,7 +503,7 @@ int32_t divaa(CSOUND *csound, AOP *p)
   }
   else {
     if (UNLIKELY(*p->b==FL(0.0)))
-      csound->Warning(csound, Str("Division by zero"));
+      csoundWarning(csound, Str("Division by zero"));
     *p->r = *p->a / *p->b;
     return OK;
   }
@@ -956,7 +956,7 @@ int32_t ftlen(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)) {
+  if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->a)) == NULL)) {
     *p->r = -FL(1.0);       /* Return something */
     return NOTOK;
   }
@@ -969,7 +969,7 @@ int32_t ftchnls(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)) {
+  if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->a)) == NULL)) {
     *p->r = -FL(1.0);       /* Return something */
     return NOTOK;
   }
@@ -982,7 +982,7 @@ int32_t ftcps(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)
+  if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->a)) == NULL)
       || ftp->cpscvt == FL(0.0)) {
     *p->r = -FL(1.0);       /* Return something */
     return NOTOK;
@@ -998,13 +998,13 @@ int32_t ftlptim(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL))
+  if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->a)) == NULL))
     return NOTOK;
   if (LIKELY(ftp->loopmode1))
     *p->r = ftp->begin1 * csound->onedsr;
   else {
     *p->r = FL(0.0);
-    csound->Warning(csound, Str("non-looping sample"));
+    csoundWarning(csound, Str("non-looping sample"));
   }
   return OK;
 }
@@ -1013,7 +1013,7 @@ int32_t numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)) {
+  if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->a)) == NULL)) {
     *p->r = FL(0.0);
     return NOTOK;
   }
@@ -1029,7 +1029,7 @@ int32_t ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado **
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)) {
+  if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->a)) == NULL)) {
     *p->r = FL(0.0);
     return NOTOK;
   }
@@ -1115,7 +1115,7 @@ int32_t cpsmidinn(CSOUND *csound, EVAL *p)
 {
   MYFLT note = *p->a;         /* (note-69)>12* */
   if (note > 12*32+69 || note < 0)
-    return csound->InitError(csound, Str("MIDI note %f out of range"), note);
+    return csoundInitError(csound, Str("MIDI note %f out of range"), note);
   *p->r = POWER(FL(2.0),
                 (note - FL(69.0)) / FL(12.0)) * (MYFLT)(csound->A4);
   return OK;
@@ -1154,10 +1154,10 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
   }
   else {                      /* Values in a table */
     MYFLT t = - *p->et;
-    FUNC* ftp = csound->FTnp2Finde(csound, &t);
+    FUNC* ftp = csoundFTnp2Finde(csound, &t);
     int32_t len, frt;
     if (UNLIKELY(ftp == NULL))
-      return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
+      return csoundPerfError(csound, &(p->h),Str("No tuning table %d"),
                                -((int32_t)*p->et));
     len = ftp->flen;
     frt = (int32_t)(100.0*fract+0.5);
@@ -1182,10 +1182,10 @@ int32_t cps2pch(CSOUND *csound, XENH *p)
   }
   else {
     MYFLT t = - *p->et;
-    FUNC* ftp = csound->FTnp2Finde(csound, &t);
+    FUNC* ftp = csoundFTnp2Finde(csound, &t);
     int32_t len, frt;
     if (UNLIKELY(ftp == NULL))
-      return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
+      return csoundPerfError(csound, &(p->h),Str("No tuning table %d"),
                                -((int32_t)*p->et));
     len = ftp->flen;
     frt = (int32_t)(100.0*fract+0.5);
@@ -1211,7 +1211,7 @@ int32_t cpstun_i(CSOUND *csound, CPSTUNI *p)
   int32_t numgrades;
   int32_t basekeymidi;
   MYFLT basefreq, factor, interval;
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->tablenum)) == NULL)) goto err1;
+  if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->tablenum)) == NULL)) goto err1;
   func = ftp->ftable;
   numgrades = (int32_t)*func++;
   interval = *func++;
@@ -1232,7 +1232,7 @@ int32_t cpstun_i(CSOUND *csound, CPSTUNI *p)
   *p->r = func[grade] * factor * basefreq;
   return OK;
  err1:
-  return csound->PerfError(csound, &(p->h),Str("cpstun: invalid table"));
+  return csoundPerfError(csound, &(p->h),Str("cpstun: invalid table"));
 }
 
 int32_t cpstun(CSOUND *csound, CPSTUN *p)
@@ -1245,7 +1245,7 @@ int32_t cpstun(CSOUND *csound, CPSTUN *p)
     int32_t numgrades;
     int32_t basekeymidi;
     MYFLT basefreq, factor, interval;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->tablenum)) == NULL))
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->tablenum)) == NULL))
       goto err1;
     func = ftp->ftable;
     numgrades = (int32_t)*func++;
@@ -1270,7 +1270,7 @@ int32_t cpstun(CSOUND *csound, CPSTUN *p)
   else *p->r = p->old_r;
   return OK;
  err1:
-  return csound->PerfError(csound, &(p->h),Str("cpstun: invalid table"));
+  return csoundPerfError(csound, &(p->h),Str("cpstun: invalid table"));
 }
 
 int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
@@ -1279,7 +1279,7 @@ int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
   if (UNLIKELY(csound->logbase2 == NULL)) {
     double  x = (1.0 / INTERVAL);
     int32_t     i;
-    csound->logbase2 = (MYFLT*) csound->Malloc(csound, (STEPS + 1)
+    csound->logbase2 = (MYFLT*) mmalloc(csound, (STEPS + 1)
                                                * sizeof(MYFLT));
     for (i = 0; i <= STEPS; i++) {
       csound->logbase2[i] = ONEdLOG2 * LOG((MYFLT)x);
@@ -1450,7 +1450,7 @@ int32_t in(CSOUND *csound, INM *p)
   uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   if (csound->inchnls != 1)
-    return csound->PerfError(csound,
+    return csoundPerfError(csound,
                              &(p->h),
                              "Wrong numnber of input channels\n");
   CSOUND_SPIN_SPINLOCK
@@ -1497,7 +1497,7 @@ int32_t ins(CSOUND *csound, INS *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps =CS_KSMPS, k;
   if (UNLIKELY(csound->inchnls != 2))
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              "Wrong numnber of input channels\n");
   CSOUND_SPIN_SPINLOCK
     sp = CS_SPIN;
@@ -1528,7 +1528,7 @@ int32_t inq(CSOUND *csound, INQ *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps =CS_KSMPS, k;
   if (UNLIKELY(csound->inchnls != 4))
-    return csound->PerfError(csound,
+    return csoundPerfError(csound,
                              &(p->h),
                              "Wrong numnber of input channels\n");
   CSOUND_SPIN_SPINLOCK
@@ -1563,7 +1563,7 @@ int32_t inh(CSOUND *csound, INH *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps =CS_KSMPS, k;
   if (UNLIKELY(csound->inchnls != 6))
-    return csound->PerfError(csound,
+    return csoundPerfError(csound,
                              &(p->h),
                              "Wrong numnber of input channels\n");
   CSOUND_SPIN_SPINLOCK
@@ -1605,7 +1605,7 @@ int32_t ino(CSOUND *csound, INO *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps =CS_KSMPS, k;
   if (UNLIKELY(csound->inchnls != 8))
-    return csound->PerfError(csound,
+    return csoundPerfError(csound,
                              &(p->h),
                              "Wrong numnber of input channels\n");
   CSOUND_SPIN_SPINLOCK
@@ -1651,7 +1651,7 @@ static int32_t inn(CSOUND *csound, INALL *p, uint32_t n)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t m, nsmps =CS_KSMPS, i;
   if (UNLIKELY(csound->inchnls != (int32_t) n))
-    return csound->PerfError(csound,
+    return csoundPerfError(csound,
                              &(p->h),
                              "Wrong numnber of input channels\n");
 
@@ -1699,13 +1699,13 @@ int32_t inch_opcode1(CSOUND *csound, INCH1 *p)
   ch = MYFLT2LRND(*p->ch);
   if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
     if (p->init)
-      csound->Message(csound, Str("Input channel %d too large; ignored\n"), ch);
+      csoundMessage(csound, Str("Input channel %d too large; ignored\n"), ch);
     memset(p->ar, 0, sizeof(MYFLT)*nsmps);
     p->init = 0;
     //        return OK;
   } else if (UNLIKELY(ch < 1)) {
     if (p->init)
-      csound->Message(csound, Str("Input channel %d is invalid; ignored"), ch);
+      csoundMessage(csound, Str("Input channel %d is invalid; ignored"), ch);
     memset(p->ar, 0, sizeof(MYFLT)*nsmps);
     p->init = 0;
   }
@@ -1742,19 +1742,19 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
   MYFLT *sp, *ain;
   if (UNLIKELY(nChannels != p->OUTOCOUNT))
     return
-      csound->PerfError(csound, &(p->h),
+      csoundPerfError(csound, &(p->h),
                         Str("Input and output argument count differs in inch"));
   for (nc=0; nc<nChannels; nc++) {
     ch = MYFLT2LRND(*p->ch[nc]);
     if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
       if (p->init)
-        csound->Warning(csound, Str("Input channel %d too large; ignored"), ch);
+        csoundWarning(csound, Str("Input channel %d too large; ignored"), ch);
       memset(p->ar[nc], 0, sizeof(MYFLT)*nsmps);
       p->init = 0;
       //        return OK;
     } else if (UNLIKELY(ch < 1)) {
       if (UNLIKELY(p->init))
-        csound->Warning(csound, Str("Input channel %d is invalid; ignored"), ch);
+        csoundWarning(csound, Str("Input channel %d is invalid; ignored"), ch);
       memset(p->ar[nc], 0, sizeof(MYFLT)*nsmps);
       p->init = 0;
     } else {
@@ -1836,7 +1836,7 @@ int32_t outs1(CSOUND *csound, OUTM *p)
 }
 
 #define OUTCN(n)  if (n>csound->nchnls) return  \
- csound->InitError(csound, "%s", \
+ csoundInitError(csound, "%s", \
  Str("Channel greater than nchnls")); \
   return OK;
 
@@ -1873,7 +1873,7 @@ int32_t outch(CSOUND *csound, OUTCH *p)
   uint32_t    count = p->INOCOUNT, n, ch, nchnls = csound->nchnls;
   int32_t ret;
   if (UNLIKELY((count&1)!=0))
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                         Str("outch must have an even number of arguments"));
   for(n=0; n < count; n+=2) {
     ch = (int) *p->args[n] - 1;
@@ -1889,7 +1889,7 @@ int32_t ochn(CSOUND *csound, OUTX *p)
 {
   uint32_t nch = p->INOCOUNT;
   if (nch>csound->nchnls)
-    csound->Warning(csound, Str("Excess channels ignored\n"));
+    csoundWarning(csound, Str("Excess channels ignored\n"));
   return OK;
 }
 
@@ -1916,7 +1916,7 @@ int32_t outarr(CSOUND *csound, OUTARRAY *p)
   int32_t ret;
   if (n>csound->nchnls) {
     if (p->nowarn==0) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("out: number of channels truncated from %d to %d"),
                       n, csound->nchnls);
     }
@@ -2122,7 +2122,7 @@ int32_t is_infa(CSOUND *csound, ASSIGN *p)
 int32_t error_fn(CSOUND *csound, ERRFN *p)
 {
   IGN(p);
-  return csound->InitError(csound, Str("Unknown function called"));
+  return csoundInitError(csound, Str("Unknown function called"));
 }
 
 /* ------------------------------------------------------------------------ */
@@ -2131,7 +2131,7 @@ int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t i, j, nsmps = CS_KSMPS, nchnls = csound->GetNchnls(csound);
+  uint32_t i, j, nsmps = CS_KSMPS, nchnls = csoundGetNchnls(csound);
   MYFLT *spout = csound->spout_tmp;
 
     for (j = 0; j<nchnls; j++) {
@@ -2147,8 +2147,8 @@ int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 {
-  if (UNLIKELY(csound->GetOutputArgCnt(p) != (int32_t)csound->GetNchnls(csound)))
-    return csound->InitError(csound, Str("number of arguments != nchnls"));
+  if (UNLIKELY(csoundGetOutputArgCnt(p) != (int32_t)csoundGetNchnls(csound)))
+    return csoundInitError(csound, Str("number of arguments != nchnls"));
   p->h.opadr = (SUBR) monitor_opcode_perf;
   return OK;
 }
@@ -2169,14 +2169,14 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  //int32_t nchnls = csound->GetNchnls(csound);
+  //int32_t nchnls = csoundGetNchnls(csound);
   MYFLT *ara[VARGMAX];
   int32_t startChan = (int32_t) *p->kstartChan -1;
   MYFLT *sp = csound->spout_tmp + startChan*nsmps;
   int32_t narg = p->narg,i;
 
   if (UNLIKELY(startChan < 0))
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("outrg: channel number cannot be < 1 "
                                  "(1 is the first channel)"));
   for (j = 0; j < narg; j++)
@@ -2196,15 +2196,15 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
 int32_t hw_channels(CSOUND *csound, ASSIGN *p){
 
   int32_t *dachans =
-    (int32_t *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+    (int32_t *) csoundQueryGlobalVariable(csound, "_DAC_CHANNELS_");
   if (UNLIKELY(dachans == NULL)) {
-    csound->Warning(csound, Str("number of hardware output channels"
+    csoundWarning(csound, Str("number of hardware output channels"
                                 " not currently available"));
   }
   else *p->r = *dachans;
-  dachans = (int32_t *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+  dachans = (int32_t *) csoundQueryGlobalVariable(csound, "_ADC_CHANNELS_");
   if (UNLIKELY(dachans == NULL)) {
-    csound->Warning(csound, Str("number of hardware input channels"
+    csoundWarning(csound, Str("number of hardware input channels"
                                 " not currently available"));
   }
   else *p->a = *dachans;

@@ -30,6 +30,12 @@
 #include "soundfile.h"
 #include "sysdep.h"
 
+#include <stdio.h>
+
+#include "csound.h"
+#include "soundfile.h"
+#include "sysdep.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
