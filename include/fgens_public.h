@@ -1,10 +1,6 @@
 #pragma once
 
-#ifdef __BUILDING_LIBCSOUND
-#include "csoundCore_internal.h"
-#else
 #include "csoundCore.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -4,11 +4,7 @@
 extern "C" {
 #endif /*  __cplusplus */
 
-#ifdef __BUILDING_LIBCSOUND
-#include "csoundCore_internal.h"
-#else
 #include "csoundCore.h"
-#endif
 
 PUBLIC int insert_score_event(CSOUND *, EVTBLK *, double);
 

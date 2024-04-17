@@ -26,6 +26,7 @@
 #include "csdebug.h"
 #include "csdebug_internal.h"
 #include "memalloc.h"
+#include "csoundCore_internal.h"
 
 PUBLIC void csoundDebuggerInit(CSOUND *csound)
 {

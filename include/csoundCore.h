@@ -61,9 +61,7 @@ extern "C" {
    * New functions only need to be added here if
    * they are required by plugins.
    */
-  struct CSOUND_ {
-    int dummy; // need at least one field?
-  };
+  struct CSOUND_;
 
 #ifdef __cplusplus
 }

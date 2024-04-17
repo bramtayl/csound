@@ -41,6 +41,11 @@
 #include "insert_public.h"
 #include "fgens_public.h"
 
+#ifndef __BUILDING_LIBCSOUND
+struct CSOUND_ {
+  int dummy;
+};
+#endif
 
 namespace csnd {
 
