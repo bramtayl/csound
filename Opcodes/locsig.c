@@ -32,6 +32,8 @@
 #include "stdopcod.h"
 #include "locsig.h"
 #include <math.h>
+#include "auxfd.h"
+#include "insert_public.h"
 
 static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {
@@ -39,13 +41,13 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
     int32_t     outcount = p->OUTOCOUNT;
 
     if (UNLIKELY(outcount != 2 && outcount != 4))
-      return csound->InitError(csound, Str("Wrong number of outputs in locsig; "
+      return csoundInitError(csound, Str("Wrong number of outputs in locsig; "
                                            "must be 2 or 4"));
 
     if (p->auxch.auxp == NULL ||
         p->auxch.size<sizeof(MYFLT)*(CS_KSMPS * 4)) {
       MYFLT *fltp;
-      csound->AuxAlloc(csound, (size_t) (CS_KSMPS * 4)
+      csoundAuxAlloc(csound, (size_t) (CS_KSMPS * 4)
                                * sizeof(MYFLT), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->rrev1 = fltp;   fltp += CS_KSMPS;
@@ -162,7 +164,7 @@ static int32_t locsendset(CSOUND *csound, LOCSEND *p)
     p->locsig = q;
 
     if (UNLIKELY(p->OUTOCOUNT != q->OUTOCOUNT)) {
-      return csound->InitError(csound, Str("Number of outputs must be the "
+      return csoundInitError(csound, Str("Number of outputs must be the "
                                            "same as the previous locsig"));
     }
     return OK;
@@ -238,7 +240,7 @@ static OENTRY localops[] =
 
 int32_t locsig_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

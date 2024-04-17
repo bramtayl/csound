@@ -26,6 +26,9 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
+#include "memalloc.h"
+#include "csound_orc_semantics_public.h"
+#include "envvar_public.h"
 
 static void list_audio_devices(CSOUND *csound, int output);
 static void list_midi_devices(CSOUND *csound, int output);
@@ -330,12 +333,12 @@ void print_short_usage(CSOUND *csound)
     int     i;
     i = -1;
     print_csound_version(csound);
-    csound->Message(csound, Str("\nShort options format:\n"));
+    csoundMessage(csound, Str("\nShort options format:\n"));
     while (shortUsageList[++i] != NULL) {
       snprintf(buf, 256, "%s\n", shortUsageList[i]);
-      csound->Message(csound, "%s", Str(buf));
+      csoundMessage(csound, "%s", Str(buf));
     }
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("flag defaults: csound -s -otest -b%d -B%d -m%d\n\n"),
                     IOBUFSAMPS, IODACSAMPS, csound->oparms->msglevel);
 }
@@ -344,11 +347,11 @@ static void longusage(CSOUND *p)
 {
     const char **sp;
     print_short_usage(p);
-    p->Message(p, Str("Usage:     csound [-flags] orchfile scorefile\n"));
-    p->Message(p, Str("Legal flags are:\n"));
-    p->Message(p, Str("Long format:\n\n"));
+    csoundMessage(p, Str("Usage:     csound [-flags] orchfile scorefile\n"));
+    csoundMessage(p, Str("Legal flags are:\n"));
+    csoundMessage(p, Str("Long format:\n\n"));
     for (sp = &(longUsageList[0]); *sp != NULL; sp++)
-      p->Message(p, "%s\n", Str(*sp));
+      csoundMessage(p, "%s\n", Str(*sp));
     dump_cfg_variables(p);
 }
 
@@ -356,19 +359,19 @@ CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
 {
     va_list args;
 
-    csound->Message(csound,Str("Usage:      csound [-flags] orchfile scorefile\n"));
-    csound->Message(csound,Str("Legal flags are:\n"));
+    csoundMessage(csound,Str("Usage:      csound [-flags] orchfile scorefile\n"));
+    csoundMessage(csound,Str("Legal flags are:\n"));
     print_short_usage(csound);
     va_start(args, s);
-    csound->ErrMsgV(csound, Str("Csound Command ERROR:    "), s, args);
+    csoundErrMsgV(csound, Str("Csound Command ERROR:    "), s, args);
     va_end(args);
     //// FIXME This code makes no sense
     /* if (csound->info_message_request == 0) { */
     /*   csound->info_message_request = 0; */
-    /*   csound->LongJmp(csound, 1); */
+    /*   csoundLongJmp(csound, 1); */
     /* } */
     //Added longjump -- JPff
-    csound->LongJmp(csound, 1);
+    csoundLongJmp(csound, 1);
 }
 
 void set_output_format(OPARMS *O, char c)
@@ -512,10 +515,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     OPARMS  *O = csound->oparms;
     /* Add other long options here */
     if (UNLIKELY(O->odebug))
-      csound->Message(csound, "decode_long %s\n", s);
+      csoundMessage(csound, "decode_long %s\n", s);
     if (!(strncmp(s, "omacro:", 7))) {
       //if (csound->orcname_mode) return 1;
-      NAMES *nn = (NAMES*) csound->Malloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->omacros;
       csound->omacros = nn;
@@ -523,7 +526,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strncmp(s, "smacro:", 7))) {
       //if (csound->orcname_mode) return 1;
-      NAMES *nn = (NAMES*) csound->Malloc(csound, sizeof(NAMES));
+      NAMES *nn = (NAMES*) mmalloc(csound, sizeof(NAMES));
       nn->mac = s;
       nn->next = csound->smacros;
       csound->smacros = nn;
@@ -919,12 +922,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     /* NOTE these do nothing */
     else if (!(strcmp (s, "expression-opt"))) {
       //O->expr_opt = 1;
-      csound->Warning(csound, Str("option expresson-opt has no affect\n"));
+      csoundWarning(csound, Str("option expresson-opt has no affect\n"));
       return 1;
     }
     else if (!(strcmp (s, "no-expression-opt"))) {
       //O->expr_opt = 0;
-      csound->Warning(csound, Str("option no-expresson-opt has no affect\n"));
+      csoundWarning(csound, Str("option no-expresson-opt has no affect\n"));
       return 1;
     }
     else if (!(strncmp (s, "env:", 4))) {
@@ -954,7 +957,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         csound->orchname = NULL;
         return 0;
       }
-      else csound->LongJmp(csound, retval);
+      else csoundLongJmp(csound, retval);
      return 1;
     }
     /* -v */
@@ -982,7 +985,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       }
       list_opcodes(csound, full);
       return 1;
-      //csound->LongJmp(csound, 0);
+      //csoundLongJmp(csound, 0);
     }
     /* -Z */
     else if (!(strcmp (s, "dither"))) {
@@ -1039,13 +1042,13 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       nbytes = (int) strlen(s) + 1;
       if (csound->dl_opcodes_oplibs == NULL) {
         /* start new library list */
-        csound->dl_opcodes_oplibs = (char*) csound->Malloc(csound, (size_t) nbytes);
+        csound->dl_opcodes_oplibs = (char*) mmalloc(csound, (size_t) nbytes);
         strcpy(csound->dl_opcodes_oplibs, s);
       }
       else {
         /* append to existing list */
         nbytes += ((int) strlen(csound->dl_opcodes_oplibs) + 1);
-        csound->dl_opcodes_oplibs = (char*) csound->ReAlloc(csound,
+        csound->dl_opcodes_oplibs = (char*) mrealloc(csound,
                                                      csound->dl_opcodes_oplibs,
                                                      (size_t) nbytes);
         strcat(csound->dl_opcodes_oplibs, ",");
@@ -1072,20 +1075,20 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp(s, "version"))) {
       print_csound_version(csound);
-      csound->LongJmp(csound, 0);
+      csoundLongJmp(csound, 0);
     }
     else if (!(strcmp(s, "help"))) {
       longusage(csound);
       csound->info_message_request = 1;
       return 1;
-      //csound->LongJmp(csound, 0);
+      //csoundLongJmp(csound, 0);
     }
     else if (!(strcmp(s, "sample-accurate"))) {
       O->sampleAccurate = 1;
       return 1;
     }
     else if (!(strcmp(s, "realtime"))) {
-      csound->Message(csound, Str("realtime mode enabled\n"));
+      csoundMessage(csound, Str("realtime mode enabled\n"));
       O->realtime = 1;
       return 1;
     }
@@ -1144,7 +1147,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         *ports = '\0';
         csoundUDPConsole(csound, s, atoi(ports+1),0);
       } else
-        csound->Warning(csound, "UDP console: needs address and port\n");
+        csoundWarning(csound, "UDP console: needs address and port\n");
       return 1;
     }
     else if (!(strncmp(s, "udp-mirror-console=",19))) {
@@ -1155,7 +1158,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         *ports = '\0';
         csoundUDPConsole(csound, s, atoi(ports+1),1);
       } else
-        csound->Warning(csound, "UDP console: needs address and port\n");
+        csoundWarning(csound, "UDP console: needs address and port\n");
       return 1;
     }
     else if (!(strncmp(s, "fftlib=",7))) {
@@ -1171,7 +1174,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strncmp(s, "devices",7))) {
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
-        csound->LongJmp(csound, 1);
+        csoundLongJmp(csound, 1);
       if (*(s+7) == '='){
         if (!strncmp(s+8,"in", 2)) {
           list_audio_devices(csound, 0);
@@ -1189,7 +1192,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
      else if (!(strncmp(s, "midi-devices",12))) {
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
-        csound->LongJmp(csound, 1);
+        csoundLongJmp(csound, 1);
       if (*(s+12) == '='){
         if (!strncmp(s+13,"in", 2)) {
           list_midi_devices(csound, 0);
@@ -1215,12 +1218,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         O->oMaxLag = 1024;
         csoundLoadExternals(csound);
         if (csoundInitModules(csound) != 0)
-          csound->LongJmp(csound, 1);
+          csoundLongJmp(csound, 1);
         sfopenout(csound);
-        csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                         "system sr: %f\n", csound->system_sr(csound,0));
+        csoundMessageS(csound, CSOUNDMSG_STDOUT,
+                         "system sr: %f\n", csoundSystemSr(csound,0));
         sfcloseout(csound);
-        // csound->LongJmp(csound, 0);
+        // csoundLongJmp(csound, 0);
       }
       csound->info_message_request = 1;
       return 1;
@@ -1244,7 +1247,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 8;
       O->limiter = atof(s);
       if (O->limiter>1.0 || O->limiter<0) {
-        csound->MessageS(csound, CSOUNDMSG_STDOUT,
+        csoundMessageS(csound, CSOUNDMSG_STDOUT,
                          Str("Ignoring invalid limiter\n"));
         O->limiter = 0;
       }
@@ -1280,7 +1283,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
     nbytes = (argc + 1) * (int) sizeof(char*);
     for (i = 0; i <= argc; i++)
       nbytes += ((int) strlen(argv_[i]) + 1);
-    p1 = (char*) csound->Malloc(csound, nbytes); /* will be freed by memRESET() */
+    p1 = (char*) mmalloc(csound, nbytes); /* will be freed by memRESET() */
     p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
     argv = (char**) p1;
     for (i = 0; i <= argc; i++) {
@@ -1304,7 +1307,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
                   csound->orchname = NULL;
                   goto end;
               }
-              else csound->LongJmp(csound, retval);
+              else csoundLongJmp(csound, retval);
             }
             break;
           case 'C':
@@ -1509,7 +1512,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
               list_opcodes(csound, full);
             }
             csound->info_message_request = 1;
-            // csound->LongJmp(csound, 0);
+            // csoundLongJmp(csound, 0);
             break;
           case 'Z':
             {
@@ -1525,7 +1528,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
             {
               FILE *ind;
               void *fd;
-              fd = csound->FileOpen2(csound, &ind, CSFILE_STD,
+              fd = csoundFileOpenWithType(csound, &ind, CSFILE_STD,
                                      s, "r", NULL, CSFTYPE_OPTIONS, 0);
               if (UNLIKELY(fd == NULL)) {
                 dieu(csound, Str("Cannot open indirection file %s\n"), s);
@@ -1534,7 +1537,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
                 CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
                 readOptions(csound, cf, 0);
                 corfile_rm(csound, &cf);
-                csound->FileClose(csound, fd);
+                csoundFileClose(csound, fd);
               }
               while (*s++) {};
               s--; /* semicolon on separate line to silence warning */
@@ -1558,7 +1561,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
             }
 #endif
             if (!decode_long(csound, s, argc, argv))
-              csound->LongJmp(csound, 1);
+              csoundLongJmp(csound, 1);
             while (*(++s));
             break;
           case 'j':
@@ -1568,7 +1571,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
             break;
           case '+':                                   /* IV - Feb 01 2005 */
             if (parse_option_as_cfgvar(csound, (char*) s - 2) != 0)
-              csound->LongJmp(csound, 1);
+              csoundLongJmp(csound, 1);
             while (*(++s));
             break;
           default:
@@ -1580,7 +1583,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
       else {
         /* 0: normal, 1: ignore, 2: fail */
         if (csound->orcname_mode == 2) {
-          csound->Die(csound, Str("error: orchestra and score name not "
+          csoundDie(csound, Str("error: orchestra and score name not "
                                   "allowed in .csound7rc"));
         }
         else if (csound->orcname_mode == 0) {
@@ -1589,7 +1592,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           else if (LIKELY(csound->scorename == NULL))
             csound->scorename = cs_strdup(csound, --s);
           else {
-            csound->Message(csound,"argc=%d Additional string \"%s\"\n",argc,--s);
+            csoundMessage(csound,"argc=%d Additional string \"%s\"\n",argc,--s);
             dieu(csound, Str("too many arguments"));
           }
         }
@@ -1733,12 +1736,12 @@ PUBLIC void csoundSetOutput(CSOUND *csound, const char *name,
     if (csound->engineStatus & CS_STATE_COMP) return;
 
     oparms->outfilename =
-      csound->Malloc(csound, strlen(name) + 1); /* will be freed by memRESET */
+      mmalloc(csound, strlen(name) + 1); /* will be freed by memRESET */
     strcpy(oparms->outfilename, name); /* unsafe -- REVIEW */
     if (strcmp(oparms->outfilename, "stdout") == 0) {
       set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(_WIN32)
-      csound->Warning(csound, Str("stdout not supported on this platform"));
+      csoundWarning(csound, Str("stdout not supported on this platform"));
 #endif
     }
     else set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
@@ -1794,12 +1797,12 @@ PUBLIC void csoundSetInput(CSOUND *csound, const char *name) {
     if (csound->engineStatus & CS_STATE_COMP) return;
 
     oparms->infilename =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      mmalloc(csound, strlen(name)); /* will be freed by memRESET */
     strcpy(oparms->infilename, name);
     if (strcmp(oparms->infilename, "stdin") == 0) {
       set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
 #if defined(_WIN32)
-      csound->Warning(csound, Str("stdin not supported on this platform"));
+      csoundWarning(csound, Str("stdin not supported on this platform"));
 #endif
     }
     else
@@ -1814,12 +1817,12 @@ PUBLIC void csoundSetMIDIInput(CSOUND *csound, const char *name) {
     if (csound->engineStatus & CS_STATE_COMP) return;
 
     oparms->Midiname =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      mmalloc(csound, strlen(name)); /* will be freed by memRESET */
     strcpy(oparms->Midiname, name);
     if (!strcmp(oparms->Midiname, "stdin")) {
       set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #if defined(_WIN32)
-      csound->Warning(csound, Str("stdin not supported on this platform"));
+      csoundWarning(csound, Str("stdin not supported on this platform"));
 #endif
     }
     else
@@ -1834,12 +1837,12 @@ PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, const char *name) {
     if (csound->engineStatus & CS_STATE_COMP) return;
 
     oparms->FMidiname =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      mmalloc(csound, strlen(name)); /* will be freed by memRESET */
     strcpy(oparms->FMidiname, name);
     if (!strcmp(oparms->FMidiname, "stdin")) {
       set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #if defined(_WIN32)
-      csound->Warning(csound, Str("stdin not supported on this platform"));
+      csoundWarning(csound, Str("stdin not supported on this platform"));
 #endif
     }
     else
@@ -1854,7 +1857,7 @@ PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, const char *name) {
     if (csound->engineStatus & CS_STATE_COMP) return;
 
     oparms->FMidioutname =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      mmalloc(csound, strlen(name)); /* will be freed by memRESET */
     strcpy(oparms->FMidioutname, name);
 }
 
@@ -1865,7 +1868,7 @@ PUBLIC void csoundSetMIDIOutput(CSOUND *csound, const char *name) {
     if (csound->engineStatus & CS_STATE_COMP) return;
 
     oparms->Midioutname =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      mmalloc(csound, strlen(name)); /* will be freed by memRESET */
     strcpy(oparms->Midioutname, name);
 }
 
@@ -1873,36 +1876,36 @@ static void list_audio_devices(CSOUND *csound, int output){
 
     int i,n = csoundGetAudioDevList(csound,NULL, output);
     CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-      csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
+      mmalloc(csound, n*sizeof(CS_AUDIODEVICE));
     if (output)
-      csound->Message(csound, Str("%d audio output devices\n"), n);
+      csoundMessage(csound, Str("%d audio output devices\n"), n);
     else
-      csound->Message(csound, Str("%d audio input devices\n"), n);
+      csoundMessage(csound, Str("%d audio input devices\n"), n);
     csoundGetAudioDevList(csound,devs,output);
     for (i=0; i < n; i++) {
       int nchnls = devs[i].max_nchnls;
       if(nchnls > 0)
-        csound->Message(csound, " %d: %s (%s) [ch:%d]\n",
+        csoundMessage(csound, " %d: %s (%s) [ch:%d]\n",
                         i, devs[i].device_id, devs[i].device_name, nchnls);
       else
-        csound->Message(csound, " %d: %s (%s)\n",
+        csoundMessage(csound, " %d: %s (%s)\n",
                         i, devs[i].device_id, devs[i].device_name);
     }
-    csound->Free(csound, devs);
+    mfree(csound, devs);
 }
 
 static void list_midi_devices(CSOUND *csound, int output){
 
     int i,n = csoundGetMIDIDevList(csound,NULL, output);
     CS_MIDIDEVICE *devs =
-      (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
+      (CS_MIDIDEVICE *) mmalloc(csound, n*sizeof(CS_MIDIDEVICE));
     if (output)
-      csound->Message(csound, Str("%d MIDI output devices\n"), n);
+      csoundMessage(csound, Str("%d MIDI output devices\n"), n);
     else
-      csound->Message(csound, Str("%d MIDI input devices\n"), n);
+      csoundMessage(csound, Str("%d MIDI input devices\n"), n);
     csoundGetMIDIDevList(csound,devs,output);
     for (i=0; i < n; i++)
-      csound->Message(csound, " %d: %s (%s)\n",
+      csoundMessage(csound, " %d: %s (%s)\n",
                       i, devs[i].device_id, devs[i].device_name);
-    csound->Free(csound, devs);
+    mfree(csound, devs);
 }

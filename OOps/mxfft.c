@@ -58,7 +58,7 @@ static char *rcsid = "$Id$";
  *      Warnings
  *
  *      Revision 1.6  2005/02/18 16:21:14  istvanv
- *      added csound pointer to csound->Malloc, auxalloc, and other functions
+ *      added csound pointer to mmalloc, auxalloc, and other functions
  *
  *      Revision 1.5  2005/01/27 19:22:50  istvanv
  *      Merged changes from 4.24.1, including new localization system,
@@ -86,6 +86,8 @@ static char *rcsid = "$Id$";
 #include "csoundCore_internal.h"
 #include <math.h>
 #include <assert.h>
+#include "memalloc.h"
+#include "fftlib.h"
 
 static void fft_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t);
 static void fftmx(MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t, int32_t,
@@ -171,7 +173,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
     if (m <= kt+1)
       maxp = m + kt + 1;
     if (UNLIKELY(m+kt > 15)) {
-      csound->Warning(csound, Str("\nerror - fft parameter n has "
+      csoundWarning(csound, Str("\nerror - fft parameter n has "
                                   "more than 15 factors : %d"), n);
       return;
     }
@@ -185,7 +187,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
       maxf = nfac[kt];
 
     /* allocate workspace - assume no errors! */
-    buf = csound->Calloc(csound, sizeof(MYFLT) * 4 * maxf + sizeof(int32_t) * maxp);
+    buf = mcalloc(csound, sizeof(MYFLT) * 4 * maxf + sizeof(int32_t) * maxp);
     at = (MYFLT*) buf;
     ck = (MYFLT*) at + (int32_t) maxf;
     bt = (MYFLT*) ck + (int32_t) maxf;
@@ -199,7 +201,7 @@ static void fft_(CSOUND *csound, MYFLT *a, MYFLT *b,
     fftmx(a, b, ntot, nf, nspn, isn, m, &kt, at, ck, bt, sk, np, nfac);
 
     /* release working storage before returning - assume no problems */
-    csound->Free(csound,buf);
+    mfree(csound,buf);
 }
 
 /*
@@ -933,12 +935,12 @@ void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
     if (!(FFTsize & (FFTsize - 1))) {
       /* if FFT size is power of two: */
-      csound->RealFFT(csound, buf, FFTsize);
+      csoundRealFFT(csound, buf, FFTsize);
       buf[FFTsize] = buf[1];
     }
     else {
       if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
-        csound->Warning(csound,
+        csoundWarning(csound,
                         Str("csoundRealFFTnp2(): invalid FFT size, %d"), FFTsize);
         return;
       }
@@ -962,7 +964,7 @@ void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
   if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))){
-      csound->Warning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
+      csoundWarning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
       return;
   }
     buf[1] = buf[FFTsize + 1] = FL(0.0);
@@ -974,7 +976,7 @@ void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
   if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))){
-      csound->Warning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
+      csoundWarning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
       return;
   }
     fft_(csound, buf, buf, 1, FFTsize, 1, 2);
@@ -983,7 +985,7 @@ void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
       if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
-        csound->Warning(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
+        csoundWarning(csound, Str("csoundRealFFTnp2(): invalid FFT size"));
         return;
       }
       fft_(csound, buf, buf, 1, FFTsize, 1, -2);

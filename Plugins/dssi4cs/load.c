@@ -10,6 +10,7 @@
 
 #include "utils.h"
 #include <dlfcn.h>
+#include "memalloc.h"
 
 /*****************************************************************************/
 
@@ -52,7 +53,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
       tmp = getenv("DSSI_PATH");
       if (tmp) pcDSSIPath = strdup(tmp);
       if (!pcLADSPAPath) {
-        csound->Message(csound, "%s",
+        csoundMessage(csound, "%s",
                         Str("DSSI4CS: LADSPA_PATH environment "
                             "variable not set.\n"));
 #ifdef LIB64
@@ -74,7 +75,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
           pcEnd = pcStart;
           while (*pcEnd != ':' && *pcEnd != '\0')
             pcEnd++;
-          pcBuffer = csound->Malloc(csound,
+          pcBuffer = mmalloc(csound,
                                     iFilenameLength + 2 + (pcEnd - pcStart));
           if (pcEnd > pcStart)
             strNcpy(pcBuffer, pcStart, pcEnd - pcStart);
@@ -88,7 +89,7 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
 
           pvResult = dlopen(pcBuffer, iFlag);
 
-          csound->Free(csound, pcBuffer);
+          mfree(csound, pcBuffer);
           if (pvResult != NULL) {
             if (pcLADSPAPath) free(pcLADSPAPath);
             if (pcDSSIPath) free(pcDSSIPath);
@@ -108,11 +109,11 @@ void   *dlopenLADSPA(CSOUND *csound, const char *pcFilename, int32_t iFlag)
     if (iFilenameLength > 3)
       iEndsInSO = (strcmp(pcFilename + iFilenameLength - 3, ".so") == 0);
     if (!iEndsInSO) {
-      pcBuffer = csound->Malloc(csound, iFilenameLength + 4);
+      pcBuffer = mmalloc(csound, iFilenameLength + 4);
       strcpy(pcBuffer, pcFilename);
       strcat(pcBuffer, ".so");
       pvResult = dlopenLADSPA(csound, pcBuffer, iFlag);
-      csound->Free(csound, pcBuffer);
+      mfree(csound, pcBuffer);
     }
 
     if (pvResult != NULL) {
@@ -140,7 +141,7 @@ void   *loadLADSPAPluginLibrary(CSOUND *csound, const char *pcPluginFilename)
     /* pvPluginHandle = dlopenLADSPA(csound, pcPluginFilename, RTLD_LAZY); */
     pvPluginHandle = dlopenLADSPA(csound, pcPluginFilename, RTLD_NOW);
     if (!pvPluginHandle) {
-      csound->Die(csound, Str("Failed to load plugin \"%s\": %s"),
+      csoundDie(csound, Str("Failed to load plugin \"%s\": %s"),
                           pcPluginFilename, dlerror());
     }
 
@@ -176,13 +177,13 @@ const LADSPA_Descriptor *
       const char *pcError = dlerror();
 
       if (pcError) {
-        csound->Die(csound, Str("Unable to find ladspa_descriptor() function "
+        csoundDie(csound, Str("Unable to find ladspa_descriptor() function "
                                 "in plugin library file \"%s\": %s.\n"
                                 "Are you sure this is a LADSPA plugin file ?"),
                             pcPluginLibraryFilename, pcError);
       }
       else {
-        csound->Die(csound, Str("Unable to find ladspa_descriptor() function "
+        csoundDie(csound, Str("Unable to find ladspa_descriptor() function "
                                 "in plugin library file \"%s\".\n"
                                 "Are you sure this is a LADSPA plugin file ?"),
                             pcPluginLibraryFilename);
@@ -197,7 +198,7 @@ const LADSPA_Descriptor *
         return psDescriptor;
     }
 
-    csound->Die(csound, Str("Unable to find label \"%s\" "
+    csoundDie(csound, Str("Unable to find label \"%s\" "
                             "in plugin library file \"%s\"."),
                         pcPluginLabel, pcPluginLibraryFilename);
     return NULL;    /* compiler only; not reached */

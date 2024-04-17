@@ -27,6 +27,8 @@
 #include "midiops.h"
 #include "midiops3.h"
 #include <math.h>
+#include "insert_public.h"
+#include "fgens_public.h"
 
 #define f7bit           (FL(127.0))
 #define oneTOf7bit      (MYFLT)(1.0/127.0)
@@ -41,7 +43,7 @@
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
     if (UNLIKELY(chan > 15)) {                                    \
-      return csound->InitError(csound, Str("illegal channel"));   \
+      return csoundInitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -56,16 +58,16 @@
       if (UNLIKELY(*slnum > 127)) {                               \
         snprintf(sbuf, 120,                                       \
                   Str("illegal control number at position n.%d"), j); \
-          return csound->InitError(csound, "%s", sbuf);           \
+          return csoundInitError(csound, "%s", sbuf);           \
         }                                                         \
       if (UNLIKELY((value=*sld->initvalue) < (*min=*sld->imin) || \
                    value > (*max=*sld->imax) )) {                 \
         snprintf(sbuf, 120,                                       \
                   Str("illegal initvalue at position n.%d"),      \
                   j);                                             \
-          return csound->InitError(csound, "%s", sbuf);           \
+          return csoundInitError(csound, "%s", sbuf);           \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Finde(csound, sld->ifn); \
+        if (*sld->ifn > 0)   *ftp++ = csoundFTnp2Finde(csound, sld->ifn); \
         else                 *ftp++ = NULL;                       \
         value =  (*(sld++)->initvalue - *min) / (*max++ - *min);  \
         min++;                                                    \
@@ -143,7 +145,7 @@ static int32_t slider64(CSOUND *csound, SLIDER64 *p)
     unsigned char chan = p->slchan = (unsigned char)((*p->ichan)-1); \
     char sbuf[120];                                               \
     if (UNLIKELY(chan  > 15))  {                                  \
-      return csound->InitError(csound, Str("illegal channel"));   \
+      return csoundInitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
       MYFLT value = FL(0.0);                                      \
@@ -160,15 +162,15 @@ static int32_t slider64(CSOUND *csound, SLIDER64 *p)
       if (UNLIKELY(*slnum > 127)) {                               \
         snprintf(sbuf, 120,                                       \
                   Str("illegal control number at position n.%d"), j); \
-          return csound->InitError(csound, "%s", sbuf);           \
+          return csoundInitError(csound, "%s", sbuf);           \
         }                                                         \
       if (UNLIKELY((value=*sld->initvalue) < (*min=*sld->imin) || \
                    value > (*max=*sld->imax) )) {                 \
         snprintf(sbuf, 120,                                       \
                   Str("illegal initvalue at position n.%d"), j);  \
-          return csound->InitError(csound, "%s", sbuf);           \
+          return csoundInitError(csound, "%s", sbuf);           \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Finde(csound, sld->ifn); \
+        if (*sld->ifn > 0)   *ftp++ = csoundFTnp2Finde(csound, sld->ifn); \
         else                 *ftp++ = NULL;                       \
         value =  (*sld->initvalue - *min) / (*max++ - *min);      \
         min++;;                                                   \
@@ -256,7 +258,7 @@ static int32_t slider64f(CSOUND *csound, SLIDER64f *p)
     unsigned char chan= (unsigned char) ((*p->ichan)-1);          \
     char sbuf[120];                                               \
 if (UNLIKELY(chan  > 15))  {                                      \
-      return csound->InitError(csound, Str("illegal channel"));   \
+      return csoundInitError(csound, Str("illegal channel"));   \
     }                                                             \
     {                                                             \
       MYFLT value;                                                \
@@ -271,11 +273,11 @@ if (UNLIKELY(chan  > 15))  {                                      \
         slnum=(unsigned char) *sld->ictlno;                       \
         if (UNLIKELY(slnum > 127)) {                              \
           snprintf(sbuf, 120, Str("illegal control number at position n.%d"), j); \
-          return csound->InitError(csound, "%s", sbuf);                 \
+          return csoundInitError(csound, "%s", sbuf);                 \
         }                                                         \
         value = chanblock[slnum] * oneTOf7bit;                    \
         if (*sld->ifn > 0)  {                                     \
-          ftp = csound->FTnp2Finde(csound, sld->ifn);              \
+          ftp = csoundFTnp2Finde(csound, sld->ifn);              \
           value = *( ftp->ftable + (int32)(value * ftp->flen));   \
                                 /* no interpolation */            \
         }                                                         \
@@ -314,7 +316,7 @@ static int32_t islider64(CSOUND *csound, ISLIDER64 *p)
     unsigned char chan= p->slchan = (unsigned char)((*p->ichan)-1);    \
     char sbuf[120];                                                    \
 if (UNLIKELY(chan  > 15))  {                                           \
-      return csound->InitError(csound, Str("illegal channel"));        \
+      return csoundInitError(csound, Str("illegal channel"));        \
     }                                                                  \
     {                                                                  \
       MYFLT value;                                                     \
@@ -332,22 +334,22 @@ if (UNLIKELY(chan  > 15))  {                                           \
           snprintf(sbuf, 120,                                          \
                   Str("illegal msb control number at position n.%d"),  \
                   j);                                                  \
-          return csound->InitError(csound, "%s", sbuf);                \
+          return csoundInitError(csound, "%s", sbuf);                \
         }                                                              \
         *slnum_lsb = (unsigned char)*sld->ictlno_lsb;                  \
         if (UNLIKELY(*slnum_lsb > 127)) {                              \
           snprintf(sbuf, 120,                                          \
                   Str("illegal lsb control number at position n.%d"),  \
                   j);                                                  \
-          return csound->InitError(csound, "%s", sbuf);                \
+          return csoundInitError(csound, "%s", sbuf);                \
         }                                                              \
         if (UNLIKELY((value=*sld->initvalue) < (*min=*sld->imin) ||    \
                      value > (*max=*sld->imax) )) {                    \
           snprintf(sbuf, 120,                                          \
                   Str("illegal initvalue at position n.%d"), j);       \
-          return csound->InitError(csound, "%s", sbuf);                \
+          return csoundInitError(csound, "%s", sbuf);                \
         }                                                              \
-        if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Finde(csound, sld->ifn); \
+        if (*sld->ifn > 0)   *ftp++ = csoundFTnp2Finde(csound, sld->ifn); \
         else                 *ftp++ = NULL;                            \
         intvalue = (int32_t) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
                           * f14bit+FL(0.5));                           \
@@ -410,7 +412,7 @@ static int32_t slider32bit14(CSOUND *csound, SLIDER32BIT14 *p)
     unsigned char chan = (unsigned char)((*p->ichan)-1);               \
     char sbuf[120];                                                    \
 if (UNLIKELY(chan  > 15))  {                                           \
-      return csound->InitError(csound, Str("illegal channel"));        \
+      return csoundInitError(csound, Str("illegal channel"));        \
     }                                                                  \
     {                                                                  \
       MYFLT value;                                                     \
@@ -427,20 +429,20 @@ if (UNLIKELY(chan  > 15))  {                                           \
           snprintf(sbuf, 120,                                          \
                   Str("illegal msb control number at position n.%d"),  \
                   j);                                                  \
-          return csound->InitError(csound, "%s", sbuf);                \
+          return csoundInitError(csound, "%s", sbuf);                \
         }                                                              \
         slnum_lsb=(unsigned char)*sld->ictlno_lsb;                     \
         if (UNLIKELY(slnum_lsb > 127)) {                               \
           snprintf(sbuf, 120,                                          \
                   Str("illegal lsb control number at position n.%d"),  \
                   j);                                                  \
-          return csound->InitError(csound, "%s", sbuf);                \
+          return csoundInitError(csound, "%s", sbuf);                \
         }                                                              \
                                                                        \
         value = (MYFLT)((chanblock[slnum_msb]  * 128                   \
                          + chanblock[slnum_lsb]) * oneTOf14bit);       \
         if (*sld->ifn > 0) {    /* linear interpolation routine */     \
-          FUNC *ftp= csound->FTnp2Finde(csound, sld->ifn);              \
+          FUNC *ftp= csoundFTnp2Finde(csound, sld->ifn);              \
           MYFLT phase = value * ftp->flen;                             \
           MYFLT *base = ftp->ftable + (int32)(phase);                  \
           value = *base + (*(base + 1) - *base) * (phase - (int32) phase); \
@@ -594,7 +596,7 @@ static OENTRY localops[] = {
 
 int32_t midiops3_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

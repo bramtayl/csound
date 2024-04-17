@@ -23,6 +23,10 @@
 
 #include "csdl.h"
 #include <time.h>
+#include "namedins_public.h"
+#include "memalloc.h"
+#include "csound_orc_semantics_public.h"
+#include "insert_public.h"
 
 #ifndef __wasi__
 #include <errno.h>
@@ -99,8 +103,8 @@ static int32_t datestringset(CSOUND *csound, DATESTRING *p)
 
     /* q = strchr(time_string, '\n'); */
     /* if (q) *q='\0'; */
-    if (p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
-    p->Stime_->data = csound->Strdup(csound, time_string);
+    if (p->Stime_->data != NULL) mfree(csound, p->Stime_->data);
+    p->Stime_->data = cs_strdup(csound, time_string);
     p->Stime_->size = strlen(time_string)+1;
     return OK;
 }
@@ -114,11 +118,11 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
 {
   if (p->Scd->size < 1024) {
     p->Scd->size = 1024;
-    p->Scd->data = csound->ReAlloc(csound,  p->Scd->data, p->Scd->size);
+    p->Scd->data = mrealloc(csound,  p->Scd->data, p->Scd->size);
   }
   if (p->Scd->data == NULL) {
       p->Scd->size = 1024;
-      p->Scd->data = csound->Calloc(csound, p->Scd->size);
+      p->Scd->data = mcalloc(csound, p->Scd->size);
     }
 #ifndef BARE_METAL   
 #if defined(__MACH__) || defined(__gnu_linux__) || defined(__HAIKU__) || defined(__CYGWIN__) || defined(__GNUC__)
@@ -129,7 +133,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
       {
         strncpy(p->Scd->data, Str("**Unknown**"), p->Scd->size);
         #ifndef __wasi__
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("cannot determine current directory: %s\n"),
                                  strerror(errno));
         #else
@@ -169,17 +173,17 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
       strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
       name[1023] = '\0';
     }
-    else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
+    else strarg2name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;
     if (p->Sline->size < MAXLINE) {
-      if (p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
-      p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
+      if (p->Sline->data != NULL) mfree(csound, p->Sline->data);
+      p->Sline->data = (char *) mcalloc(csound, MAXLINE);
     p->Sline->size = MAXLINE;
     }
     if (UNLIKELY(p->fd==NULL))
-      return csound->InitError(csound, "%s", Str("readf: failed to open file"));
-    return csound->RegisterDeinitCallback(csound, p, readf_delete);
+      return csoundInitError(csound, "%s", Str("readf: failed to open file"));
+    return csoundRegisterDeinitCallback(csound, p, readf_delete);
 }
 
 static int32_t readf_init(CSOUND *csound, READF *p){
@@ -204,7 +208,7 @@ static int32_t readf(CSOUND *csound, READF *p)
         return OK;
       }
       else
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                                  "%s", Str("readf: read failure"));
     }
     *p->line = ++p->lineno;
@@ -215,7 +219,7 @@ static int32_t readfi(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init(csound, p)!= OK))
-        return csound->InitError(csound, "%s", Str("readi failed to initialise"));
+        return csoundInitError(csound, "%s", Str("readi failed to initialise"));
     return readf(csound, p);
 }
 
@@ -223,7 +227,7 @@ static int32_t readfi_S(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
       if (UNLIKELY(readf_init_S(csound, p)!= OK))
-        return csound->InitError(csound, "%s", Str("readi failed to initialise"));
+        return csoundInitError(csound, "%s", Str("readi failed to initialise"));
     return readf(csound, p);
 }
 

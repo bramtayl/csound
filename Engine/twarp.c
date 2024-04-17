@@ -22,6 +22,7 @@
 */
 
 #include "csoundCore_internal.h"                               /*    TWARP.C  */
+#include "memalloc.h"
 
 typedef struct {
     MYFLT   betbas;
@@ -84,7 +85,7 @@ void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
           bp->newp2 = realt(csound, bp->p2val);
         break;
       default:
-        csound->Message(csound, Str("twarp: illegal opcode\n"));
+        csoundMessage(csound, Str("twarp: illegal opcode\n"));
         break;
       }
     } while ((bp = bp->nxtblk) != NULL);
@@ -99,7 +100,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     TSEG    *tseg = (TSEG*)csound->tseg;
 
     csound->tseg =
-      tseg = (TSEG*)csound->ReAlloc(csound,
+      tseg = (TSEG*)mrealloc(csound,
                                     tseg, (1+bp->pcnt/2) * sizeof(TSEG));
     //tplim = &tseg[(bp->pcnt/2)];
     //csound->tseglen = 1+bp->pcnt/2;
@@ -147,10 +148,10 @@ int realtset(CSOUND *csound, SRTBLK *bp)
     return(1);
 
  error1:
-    csound->Message(csound,Str("twarp: t has extra or disordered beat value\n"));
+    csoundMessage(csound,Str("twarp: t has extra or disordered beat value\n"));
     return(0);
  error2:
-    csound->Message(csound,Str("twarp: t has non-positive tempo\n"));
+    csoundMessage(csound,Str("twarp: t has non-positive tempo\n"));
     return(0);
 }
 

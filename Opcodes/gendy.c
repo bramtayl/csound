@@ -27,6 +27,7 @@
 */
 
 #include "csoundCore_internal.h"
+#include "auxfd.h"
 
 typedef struct {
         OPDS    h;
@@ -120,8 +121,8 @@ static int32_t gendyset(CSOUND *csound, GENDY *p)
       p->points = GENDYMAXCPS;
     else
       p->points = (int32)*p->initcps;
-    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
-    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
+    csoundAuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
+    csoundAuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     p->rand = csoundRand31(&csound->randSeed1);
@@ -252,8 +253,8 @@ static int32_t gendyxset(CSOUND *csound, GENDYX *p)
       p->points = GENDYMAXCPS;
     else
       p->points = (int32)*p->initcps;
-    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
-    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
+    csoundAuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
+    csoundAuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     p->rand = csoundRand31(&csound->randSeed1);
@@ -395,8 +396,8 @@ static int32_t gendycset(CSOUND *csound, GENDYC *p)
       p->points = GENDYMAXCPS;
     else
       p->points = (int32)*p->initcps;
-    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
-    csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
+    csoundAuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
+    csoundAuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
     p->rand = csoundRand31(&csound->randSeed1);
@@ -449,7 +450,7 @@ static int32_t kgendyc(CSOUND *csound, GENDYC *p)
       memdur[index] = p->dur;
       fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
       fphase = (fphase > FL(0.001) ? fphase : FL(0.001));
-      p->phase = (int32)(csound->GetSr(csound) / fphase);
+      p->phase = (int32)(csoundGetSr(csound) / fphase);
       if (p->phase < 2) p->phase = 2;
       p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
       p->curve = p->curve / (p->phase * p->phase + p->phase);
@@ -512,7 +513,7 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
         memdur[index] = p->dur;
         fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
         fphase = (fphase > FL(0.001) ? fphase : FL(0.001));
-        p->phase = (int32)(csound->GetSr(csound) / fphase);
+        p->phase = (int32)(csoundGetSr(csound) / fphase);
         if (p->phase < 2) p->phase = 2;
         p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
         p->curve = p->curve / (p->phase * p->phase + p->phase);

@@ -27,6 +27,8 @@
 #include <math.h>
 #define CSOUND_OSCILS_C 1
 #include "oscils.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 /* ------------- set up fast sine generator ------------- */
 /* Input args:                                            */
@@ -233,13 +235,13 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
     /* window size */
     wsize = p->wsize;
     if (UNLIKELY((wsize < 2) || (wsize > 1024))) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("tablexkt: not initialised"));
     }
     wsized2 = wsize >> 1;
 
     /* check ftable */
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->kfn)) == NULL))
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->kfn)) == NULL))
       return NOTOK;     /* invalid table */
     if (UNLIKELY((ftable = ftp->ftable) == NULL)) return NOTOK;
     flen = ftp->flen;               /* table length */

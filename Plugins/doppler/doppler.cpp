@@ -137,7 +137,7 @@ public:
   int32_t currentIndex;
 
   int32_t init(CSOUND *csound) {
-    sampleRate = csound->GetSr(csound);
+    sampleRate = csoundGetSr(csound);
     blockRate = opds.insdshead->ekr;
     blockSize = opds.insdshead->ksmps;
     // Take care of default values.
@@ -271,7 +271,7 @@ OENTRY oentries[] = {{
 PUBLIC int32_t csoundModuleInit_doppler(CSOUND *csound) {
   int32_t status = 0;
   for (OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) {
-    status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
+    status |= csoundAppendOpcode(csound, oentry->opname, oentry->dsblksiz,
                                    oentry->flags, oentry->thread,
                                    oentry->outypes, oentry->intypes,
                                    (int32_t (*)(CSOUND *, void *))oentry->iopadr,

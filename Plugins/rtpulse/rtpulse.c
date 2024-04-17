@@ -25,6 +25,7 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #include <string.h>
+#include "memalloc.h"
 
 typedef struct _pulse_params {
   pa_simple *ps;
@@ -43,22 +44,22 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     pulse_globals *p;
     int siz = 64;
     OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+    csoundGetOParms(csound, &oparms);
 
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
+      csoundMessage(csound, Str("PulseAudio client RT IO module for Csound"
                                   "by Victor Lazzarini\n"));
 
-    if (UNLIKELY(csound->CreateGlobalVariable(csound, "_pulse_globals",
+    if (UNLIKELY(csoundCreateGlobalVariable(csound, "_pulse_globals",
                                               sizeof(pulse_globals)) != 0)) {
-      csound->ErrorMsg(csound, Str(" *** rtpulse: error allocating globals"));
+      csoundErrorMsg(csound, Str(" *** rtpulse: error allocating globals"));
       return -1;
     }
-    p = (pulse_globals*) csound->QueryGlobalVariableNoCheck(csound,
+    p = (pulse_globals*) csoundQueryGlobalVariableNoCheck(csound,
                                                             "_pulse_globals");
     strcpy(&(p->server[0]), "default");
 
-    csound->CreateConfigurationVariable(
+    csoundCreateConfigurationVariable(
         csound,"server", (void*) &(p->server[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
         "PulseAudio server name (default: default server)", NULL);
@@ -67,14 +68,14 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
     siz = 32;
 
-    csound->CreateConfigurationVariable(
+    csoundCreateConfigurationVariable(
         csound,"output_stream", (void*) &(p->oname[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
         "PulseAudio output stream name (default: csound-out)", NULL);
 
     strcpy(&(p->iname[0]), "csound-in");
 
-    csound->CreateConfigurationVariable(
+    csoundCreateConfigurationVariable(
         csound,"input_stream", (void*) &(p->iname[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
         "PulseAudio input stream name (default: csound-in)", NULL);
@@ -97,19 +98,19 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
     /* pa_buffer_attr attr */
     int pulserror;
 
-    pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
-    *(csound->GetRtPlayUserData(csound))  = (void *) pulse;
-    pulse->spec.rate = csound->GetSr(csound);
-    pulse->spec.channels = csound->GetNchnls(csound);
+    pulse = (pulse_params *) mmalloc(csound, sizeof(pulse_params));
+    *(csoundGetRtPlayUserData(csound))  = (void *) pulse;
+    pulse->spec.rate = csoundGetSr(csound);
+    pulse->spec.channels = csoundGetNchnls(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
     pulse->buf =
-      (float *) csound->Malloc(csound,
+      (float *) mmalloc(csound,
                                sizeof(float)*parm->bufSamp_SW*pulse->spec.channels);
 
     if(!pa_sample_spec_valid(&(pulse->spec))) {
-        csound->ErrorMsg(csound,Str("Pulse audio module error: invalid sample spec, "
+        csoundErrorMsg(csound,Str("Pulse audio module error: invalid sample spec, "
                                     "check number of output channels (%d)\n"),
-                         csound->GetNchnls(csound));
+                         csoundGetNchnls(csound));
         return -1;
     }
     /*
@@ -120,16 +121,16 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
       attr.fragsize = parm->bufSamp_SW;
     */
 
-    pg = (pulse_globals*) csound->QueryGlobalVariableNoCheck(csound,
+    pg = (pulse_globals*) csoundQueryGlobalVariableNoCheck(csound,
                                                              "_pulse_globals");
 
     if (!strcmp(pg->server,"default")){
       server = NULL;
-      csound->Message(csound, Str("PulseAudio output server: default\n"));
+      csoundMessage(csound, Str("PulseAudio output server: default\n"));
     }
     else {
       server = pg->server;
-      csound->Message(csound, Str("PulseAudio output server %s\n"), server);
+      csoundMessage(csound, Str("PulseAudio output server %s\n"), server);
     }
 
     pulse->ps = pa_simple_new (server,
@@ -144,11 +145,11 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
                                ) ;
 
     if (LIKELY(pulse->ps)){
-      csound->Message(csound, Str("pulseaudio output open\n"));
+      csoundMessage(csound, Str("pulseaudio output open\n"));
       return 0;
     }
     else {
-      csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
+      csoundErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));
       return -1;
     }
@@ -159,14 +160,14 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 
   int i, bufsiz, pulserror;
   float *buf;
-  pulse_params *pulse = (pulse_params*) *(csound->GetRtPlayUserData(csound));
+  pulse_params *pulse = (pulse_params*) *(csoundGetRtPlayUserData(csound));
   //MYFLT norm = csound->e0dbfs;
   bufsiz = nbytes/sizeof(MYFLT);
   buf = pulse->buf;
   for (i=0;i<bufsiz;i++) buf[i] = outbuf[i];
   if (UNLIKELY(pa_simple_write(pulse->ps, buf,
                                bufsiz*sizeof(float), &pulserror) < 0))
-    csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
+    csoundErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                      pa_strerror(pulserror));
 
 }
@@ -175,21 +176,21 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 static void pulse_close(CSOUND *csound)
 {
     int error;
-    pulse_params *pulse = (pulse_params*) *(csound->GetRtPlayUserData(csound));
+    pulse_params *pulse = (pulse_params*) *(csoundGetRtPlayUserData(csound));
 
     if (pulse != NULL){
       pa_simple_drain(pulse->ps, &error);
       pa_simple_free(pulse->ps);
-      csound->Free(csound,pulse->buf);
+      mfree(csound,pulse->buf);
     }
 
-    pulse = (pulse_params*) *(csound->GetRtRecordUserData(csound)) ;
+    pulse = (pulse_params*) *(csoundGetRtRecordUserData(csound)) ;
 
     if (pulse != NULL){
       pa_simple_free(pulse->ps);
-      csound->Free(csound,pulse->buf);
+      mfree(csound,pulse->buf);
     }
-    csound->DestroyGlobalVariable(csound, "pulse_globals");
+    csoundDestroyGlobalVariable(csound, "pulse_globals");
 }
 
 static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
@@ -199,13 +200,13 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
     const char *server;
     /*pa_buffer_attr attr;*/
     int pulserror;
-    pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
-    *(csound->GetRtRecordUserData(csound))  = (void *) pulse;
-    pulse->spec.rate = csound->GetSr(csound);
-    pulse->spec.channels = csound->GetNchnls_i(csound);
+    pulse = (pulse_params *) mmalloc(csound, sizeof(pulse_params));
+    *(csoundGetRtRecordUserData(csound))  = (void *) pulse;
+    pulse->spec.rate = csoundGetSr(csound);
+    pulse->spec.channels = csoundGetNchnlsInput(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
     pulse->buf =
-      (float *) csound->Malloc(csound,
+      (float *) mmalloc(csound,
                                sizeof(float)*parm->bufSamp_SW*pulse->spec.channels);
     /*
       attr.maxlength = parm->bufSamp_HW;
@@ -215,16 +216,16 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
       attr.fragsize = parm->bufSamp_SW;
     */
 
-    pg = (pulse_globals*) csound->QueryGlobalVariableNoCheck(csound,
+    pg = (pulse_globals*) csoundQueryGlobalVariableNoCheck(csound,
                                                              "_pulse_globals");
 
     if (!strcmp(pg->server,"default")){
       server = NULL;
-      csound->Message(csound, Str("PulseAudio input server: default\n"));
+      csoundMessage(csound, Str("PulseAudio input server: default\n"));
     }
     else {
       server = pg->server;
-      csound->Message(csound, Str("PulseAudio input server %s\n"), server);
+      csoundMessage(csound, Str("PulseAudio input server %s\n"), server);
     }
 
     pulse->ps = pa_simple_new (server,
@@ -239,7 +240,7 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 
     if (LIKELY(pulse->ps)) return 0;
     else {
-      csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
+      csoundErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));
       return -1;
     }
@@ -250,14 +251,14 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes)
 {
     int i, bufsiz,pulserror;
     float *buf;
-    pulse_params *pulse = (pulse_params*) *(csound->GetRtRecordUserData(csound)) ;
+    pulse_params *pulse = (pulse_params*) *(csoundGetRtRecordUserData(csound)) ;
     //MYFLT norm = csound->e0dbfs;
     bufsiz = nbytes/sizeof(MYFLT);
     buf = pulse->buf;
 
     if (UNLIKELY(pa_simple_read(pulse->ps, buf,
                                 bufsiz*sizeof(float), &pulserror) < 0)) {
-      csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
+      csoundErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));
       return -1;
     }
@@ -274,8 +275,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     char    *s;
     int     i;
     char    buf[9];
-    csound->module_list_add(csound, "pulse", "audio");
-    s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
+    module_list_add(csound, "pulse", "audio");
+    s = (char*) csoundQueryGlobalVariable(csound, "_RTAUDIO");
     i = 0;
     if (s != NULL) {
       while (*s != (char) 0 && i < 8)
@@ -283,12 +284,12 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "pulse") == 0) {
-      csound->Message(csound, Str("rtaudio: pulseaudio module enabled\n"));
-      csound->SetPlayopenCallback(csound, pulse_playopen);
-      csound->SetRecopenCallback(csound, pulse_recopen);
-      csound->SetRtplayCallback(csound, pulse_play);
-      csound->SetRtrecordCallback(csound, pulse_record);
-      csound->SetRtcloseCallback(csound, pulse_close);
+      csoundMessage(csound, Str("rtaudio: pulseaudio module enabled\n"));
+      csoundSetPlayopenCallback(csound, pulse_playopen);
+      csoundSetRecopenCallback(csound, pulse_recopen);
+      csoundSetRtplayCallback(csound, pulse_play);
+      csoundSetRtrecordCallback(csound, pulse_record);
+      csoundSetRtcloseCallback(csound, pulse_close);
     }
 
 

@@ -24,6 +24,8 @@
 
 #include "csdl.h"
 #include "pstream.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 typedef struct {
     OPDS h;
@@ -40,19 +42,19 @@ static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
     int32_t     N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
+      csoundWarning(csound, Str("Unsafe to have same fsig as in and out"));
 
     if (UNLIKELY(p->fin->sliding)) {
       if (p->fout->frame.auxp==NULL ||
           CS_KSMPS*(N+2)*sizeof(MYFLT) > (uint32_t)p->fout->frame.size)
-        csound->AuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
+        csoundAuxAlloc(csound, CS_KSMPS*(N+2)*sizeof(MYFLT),&p->fout->frame);
       else memset(p->fout->frame.auxp, 0, CS_KSMPS*(N+2)*sizeof(MYFLT));
     }
     else
       {
         if (p->fout->frame.auxp == NULL ||
             p->fout->frame.size < (N+2)*sizeof(float))  /* RWD MUST be 32bit */
-          csound->AuxAlloc(csound, (N+2)*sizeof(float), &p->fout->frame);
+          csoundAuxAlloc(csound, (N+2)*sizeof(float), &p->fout->frame);
         else memset(p->fout->frame.auxp, 0, (N+2)*sizeof(float));
       }
     p->fout->N = N;
@@ -109,7 +111,7 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("pvsgendy: not initialised"));
 }
 

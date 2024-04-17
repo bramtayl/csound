@@ -28,6 +28,8 @@
 #include "csoundCore_internal.h"
 #include "interlocks.h"
 #include <math.h>
+#include "fftlib.h"
+#include "auxfd.h"
 
 #define MINFREQINBINS 5
 #define MAXHIST 3
@@ -158,7 +160,7 @@ void ptrack(CSOUND *csound,PITCHTRACK *p)
       spec[k+1] = sig[i] * sinus[k+1];
     }
 
-    csound->ComplexFFT(csound, spec, hop);
+    csoundComplexFFT(csound, spec, hop);
 
     for (i = 0, k = 2*FLTLEN; i < hop; i+=2, k += 4) {
       spectmp[k]   = spec[i];
@@ -368,7 +370,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     MYFLT *tmpb;
 
     if (UNLIKELY(winsize < MINWINSIZ || winsize > MAXWINSIZ)) {
-      csound->Warning(csound, Str("ptrack: FFT size out of range; using %d\n"),
+      csoundWarning(csound, Str("ptrack: FFT size out of range; using %d\n"),
                       winsize = DEFAULTWINSIZ);
     }
 
@@ -381,26 +383,26 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     }
 
     if (UNLIKELY(winsize != (1 << powtwo))) {
-      csound->Warning(csound, Str("ptrack: FFT size not a power of 2; using %d\n"),
+      csoundWarning(csound, Str("ptrack: FFT size not a power of 2; using %d\n"),
                       winsize = (1 << powtwo));
     }
     p->hopsize = *p->size;
     if (!p->signal.auxp || p->signal.size < p->hopsize*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, p->hopsize*sizeof(MYFLT), &p->signal);
+      csoundAuxAlloc(csound, p->hopsize*sizeof(MYFLT), &p->signal);
     }
     if (!p->prev.auxp || p->prev.size < (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT), &p->prev);
+      csoundAuxAlloc(csound, (p->hopsize*2 + 4*FLTLEN)*sizeof(MYFLT), &p->prev);
     }
     if (!p->sin.auxp || p->sin.size < (p->hopsize*2)*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, (p->hopsize*2)*sizeof(MYFLT), &p->sin);
+      csoundAuxAlloc(csound, (p->hopsize*2)*sizeof(MYFLT), &p->sin);
     }
 
     if (!p->spec2.auxp || p->spec2.size < (winsize*4 + 4*FLTLEN)*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, (winsize*4 + 4*FLTLEN)*sizeof(MYFLT), &p->spec2);
+      csoundAuxAlloc(csound, (winsize*4 + 4*FLTLEN)*sizeof(MYFLT), &p->spec2);
     }
 
     if (!p->spec1.auxp || p->spec1.size < (winsize*4)*sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, (winsize*4)*sizeof(MYFLT), &p->spec1);
+      csoundAuxAlloc(csound, (winsize*4)*sizeof(MYFLT), &p->spec1);
     }
 
     for (i = 0, tmpb = (MYFLT *)p->signal.auxp; i < p->hopsize; i++)
@@ -418,7 +420,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
       p->numpks = *p->peak;
 
     if (!p->peakarray.auxp || p->peakarray.size < (p->numpks+1)*sizeof(PEAK)) {
-      csound->AuxAlloc(csound, (p->numpks+1)*sizeof(PEAK), &p->peakarray);
+      csoundAuxAlloc(csound, (p->numpks+1)*sizeof(PEAK), &p->peakarray);
     }
 
     p->cnt = 0;
@@ -471,15 +473,15 @@ typedef struct _pitchaf{
 int32_t pitchafset(CSOUND *csound, PITCHAF *p){
     int32_t siz = (int32_t)(CS_ESR/ (*p->iflow));
     if (p->buff1.auxp == NULL || p->buff1.size < siz*sizeof(MYFLT))
-      csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
+      csoundAuxAlloc(csound, siz*sizeof(MYFLT), &p->buff1);
     else
       memset(p->buff1.auxp, 0, p->buff1.size);
     if (p->buff2.auxp == NULL ||p-> buff2.size < siz*sizeof(MYFLT))
-      csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->buff2);
+      csoundAuxAlloc(csound, siz*sizeof(MYFLT), &p->buff2);
     else
       memset(p->buff2.auxp, 0, p->buff2.size);
     if (p->cor.auxp == NULL || p->cor.size < siz*sizeof(MYFLT))
-      csound->AuxAlloc(csound, siz*sizeof(MYFLT), &p->cor);
+      csoundAuxAlloc(csound, siz*sizeof(MYFLT), &p->cor);
     else
       memset(p->cor.auxp, 0, p->cor.size);
     p->lag = 0;

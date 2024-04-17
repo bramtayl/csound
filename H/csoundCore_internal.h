@@ -70,6 +70,7 @@
 #include "envvar.h"
 #include "prototyp.h"
 #include "soundfile.h"
+#include "memfiles.h"
 
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
@@ -248,7 +249,6 @@ int csoundIsInitThread(CSOUND *csound);
  * they are required by plugins.
  */
 struct CSOUND_ {
-  CSOUND_PUBLIC_FIELDS
   /* ------- private data (not to be used by hosts or externals) ------- */
   /** @name Private Data
     Private Data in the CSOUND struct to be used internally by the Csound

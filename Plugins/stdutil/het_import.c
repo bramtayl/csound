@@ -37,12 +37,13 @@
 #endif
 /*#include "hetro.h"*/
 #include "text.h"
+#include "utility.h"
 
 #define END  32767
 
 void het_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, "%s", Str("Usage: het_import csvtext_file het_file\n"));
+    csoundMessage(csound, "%s", Str("Usage: het_import csvtext_file het_file\n"));
 }
 
 int16 getnum(FILE* inf, char *term)
@@ -75,12 +76,12 @@ static int32_t het_import(CSOUND *csound, int32_t argc, char **argv)
 
     infd = fopen(argv[1], "r");
     if (UNLIKELY(infd == NULL)) {
-      csound->Message(csound, Str("Cannot open input comma file %s\n"), argv[1]);
+      csoundMessage(csound, Str("Cannot open input comma file %s\n"), argv[1]);
       return 1;
     }
     outf = fopen(argv[2], "wb");
     if (UNLIKELY(outf == NULL)) {
-      csound->Message(csound, Str("Cannot open output hetro file %s\n"), argv[2]);
+      csoundMessage(csound, Str("Cannot open output hetro file %s\n"), argv[2]);
       fclose(infd);
       return 1;
     }
@@ -90,7 +91,7 @@ static int32_t het_import(CSOUND *csound, int32_t argc, char **argv)
       int32_t i;
       for (i=0; i<4; i++) buf[i]=(char)getc(infd);
       if (UNLIKELY(strncmp(buf, "ETRO", 4)!=0)) {
-        csound->Message(csound, Str("Not an hetro anaysis file %s\n"), argv[1]);
+        csoundMessage(csound, Str("Not an hetro anaysis file %s\n"), argv[1]);
         fclose(infd); fclose(outf);
         return 1;
       }
@@ -117,10 +118,10 @@ static int32_t het_import(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t het_import_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "het_import", het_import);
+    int32_t retval = csoundAddUtility(csound, "het_import", het_import);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "het_import",
+        csoundSetUtilityDescription(csound, "het_import",
                                       Str("translate text form to "
                                           "hetro analysis file"));
     }

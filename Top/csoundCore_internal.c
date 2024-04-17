@@ -10,6 +10,8 @@
 #include "csdebug_internal.h"
 #include "prototyp.h"         // for csoundYield
 #include "threadsafe.h"       // for message_dequeue
+#include "memalloc.h"
+#include "memfiles.h"
 
 /* return 1 if the current op thread is init-time,
    zero if not.
@@ -147,7 +149,7 @@ int kperf_nodebug(CSOUND *csound) {
   if (UNLIKELY(--(csound->evt_poll_cnt) < 0)) {
     csound->evt_poll_cnt = csound->evt_poll_maxcnt;
     if (UNLIKELY(!csoundYield(csound)))
-      csound->LongJmp(csound, 1);
+      csoundLongJmp(csound, 1);
   }
 
   /* for one kcnt: */
@@ -170,12 +172,12 @@ int kperf_nodebug(CSOUND *csound) {
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-      csound->WaitBarrier(csound->barrier1);
+      csoundWaitBarrier(csound->barrier1);
 
       (void)nodePerf(csound, 0, 1);
 
       /* wait until partition is complete */
-      csound->WaitBarrier(csound->barrier2);
+      csoundWaitBarrier(csound->barrier2);
 
       // do the mixing of thread buffers
       {
@@ -195,7 +197,7 @@ int kperf_nodebug(CSOUND *csound) {
         if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&
                      time_end > ip->offtim)) {
           /* this is the last cycle of performance */
-          //   csound->Message(csound, "last cycle %d: %f %f %d\n",
+          //   csoundMessage(csound, "last cycle %d: %f %f %d\n",
           //       ip->insno, csound->icurTime/csound->esr,
           //          ip->offtim, ip->no_end);
           ip->ksmps_no_end = ip->no_end;
@@ -258,7 +260,7 @@ int kperf_nodebug(CSOUND *csound) {
             }
           }
         }
-        /*else csound->Message(csound, "time %f\n",
+        /*else csoundMessage(csound, "time %f\n",
                                csound->kcounter/csound->ekr);*/
         ip->ksmps_offset = 0; /* reset sample-accuracy offset */
         ip->ksmps_no_end = 0; /* reset end of loop samples */
@@ -331,10 +333,10 @@ static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data) {
       while (data->bkpt_anchor->next) {
         n = data->bkpt_anchor->next;
         data->bkpt_anchor->next = n->next;
-        csound->Free(csound, n); /* TODO this should be moved from kperf to a
+        mfree(csound, n); /* TODO this should be moved from kperf to a
                     non-realtime context */
       }
-      csound->Free(csound, bkpt_node);
+      mfree(csound, bkpt_node);
     } else if (bkpt_node->mode == CSDEBUG_BKPT_DELETE) {
       bkpt_node_t *n = data->bkpt_anchor->next;
       bkpt_node_t *prev = data->bkpt_anchor;
@@ -343,7 +345,7 @@ static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data) {
           prev->next = n->next;
           if (data->cur_bkpt == n)
             data->cur_bkpt = n->next;
-          csound->Free(csound, n); /* TODO this should be moved from kperf to a
+          mfree(csound, n); /* TODO this should be moved from kperf to a
                       non-realtime context */
           n = prev->next;
           continue;
@@ -351,7 +353,7 @@ static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data) {
         prev = n;
         n = n->next;
       }
-      //        csound->Free(csound, bkpt_node); /* TODO move to non rt context
+      //        mfree(csound, bkpt_node); /* TODO move to non rt context
       //        */
     } else {
       // FIXME sort list to optimize
@@ -388,7 +390,7 @@ int kperf_debug(CSOUND *csound) {
   if (UNLIKELY(--(csound->evt_poll_cnt) < 0)) {
     csound->evt_poll_cnt = csound->evt_poll_maxcnt;
     if (UNLIKELY(!csoundYield(csound)))
-      csound->LongJmp(csound, 1);
+      csoundLongJmp(csound, 1);
   }
 
   if (data) { /* process debug commands*/
@@ -440,12 +442,12 @@ int kperf_debug(CSOUND *csound) {
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-      csound->WaitBarrier(csound->barrier1);
+      csoundWaitBarrier(csound->barrier1);
 
       (void)nodePerf(csound, 0, 1);
 
       /* wait until partition is complete */
-      csound->WaitBarrier(csound->barrier2);
+      csoundWaitBarrier(csound->barrier2);
       // do the mixing of thread buffers
       {
         int k;
@@ -463,7 +465,7 @@ int kperf_debug(CSOUND *csound) {
         if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&
                      time_end > ip->offtim)) {
           /* this is the last cycle of performance */
-          //   csound->Message(csound, "last cycle %d: %f %f %d\n",
+          //   csoundMessage(csound, "last cycle %d: %f %f %d\n",
           //       ip->insno, csound->icurTime/csound->esr,
           //          ip->offtim, ip->no_end);
           ip->ksmps_no_end = ip->no_end;

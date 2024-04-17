@@ -37,6 +37,8 @@
 #include "csoundCore_internal.h"
 #include "singwave.h"
 #include "moog1.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 void OneZero_setCoeff(OneZero*, MYFLT);
 MYFLT Wave_tick(MYFLT *, int32_t len, MYFLT *, MYFLT, MYFLT);
@@ -79,10 +81,10 @@ static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound,i)) != NULL))
+    if (LIKELY((ftp = csoundFTnp2Find(csound,i)) != NULL))
       p->wave = ftp;
     else { /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Modulatr"));
+      return csoundInitError(csound, Str("No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*  p->v_rate = 6.0; */
@@ -113,7 +115,7 @@ static MYFLT Modulatr_tick(CSOUND *csound, Modulatr *p)
 #if 0
 static void Modulatr_print(CSOUND *csound, Modulatr *p)
 {
-    csound->Message(csound, "Modulatr: v_rate=%f v_time=%f vibAmt=%f\n",
+    csoundMessage(csound, "Modulatr: v_rate=%f v_time=%f vibAmt=%f\n",
                             p->v_rate, p->v_time, p->vibAmt);
 }
 #endif
@@ -122,9 +124,9 @@ static int32_t make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivf
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound,ifn)) != NULL)) p->wave = ftp;
+    if (LIKELY((ftp = csoundFTnp2Find(csound,ifn)) != NULL)) p->wave = ftp;
     else {
-      return csound->InitError(csound, Str("No table for Singwave"));
+      return csoundInitError(csound, Str("No table for Singwave"));
     }
     p->mytime = FL(0.0);
     p->rate = FL(1.0);
@@ -204,7 +206,7 @@ static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
 #if 0
 static void SingWave_print(CSOUND *csound, SingWave *p)
 {
-    csound->Message(csound, Str("SingWave: rate=%f sweepRate=%f mytime=%f\n"),
+    csoundMessage(csound, Str("SingWave: rate=%f sweepRate=%f mytime=%f\n"),
                             p->rate, p->sweepRate, p->mytime);
     Modulatr_print(csound, &p->modulator);
     //    Envelope_print(csound, &p->envelope);
@@ -275,7 +277,7 @@ static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int32_t i, MYFLT sc)
     /* VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0], */
     /*                        phonParams[i][3][1], FL(1.0)); */
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("Found Formant: %s (number %i)\n"), phonemes[i], i);
 }
 
@@ -360,7 +362,7 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
     {
       MYFLT temp, freq = *p->frequency;
       if ((freq * FL(22.0)) > CS_ESR)      {
-        csound->Warning(csound, Str("This note is too high!!\n"));
+        csoundWarning(csound, Str("This note is too high!!\n"));
         freq = CS_ESR / FL(22.0);
       }
       p->basef = freq;
@@ -395,7 +397,7 @@ int32_t voicform(CSOUND *csound, VOICF *p)
     if (p->oldform != *p->formant || p->ph != (int32_t)(0.5+*p->phoneme)) {
       p->oldform = *p->formant;
       p->ph = (int32_t)(0.5 + *p->phoneme);
-      csound->Warning(csound, Str("Setting Phoneme: %d %f\n"),
+      csoundWarning(csound, Str("Setting Phoneme: %d %f\n"),
                               p->ph, p->oldform);
       VoicForm_setPhoneme(csound, p, (int32_t) *p->phoneme, p->oldform);
     }

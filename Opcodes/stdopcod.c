@@ -22,6 +22,7 @@
 */
 
 #include "stdopcod.h"
+#include "memalloc.h"
 
 /* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
@@ -36,10 +37,10 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     int32_t               err = 0;
 
     if (UNLIKELY(csound->stdOp_Env != NULL)) {
-      csound->ErrorMsg(csound, Str("stdopcod.c: error: globals already allocated"));
+      csoundErrorMsg(csound, Str("stdopcod.c: error: globals already allocated"));
       return CSOUND_ERROR;
     }
-    csound->stdOp_Env = csound->Calloc(csound, sizeof(STDOPCOD_GLOBALS));
+    csound->stdOp_Env = mcalloc(csound, sizeof(STDOPCOD_GLOBALS));
 
     p = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     p->csound = csound;

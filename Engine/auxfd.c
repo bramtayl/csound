@@ -21,7 +21,13 @@
   02110-1301 USA
 */
 
+#include "auxfd.h"
+
+#include "auxfd.h"
+
 #include "csoundCore_internal.h"                         /*      AUXFD.C         */
+#include "memalloc.h"
+#include "envvar_public.h"
 
 static CS_NOINLINE void auxchprint(CSOUND *, INSDS *);
 static CS_NOINLINE void fdchprint(CSOUND *, INSDS *);
@@ -41,7 +47,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
         void  *tmp = auxchp->auxp;
         /* if size change only, free the old space and re-allocate */
         auxchp->auxp = NULL;
-        csound->Free(csound, tmp);
+        mfree(csound, tmp);
       }
     }
     else {                                  /* else link in new auxch blk */
@@ -50,7 +56,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
     }
     /* now alloc the space and update the internal data */
     auxchp->size = nbytes;
-    auxchp->auxp = csound->Calloc(csound, nbytes);
+    auxchp->auxp = mcalloc(csound, nbytes);
     auxchp->endp = (char*)auxchp->auxp + nbytes;
     if (UNLIKELY(csound->oparms->odebug))
       auxchprint(csound, csound->curip);
@@ -65,7 +71,7 @@ static uintptr_t alloc_thread(void *p) {
     if (pp->auxchp->auxp == NULL) {
       /* Allocate new memory */
       newm.size = pp->nbytes;
-      newm.auxp = csound->Calloc(csound, pp->nbytes);
+      newm.auxp = mcalloc(csound, pp->nbytes);
       newm.endp = (char*) newm.auxp + pp->nbytes;
       ptr = (char *) newm.auxp;
       newm  = *(pp->notify(csound, pp->userData, &newm));
@@ -75,7 +81,7 @@ static uintptr_t alloc_thread(void *p) {
          never swapped back.
       */
       if (newm.auxp != NULL && newm.auxp != ptr)
-        csound->Free(csound, newm.auxp);
+        mfree(csound, newm.auxp);
     } else {
       csoundAuxAlloc(csound,pp->nbytes,pp->auxchp);
       pp->notify(csound, pp->userData, pp->auxchp);
@@ -141,7 +147,7 @@ void csound_fd_close(CSOUND *csound, FDCH *fdchp)
       nxtchp = nxtchp->nxtchp;
     }
     fdchprint(csound, csound->curip);
-    csound->Die(csound, Str("csound_fd_close: no record of fd %p"), fdchp->fd);
+    csoundDie(csound, Str("csound_fd_close: no record of fd %p"), fdchp->fd);
 }
 
 /* release all xds in instr auxp chain */
@@ -155,7 +161,7 @@ void auxchfree(CSOUND *csound, INSDS *ip)
       void  *auxp = (void*) ip->auxchp->auxp;
       AUXCH *nxt = ip->auxchp->nxtchp;
       memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
-      csound->Free(csound, auxp);                   /*  & free the space    */
+      mfree(csound, auxp);                   /*  & free the space    */
       ip->auxchp = nxt;
     }
     if (UNLIKELY(csound->oparms->odebug))

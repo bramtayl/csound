@@ -8,6 +8,7 @@
 #include "csoundCore_internal.h"          // for INSDS, OPDS, CSOUND_, OPTXT, TEXT
 #include "csound_type_system.h"  // for CS_VAR_MEM, CS_VAR_POOL
 #include "sysdep.h"              // for strNcpy
+#include "memalloc.h"
 
 debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound) {
   csdebug_data_t *data = (csdebug_data_t *)csound->csdebug_data;
@@ -15,7 +16,7 @@ debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound) {
   if (!data->debug_instr_ptr) {
     return NULL;
   }
-  debug_instr_t *debug_instr = csound->Malloc(csound, sizeof(debug_instr_t));
+  debug_instr_t *debug_instr = mmalloc(csound, sizeof(debug_instr_t));
   INSDS *insds = (INSDS *)data->debug_instr_ptr;
   debug_instr->lclbas = insds->lclbas;
   debug_instr->varPoolHead = insds->instr->varPool->head;
@@ -45,7 +46,7 @@ debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound) {
   if (!op) {
     return NULL;
   }
-  debug_opcode_t *opcode_list = csound->Malloc(csound, sizeof(debug_opcode_t));
+  debug_opcode_t *opcode_list = mmalloc(csound, sizeof(debug_opcode_t));
   strNcpy(opcode_list->opname, op->optext->t.opcod, 16);
   // opcode_list->opname[15] = '\0';
   opcode_list->line = op->optext->t.linenum;
@@ -53,7 +54,7 @@ debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound) {
 }
 
 void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list) {
-  csound->Free(csound, opcode_list);
+  mfree(csound, opcode_list);
 }
 
 void csoundDebuggerBreakpointReached(CSOUND *csound) {

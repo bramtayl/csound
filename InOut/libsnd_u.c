@@ -21,8 +21,14 @@
     02110-1301 USA
 */
 
+#include "libsnd_u.h"
+
 #include "csoundCore_internal.h"
 #include "soundio.h"
+
+#include "libsnd_u.h"
+#include "memalloc.h"
+#include "envvar_public.h"
 
 void rewriteheader(void *ofd)
 {
@@ -43,11 +49,11 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
     SNDFILE *infile = NULL;
 
     csound->esr = FL(0.0);      /* set esr 0. with no orchestra   */
-    *ap = p = (SOUNDIN*) csound->Calloc(csound, sizeof(SOUNDIN));
+    *ap = p = (SOUNDIN*) mcalloc(csound, sizeof(SOUNDIN));
     strNcpy(p->sfname, infilnam, 512); //p->sfname[511] = '\0';
     if (UNLIKELY(channel < 1 && channel != ALLCHNLS)) {
-      csound->Message(csound, Str("channel request %d illegal\n"), channel);
-      csound->Free(csound, p);
+      csoundMessage(csound, Str("channel request %d illegal\n"), channel);
+      mfree(csound, p);
       *ap = NULL;
       return NULL;
     }
@@ -58,7 +64,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
     if ((infile = sndgetset(csound, p)) == NULL)  /* open sndfil, do skiptime */
       return(NULL);
     if (UNLIKELY(p->framesrem < (int64_t) 0)) {
-      csound->Warning(csound, Str("undetermined file length, "
+      csoundWarning(csound, Str("undetermined file length, "
                                   "will attempt requested duration"));
     }
     else {
@@ -71,15 +77,15 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
         p->getframes = (int64_t) ((double) p->sr * (double) *ainput_dur + 0.5);
         if (UNLIKELY(p->getframes > p->framesrem)) {
           p->getframes = p->framesrem;
-          csound->Warning(csound, Str("full requested duration not available"));
+          csoundWarning(csound, Str("full requested duration not available"));
         }
       }
-      csound->Message(csound, Str("analysing %ld sample frames (%3.1f secs)"),
+      csoundMessage(csound, Str("analysing %ld sample frames (%3.1f secs)"),
                               (long) p->getframes, *ainput_dur);
       if (*abeg_time != FL(0.0))
-        csound->Message(csound, Str(" from timepoint %3.1f\n"), *abeg_time);
+        csoundMessage(csound, Str(" from timepoint %3.1f\n"), *abeg_time);
       else
-        csound->Message(csound, "\n");
+        csoundMessage(csound, "\n");
     }
     return (void*) infile;
 }
@@ -97,7 +103,7 @@ static int sreadin(CSOUND *csound, SNDFILE *infd, MYFLT *inbuf,
     do {
       n = sflib_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
       if (UNLIKELY(n < 0))
-        csound->Die(csound, Str("soundfile read error"));
+        csoundDie(csound, Str("soundfile read error"));
     } while (n > 0 && (ntot += n) < nsamples);
     if (p->audrem > (int64_t) 0) {
       if ((int64_t) ntot > p->audrem)   /*   chk haven't exceeded */
@@ -133,16 +139,16 @@ void *sndgetset(CSOUND *csound, void *p_)
     if (sfinfo.samplerate < 1)
       sfinfo.samplerate = (int) ((double) DFLT_SR + 0.5);
     /* open with full dir paths */
-    p->fd = csound->FileOpen2(csound, &(p->sinfd), CSFILE_SND_R,
+    p->fd = csoundFileOpenWithType(csound, &(p->sinfd), CSFILE_SND_R,
                                      sfname, &sfinfo, "SFDIR;SSDIR",
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(p->fd == NULL)) {
-      csound->ErrorMsg(csound, Str("soundin cannot open %s: %s"),
+      csoundErrorMsg(csound, Str("soundin cannot open %s: %s"),
                        sfname, sflib_strerror(NULL));
       goto err_return;
     }
     /* & record fullpath filnam */
-    sfname = csound->GetFileName(p->fd);
+    sfname = csoundGetFileName(p->fd);
 
     /* copy type from headata */
     p->format = SF2FORMAT(sfinfo.format);
@@ -154,41 +160,41 @@ void *sndgetset(CSOUND *csound, void *p_)
     p->filetyp = SF2TYPE(sfinfo.format);
     if (p->analonly) {                              /* anal: if sr param val */
       if (p->sr != 0 && p->sr != sfinfo.samplerate) {   /*   use it          */
-        csound->Warning(csound, Str("-s %d overriding soundfile sr %d"),
+        csoundWarning(csound, Str("-s %d overriding soundfile sr %d"),
                                 (int) p->sr, (int) sfinfo.samplerate);
         sfinfo.samplerate = p->sr;
       }
     }
     else if (UNLIKELY(sfinfo.samplerate != (int) ((double) csound->esr + 0.5))) {
-      csound->Warning(csound,                       /* non-anal:  cmp w. esr */
+      csoundWarning(csound,                       /* non-anal:  cmp w. esr */
                       "%s sr = %d, orch sr = %7.1f",
                       sfname, (int) sfinfo.samplerate, csound->esr);
     }
     if (UNLIKELY(p->channel != ALLCHNLS && p->channel > sfinfo.channels)) {
-      csound->ErrorMsg(csound, Str("error: req chan %d, file %s has only %d"),
+      csoundErrorMsg(csound, Str("error: req chan %d, file %s has only %d"),
                                (int) p->channel, sfname, (int) sfinfo.channels);
       goto err_return;
     }
     p->sr = (int) sfinfo.samplerate;
     if (csound->oparms_.msglevel & 3) {
-      csound->Message(csound, Str("audio sr = %d, "), (int) p->sr);
+      csoundMessage(csound, Str("audio sr = %d, "), (int) p->sr);
       switch (p->nchanls) {
-        case 1: csound->Message(csound, Str("monaural")); break;
-        case 2: csound->Message(csound, Str("stereo"));   break;
-        case 4: csound->Message(csound, Str("quad"));     break;
-        case 6: csound->Message(csound, Str("hex"));      break;
-        case 8: csound->Message(csound, Str("oct"));      break;
-        default: csound->Message(csound, Str("%d-channels"), (int) p->nchanls);
+        case 1: csoundMessage(csound, Str("monaural")); break;
+        case 2: csoundMessage(csound, Str("stereo"));   break;
+        case 4: csoundMessage(csound, Str("quad"));     break;
+        case 6: csoundMessage(csound, Str("hex"));      break;
+        case 8: csoundMessage(csound, Str("oct"));      break;
+        default: csoundMessage(csound, Str("%d-channels"), (int) p->nchanls);
       }
       if (p->nchanls > 1) {
         if (p->channel == ALLCHNLS)
-          csound->Message(csound, Str(", reading %s channels"),
+          csoundMessage(csound, Str(", reading %s channels"),
                                   (p->nchanls == 2 ? Str("both") : Str("all")));
         else
-          csound->Message(csound, Str(", reading channel %d"),
+          csoundMessage(csound, Str(", reading channel %d"),
                                   (int) p->channel);
       }
-      csound->Message(csound, Str("\nopening %s infile %s\n"),
+      csoundMessage(csound, Str("\nopening %s infile %s\n"),
                               type2string(p->filetyp), sfname);
     }
     p->audrem = (int64_t) sfinfo.frames * (int64_t) sfinfo.channels;
@@ -198,7 +204,7 @@ void *sndgetset(CSOUND *csound, void *p_)
     if (skipframes < 0) {
       n = -skipframes;
       if (UNLIKELY(n > framesinbuf)) {
-        csound->ErrorMsg(csound, Str("soundin: invalid skip time"));
+        csoundErrorMsg(csound, Str("soundin: invalid skip time"));
         goto err_return;
       }
       n *= (int) sfinfo.channels;
@@ -231,7 +237,7 @@ void *sndgetset(CSOUND *csound, void *p_)
     else {                                      /* for greater skiptime: */
       /* else seek to bndry */
       if (UNLIKELY(sflib_seek(p->sinfd, (sf_count_t) skipframes, SEEK_SET) < 0)) {
-        csound->ErrorMsg(csound, Str("soundin seek error"));
+        csoundErrorMsg(csound, Str("soundin seek error"));
         goto err_return;
       }
       /* now rd fulbuf */
@@ -247,7 +253,7 @@ void *sndgetset(CSOUND *csound, void *p_)
 
  err_return:
     if (p->fd != NULL)
-      csound->FileClose(csound, p->fd);
+      csoundFileClose(csound, p->fd);
     p->sinfd = NULL;
     p->fd = NULL;
     return NULL;
@@ -318,7 +324,7 @@ void dbfs_init(CSOUND *csound, MYFLT dbfs)
     /* VL: printing too early does not allow us to switch this off
        better print this when the engine is ready to run.
      */
-    // csound->Message(csound, Str("0dBFS level = %.1f\n"), dbfs);
+    // csoundMessage(csound, Str("0dBFS level = %.1f\n"), dbfs);
 
 }
 

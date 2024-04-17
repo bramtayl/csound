@@ -26,12 +26,19 @@
 #include "csoundCore_internal.h"
 #include "namedins.h"
 #include "linevent.h"
+#include "linevent_public.h"
 /* Keep Microsoft's schedule.h from being used instead of our schedule.h. */
 #ifdef _MSC_VER
 #include "H/schedule.h"
 #else
 #include "schedule.h"
 #endif
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "fgens_public.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "musmon.h"
 
 extern void csoundInputMessageInternal(CSOUND *, const char *);
 int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
@@ -214,15 +221,15 @@ int32_t lfoset(CSOUND *csound, LFO *p)
     if (type == 0) {            /* Sine wave so need to create */
       int32_t i;
       if (p->auxd.auxp==NULL) {
-        csound->AuxAlloc(csound, sizeof(MYFLT)*4097L, &p->auxd);
+        csoundAuxAlloc(csound, sizeof(MYFLT)*4097L, &p->auxd);
         p->sine = (MYFLT*)p->auxd.auxp;
       }
       for (i=0; i<4096; i++)
         p->sine[i] = SIN(TWOPI_F*(MYFLT)i/FL(4096.0));
-/*        csound->Message(csound,"Table set up (max is %d)\n", MAXPHASE>>10); */
+/*        csoundMessage(csound,"Table set up (max is %d)\n", MAXPHASE>>10); */
     }
     else if (UNLIKELY(type>5 || type<0)) {
-      return csound->InitError(csound, Str("LFO: unknown oscilator type %d"),
+      return csoundInitError(csound, Str("LFO: unknown oscilator type %d"),
                                        type);
     }
     p->lasttype = type;
@@ -240,7 +247,7 @@ int32_t lfok(CSOUND *csound, LFO *p)
     phs = p->phs;
     switch (p->lasttype) {
     default:
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("LFO: unknown oscilator type %d"),
                                p->lasttype);
     case 0:
@@ -304,7 +311,7 @@ int32_t lfoa(CSOUND *csound, LFO *p)
     for (n=offset; n<nsmps; n++) {
       switch (p->lasttype) {
       default:
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                                  Str("LFO: unknown oscilator type %d"),
                                  p->lasttype);
       case 0:
@@ -425,7 +432,7 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
       insno = (int32_t)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
-    else if (csound->ISSTRCOD(*p->args[0])) {
+    else if (isstrcod(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
       insno = (int32_t)strarg2insno_p(csound, ss);
     }
@@ -434,7 +441,7 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* Check that instrument is defined */
     if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[insno] == NULL)) {
-      csound->Warning(csound, Str("schedkwhen ignored. "
+      csoundWarning(csound, Str("schedkwhen ignored. "
                                   "Instrument %d undefined\n"), insno);
       csound->perferrcnt++;
       return -1;
@@ -468,7 +475,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       p->prvmintim = *p->mintime;
     }
 
-    if (*p->args[0] >= FL(0.0) || csound->ISSTRCOD(*p->args[0])) {
+    if (*p->args[0] >= FL(0.0) || isstrcod(*p->args[0])) {
       /* Check for rate limit on event generation */
       if (*p->mintime > FL(0.0) && p->timrem > 0)
         return OK;
@@ -490,14 +497,14 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
 
     /* Create the new event */
     if (stringname) {
-      evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[0])->data, 1);
+      evt.p[1] = strarg2insno(csound,((STRINGDAT *)p->args[0])->data, 1);
       evt.strarg = NULL; evt.scnt = 0;
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
         evt.p[1] = SSTRCOD;*/
     }
-    else if (csound->ISSTRCOD(*p->args[0])) {
+    else if (isstrcod(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
-      evt.p[1] = csound->strarg2insno(csound,name, 1);
+      evt.p[1] = strarg2insno(csound,name, 1);
       evt.strarg = NULL;
       /* evt.strarg = name; */
       evt.scnt = 0;
@@ -517,7 +524,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* Set start time from kwhen */
     if (UNLIKELY(evt.p[2] < FL(0.0))) {
       evt.p[2] = FL(0.0);
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("schedkwhen warning: negative kwhen reset to zero"));
     }
     /* Reset min pause counter */
@@ -542,8 +549,8 @@ int32_t ktriginstr(CSOUND *csound, TRIGINSTR *p){
 int32_t trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 {
     FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->kfn)) == NULL)) {
-      return csound->InitError(csound, Str("trigseq: incorrect table number"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->kfn)) == NULL)) {
+      return csoundInitError(csound, Str("trigseq: incorrect table number"));
     }
     p->done  = 0;
     p->table = ftp->ftable;
@@ -564,8 +571,8 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
 
       if (p->pfn != (int32_t)*p->kfn) {
         FUNC *ftp;
-        if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) {
-          return csound->PerfError(csound, &(p->h),
+        if (UNLIKELY((ftp = csoundFTFindP(csound, p->kfn)) == NULL)) {
+          return csoundPerfError(csound, &(p->h),
                                    Str("trigseq: incorrect table number"));
         }
         p->pfn = (int32_t)*p->kfn;

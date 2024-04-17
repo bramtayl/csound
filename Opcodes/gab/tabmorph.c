@@ -16,8 +16,10 @@
   02110-1301 USA
 */
 //#include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "interlocks.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 typedef struct {
         OPDS    h;
@@ -39,11 +41,11 @@ static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
     numOfTabs = p->numOfTabs =((p->INCOUNT-4)); /* count segs & alloc if nec */
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, *argp++)) == NULL))
-        return csound->InitError(csound, Str("tabmorph: invalid table number"));
+      if (UNLIKELY((ftp = csoundFTnp2Find(csound, *argp++)) == NULL))
+        return csoundInitError(csound, Str("tabmorph: invalid table number"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
-          csound->InitError(csound,
+          csoundInitError(csound,
                             Str("tabmorph: all tables must have the "
                                 "same length!"));
       flength = ftp->flen;
@@ -295,6 +297,6 @@ OENTRY tabmoroph_localops[] = {
 
 int32_t tabmorph_init_(CSOUND *csound) {
     return
-      csound->AppendOpcodes(csound, &(tabmoroph_localops[0]),
+      csoundAppendOpcodes(csound, &(tabmoroph_localops[0]),
                             (int32_t) (sizeof(tabmoroph_localops) / sizeof(OENTRY)));
 }

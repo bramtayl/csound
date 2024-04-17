@@ -23,6 +23,8 @@
 #include "csoundCore_internal.h"         /*                      WINEPS.C        */
 #include "cwindow.h"
 #include <math.h>
+#include "memalloc.h"
+#include "envvar_public.h"
 
 /*--------------------------------------  winEPS.c ---------------------------
  *
@@ -99,13 +101,13 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     char      *t;
     time_t    lt;
     OPARMS oparms;
-     csound->GetOParms(csound, &oparms);
+     csoundGetOParms(csound, &oparms);
      IGN(wdptr);
      IGN(name);
 
     if (csound->winEPS_globals != NULL)
       return;
-    csound->winEPS_globals = csound->Calloc(csound, sizeof(winEPS_globals_t));
+    csound->winEPS_globals = mcalloc(csound, sizeof(winEPS_globals_t));
     pp = (winEPS_globals_t *) csound->winEPS_globals;
 
     filenam = oparms.outfilename;
@@ -129,16 +131,16 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     t = strrchr(pathnam, '.');
     if (t != NULL) *t = '\0';
     strlcat(pathnam, ".eps", 1024);
-    pp->psfd = csound->FileOpen2(csound, &(pp->psFile), CSFILE_STD, pathnam,
+    pp->psfd = csoundFileOpenWithType(csound, &(pp->psFile), CSFILE_STD, pathnam,
                                    "w", "SFDIR", CSFTYPE_POSTSCRIPT, 0);
     if (UNLIKELY(pp->psfd == NULL)) {
-      csound->Message(csound, Str("** Warning **  PostScript file %s "
+      csoundMessage(csound, Str("** Warning **  PostScript file %s "
                                   "cannot be opened\n"), pathnam);
       csound->winEPS_globals = NULL;
-      csound->Free(csound, (void *)pp);
+      mfree(csound, (void *)pp);
       return;
     }
-    csound->Message(csound, Str("\n PostScript graphs written to file %s\n\n"),
+    csoundMessage(csound, Str("\n PostScript graphs written to file %s\n\n"),
                             pathnam);
     /**
      *  Get the current time and date
@@ -452,9 +454,9 @@ int PS_ExitGraph(CSOUND *csound)
       fprintf(pp->psFile, "%%%%Trailer \n");
       fprintf(pp->psFile, "%%%%Pages: %d  \n", pp->currentPage);
       fprintf(pp->psFile, "%%%%EOF\n");
-      csound->FileClose(csound, pp->psfd);
+      csoundFileClose(csound, pp->psfd);
       csound->winEPS_globals = NULL;
-      csound->Free(csound, (void *) pp);
+      mfree(csound, (void *) pp);
     }
     return 0;
 }

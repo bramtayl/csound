@@ -63,5 +63,13 @@ struct xyindat_ {       /* for 'joystick' input window */
     int     down;
 };
 
+PUBLIC void dispset(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
+
+PUBLIC void display(CSOUND *, WINDAT *);
+
+PUBLIC int dispexit(CSOUND *);
+
+PUBLIC void    dispinit(CSOUND *);
+
 #endif  /*  CWINDOW_H */
 

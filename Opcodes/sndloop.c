@@ -120,6 +120,10 @@ kgain - signal gain
 
 #include "stdopcod.h"
 #include "pstream.h"
+#include "fftlib.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 typedef struct _sndloop {
   OPDS h;
@@ -219,7 +223,7 @@ static int32_t sndloop_init(CSOUND *csound, sndloop *p)
     p->cfds = (int32) (*(p->cfd)*CS_ESR); /* fade in samps */
     if (UNLIKELY(p->durs < p->cfds))
       return
-        csound->InitError(csound, Str("crossfade cannot be longer than loop\n"));
+        csoundInitError(csound, Str("crossfade cannot be longer than loop\n"));
 
     p->inc  = FL(1.0)/p->cfds;    /* inc/dec */
     p->a    = FL(0.0);
@@ -227,7 +231,7 @@ static int32_t sndloop_init(CSOUND *csound, sndloop *p)
     p->rst  = 1;                  /* reset the rec control */
     if (p->buffer.auxp==NULL ||
        p->buffer.size<p->durs*sizeof(MYFLT)) /* allocate memory if necessary */
-      csound->AuxAlloc(csound, p->durs*sizeof(MYFLT), &p->buffer);
+      csoundAuxAlloc(csound, p->durs*sizeof(MYFLT), &p->buffer);
     return OK;
 }
 
@@ -305,16 +309,16 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     int32 durs;
     int32 len, i, nchnls;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn) ;  /* function table */
+    p->sfunc = csoundFTnp2Finde(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,Str("function table not found\n"));
+      return csoundInitError(csound,Str("function table not found\n"));
     }
     cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);
     starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate);
     durs = (int32)  (*(p->dur)*p->sfunc->gen01args.sample_rate);
 
     if (UNLIKELY(cfds > durs))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("crossfade longer than loop duration\n"));
 
     tab = p->sfunc->ftable,  /* func table pointer */
@@ -322,20 +326,20 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     nchnls = p->sfunc->nchanls;
     if (UNLIKELY(nchnls != p->OUTCOUNT)) {
      return
-       csound->InitError(csound,
+       csoundInitError(csound,
                          Str("function table channel count does not match output"));
     }
     if (UNLIKELY(starts > len)) {
-      return csound->InitError(csound,Str("start time beyond end of table\n"));
+      return csoundInitError(csound,Str("start time beyond end of table\n"));
     }
 
     if (UNLIKELY(starts+durs+cfds > len)) {
-      return csound->InitError(csound,Str("table not long enough for loop\n"));
+      return csoundInitError(csound,Str("table not long enough for loop\n"));
     }
 
     if (p->buffer.auxp==NULL ||               /* allocate memory if necessary */
         p->buffer.size<(durs+1)*sizeof(MYFLT)*nchnls)
-      csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT)*nchnls, &p->buffer);
+      csoundAuxAlloc(csound,(durs+1)*sizeof(MYFLT)*nchnls, &p->buffer);
 
     inc = FL(1.0)/cfds;       /* fade envelope incr/decr */
     buffer = p->buffer.auxp;   /* loop memory */
@@ -442,11 +446,11 @@ static int32_t flooper_process(CSOUND *csound, flooper *p)
 static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
 {
 
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
+    p->sfunc = csoundFTnp2Find(csound, p->ifn);  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,Str("function table not found\n"));
+      return csoundInitError(csound,Str("function table not found\n"));
     }
-    if (*p->ifn2 != 0) p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    if (*p->ifn2 != 0) p->efunc = csoundFTnp2Finde(csound, p->ifn2);
     else p->efunc = NULL;
 
     if (*p->iskip == 0) {
@@ -465,7 +469,7 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
 
     p->nchnls = (int32_t)(p->OUTOCOUNT);
     if(p->nchnls != p->sfunc->nchanls) {
-      csound->Warning(csound,
+      csoundWarning(csound,
        Str("function table channels do not match opcode outputs"));
     }
     return OK;
@@ -489,19 +493,19 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     uint32 tndx0, tndx1, nchnls, onchnls = p->nchnls;
     FUNC *func;
 
-    func = csound->FTnp2Finde(csound, p->ifn);
+    func = csoundFTnp2Finde(csound, p->ifn);
     sr = p->sfunc->gen01args.sample_rate;
 
     if(p->sfunc != func) {
     p->sfunc = func;
     if (UNLIKELY(func == NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("table %d invalid\n"), (int32_t) *p->ifn);
     if (p->ndx[0] >= p->sfunc->flen)
        p->ndx[0] = (double) p->sfunc->flen - 1.0;
 
     if(p->nchnls != p->sfunc->nchanls) {
-       csound->Warning(csound,
+       csoundWarning(csound,
           Str("function table channels do not match opcode outputs"));
       }
     }
@@ -843,11 +847,11 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
 static int32_t flooper3_init(CSOUND *csound, flooper3 *p)
 {
     int32_t len,i,p2s,lomod;
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);
+    p->sfunc = csoundFTnp2Find(csound, p->ifn);
     if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,Str("function table not found\n"));
+      return csoundInitError(csound,Str("function table not found\n"));
     }
-    if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
+    if (*p->ifn2 != 0) p->efunc = csoundFTFind(csound, p->ifn2);
     else p->efunc = NULL;
 
     len = p->sfunc->flen;
@@ -1126,7 +1130,7 @@ static int32_t pvsarp_init(CSOUND *csound, pvsarp *p)
     int32 N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
-      csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
+      csoundAuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -1137,7 +1141,7 @@ static int32_t pvsarp_init(CSOUND *csound, pvsarp *p)
 
     if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
                    (p->fout->format==PVS_AMP_PHASE)))) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvsarp: signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
@@ -1168,7 +1172,7 @@ static int32_t pvsarp_process(CSOUND *csound, pvsarp *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("pvsarp: not initialised\n"));
 }
 
@@ -1177,7 +1181,7 @@ static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
     int32 N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
-      csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
+      csoundAuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -1188,21 +1192,21 @@ static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
 
     if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
                    (p->fout->format==PVS_AMP_PHASE)))) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
    if (p->ceps.auxp == NULL ||
       p->ceps.size < sizeof(MYFLT) * (N+2))
-    csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->ceps);
+    csoundAuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->ceps);
    else
      memset(p->ceps.auxp, 0, sizeof(MYFLT)*(N+2));
    if (p->fenv.auxp == NULL ||
        p->fenv.size < sizeof(MYFLT) * (N+2))
-     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
+     csoundAuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
    if (p->fexc.auxp == NULL ||
        p->fexc.size < sizeof(MYFLT) * (N+2))
-     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fexc);
+     csoundAuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fexc);
 
    return OK;
 }
@@ -1245,12 +1249,12 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
           ceps[i+1] = 0.0;
         }
         if (!(N & (N - 1)))
-          csound->InverseComplexFFT(csound, ceps, N/2);
+          csoundInverseComplexFFT(csound, ceps, N/2);
         else
           csoundInverseComplexFFTnp2(csound, ceps, tmp);
         for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
         if (!(N & (N - 1)))
-          csound->ComplexFFT(csound, ceps, N/2);
+          csoundComplexFFT(csound, ceps, N/2);
         else
           csoundComplexFFTnp2(csound, ceps, tmp);
         for (i=0; i < N; i+=2) {
@@ -1277,7 +1281,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("pvsvoc: not initialised\n"));
 }
 
@@ -1286,7 +1290,7 @@ static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
     int32 N = p->fin->N;
 
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<(N+2)*sizeof(float))
-      csound->AuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
+      csoundAuxAlloc(csound,(N+2)*sizeof(float),&p->fout->frame);
     p->fout->N =  N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -1297,7 +1301,7 @@ static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
 
     if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
                    (p->fout->format==PVS_AMP_PHASE)))) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
@@ -1329,7 +1333,7 @@ static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("pvsmorph: not initialised\n"));
 }
 
@@ -1353,7 +1357,7 @@ static OENTRY localops[] =
 
 int32_t sndloop_init_(CSOUND *csound)
 {
-  return csound->AppendOpcodes(csound, &(localops[0]),
+  return csoundAppendOpcodes(csound, &(localops[0]),
                                (int32_t
                                 ) (sizeof(localops) / sizeof(OENTRY)));
 }

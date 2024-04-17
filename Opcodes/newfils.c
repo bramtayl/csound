@@ -26,6 +26,7 @@
 
 #include "newfils.h"
 #include <math.h>
+#include "fgens_public.h"
 
 static inline
 double fast_tanh(double x)
@@ -82,7 +83,7 @@ static int32_t moogladder_process(CSOUND *csound, moogladder *p)
   double  *tanhstg = p->tanhstg;
   double  stg[4], input;
   double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  double vt = 1./(1.22070315*csoundGet0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -166,7 +167,7 @@ static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
   double  *tanhstg = p->tanhstg;
   double  stg[4], input;
   double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  double vt = 1./(1.22070315*csoundGet0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -263,7 +264,7 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
   double  *tanhstg = p->tanhstg;
   double  stg[4], input;
   double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  double vt = 1./(1.22070315*csoundGet0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -362,7 +363,7 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
   double  *tanhstg = p->tanhstg;
   double  stg[4], input;
   double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  double vt = 1./(1.22070315*csoundGet0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -460,7 +461,7 @@ static int32_t moogladder2_process(CSOUND *csound, moogladder *p)
   double  *tanhstg = p->tanhstg;
   double  stg[4], input;
   double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  double vt = 1./(1.22070315*csoundGet0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -543,7 +544,7 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
   double  *tanhstg = p->tanhstg;
   double  stg[4], input;
   double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  double vt = 1./(1.22070315*csoundGet0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -640,7 +641,7 @@ static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
   double  *tanhstg = p->tanhstg;
   double  stg[4], input;
   double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  double vt = 1./(1.22070315*csoundGet0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -739,7 +740,7 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
   double  *tanhstg = p->tanhstg;
   double  stg[4], input;
   double  acr, tune;
-  double vt = 1./(1.22070315*csound->Get0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
+  double vt = 1./(1.22070315*csoundGet0dBFS(csound)); /* (1.0 / 40000.0) transistor thermal voltage  */
   int32_t     j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -881,7 +882,7 @@ static int32_t statevar_process(CSOUND *csound,statevar *p)
       f = 2.0*sin(fr*(double)csound->pidsr/ostimes);
       q = 1.0/rs;
       lim = ((2.0 - f) *0.05)/ostimes;
-      /* csound->Message(csound, "lim: %f, q: %f \n", lim, q); */
+      /* csoundMessage(csound, "lim: %f, q: %f \n", lim, q); */
 
       if (q < lim) q = lim;
       p->oldq = q;
@@ -1008,12 +1009,12 @@ int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 10.82)/csound->GetSr(csound);
+    w = exp2ap(fr + 10.82)/csoundGetSr(csound);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1059,7 +1060,7 @@ int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   res = *p->res;
 
@@ -1076,7 +1077,7 @@ int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
     t  = ldexp(1 + t * (0.6930 +
                         t * (0.2416 + t * (0.0517 +
                                            t * 0.0137))), wi);
-    w  = t/csound->GetSr(csound);
+    w  = t/csoundGetSr(csound);
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1111,12 +1112,12 @@ int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 10.82)/csound->GetSr(csound);
+    w = exp2ap(fr + 10.82)/csoundGetSr(csound);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1162,7 +1163,7 @@ int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -1177,7 +1178,7 @@ int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/csoundGetSr(csound);
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1213,12 +1214,12 @@ int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 10.71)/csound->GetSr(csound);
+    w = exp2ap(fr + 10.71)/csoundGetSr(csound);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1263,7 +1264,7 @@ int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   res = *p->res;
 
@@ -1280,7 +1281,7 @@ int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/csoundGetSr(csound);
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1313,12 +1314,12 @@ int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 10.71)/csound->GetSr(csound);
+    w = exp2ap(fr + 10.71)/csoundGetSr(csound);
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1362,7 +1363,7 @@ int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -1377,7 +1378,7 @@ int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/csoundGetSr(csound);
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1411,12 +1412,12 @@ int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    w = exp2ap(fr + 9.70)/csoundGetSr(csound);
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1485,7 +1486,7 @@ int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
   res = *p->res;
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -1501,7 +1502,7 @@ int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/csoundGetSr(csound);
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1560,12 +1561,12 @@ int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    w = exp2ap(fr + 9.70)/csoundGetSr(csound);
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1636,7 +1637,7 @@ int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
@@ -1651,7 +1652,7 @@ int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/csoundGetSr(csound);
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1734,12 +1735,12 @@ int32_t mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    w = exp2ap(fr + 9.70)/csoundGetSr(csound);
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1823,7 +1824,7 @@ int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   res = *p->res;
 
@@ -1848,7 +1849,7 @@ int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/csoundGetSr(csound);
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1909,12 +1910,12 @@ int32_t mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    w = exp2ap(fr + 9.70)/csoundGetSr(csound);
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1997,7 +1998,7 @@ int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (UNLIKELY(offset)) {
     memset(out0, '\0', offset*sizeof(MYFLT));
@@ -2020,7 +2021,7 @@ int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/csoundGetSr(csound);
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -2104,12 +2105,12 @@ int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = csound->GetSr(csound)/exp2ap(fr+ 9.2);
+    w = csoundGetSr(csound)/exp2ap(fr+ 9.2);
     if (w < FL(2.0)) w = FL(2.0);
     p->w = w;
   } else w = p->w;
@@ -2170,7 +2171,7 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  MYFLT scal = csound->Get0dBFS(csound);
+  MYFLT scal = csoundGet0dBFS(csound);
 
   if (UNLIKELY(offset)) {
     memset(out, '\0', offset*sizeof(MYFLT));
@@ -2187,7 +2188,7 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = csound->GetSr(csound)/t;
+    w = csoundGetSr(csound)/t;
     if (w < FL(2.0)) w = FL(2.0);
 
     x = y = in[i]/scal  - 0.3 * x;
@@ -2288,7 +2289,7 @@ static int32_t bob_process(CSOUND *csound,BOB *p)
   MYFLT  *sat  = p->sat;
 
   int32_t ostimes = p->ostimes,j;
-  double stepsize = 1./(ostimes * csound->GetSr(csound));
+  double stepsize = 1./(ostimes * csoundGetSr(csound));
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i,l, nsmps = CS_KSMPS;
@@ -2389,7 +2390,7 @@ typedef struct vcf {
 
 int vcf_init(CSOUND *csound, VCF *p) {
   double g, *G = p->G;
-  p->piosr = PI/csound->GetSr(csound);
+  p->piosr = PI/csoundGetSr(csound);
   p->ff = *p->f;
   g = TAN(p->ff*p->piosr);
   G[0] = g/(1+g);
@@ -2587,7 +2588,7 @@ typedef struct _spf {
 int spf_init(CSOUND *csound, SPF *p) {
   double w, w2, fac;
   double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
-  p->piosr = PI/csound->GetSr(csound);
+  p->piosr = PI/csoundGetSr(csound);
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
   p->R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
@@ -2818,7 +2819,7 @@ typedef struct _skf {
 int skf_init(CSOUND *csound, SKF *p) {
   double w, w2, fac;
   double *s = p->s;
-  p->piosr = PI/csound->GetSr(csound);
+  p->piosr = PI/csoundGetSr(csound);
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
   p->KK = (*p->K > 1 ? (*p->K <= 3. ? *p->K : 3.) : 1.);
@@ -3029,7 +3030,7 @@ typedef struct _svn {
 int svn_init(CSOUND *csound, SVN *p) {
   double w2;
   double *s = p->s;
-  p->piosr = PI/csound->GetSr(csound);
+  p->piosr = PI/csoundGetSr(csound);
   p->w = TAN(*p->f*p->piosr);
   w2 = p->w*p->w;
   p->Q = *p->q >  0.5 ? *p->q : 0.5;
@@ -3038,11 +3039,11 @@ int svn_init(CSOUND *csound, SVN *p) {
   if(*p->istor == FL(0.0)) s[0] = s[1]  = 0.f;
   if(*p->ifn == FL(0.0)) {
     MYFLT *tab;
-    tab = csound->QueryGlobalVariable(csound, "::TANH::");
+    tab = csoundQueryGlobalVariable(csound, "::TANH::");
     if(tab == NULL) {
       int i;
-      csound->CreateGlobalVariable(csound,"::TANH::",sizeof(MYFLT)*(TABSIZE+1));
-      tab =  csound->QueryGlobalVariable(csound, "::TANH::");
+      csoundCreateGlobalVariable(csound,"::TANH::",sizeof(MYFLT)*(TABSIZE+1));
+      tab =  csoundQueryGlobalVariable(csound, "::TANH::");
       MYFLT step  = 8./TABSIZE, x = -4.;
       for(i=0; i <= TABSIZE; x += step, i++)
         tab[i] = TANH(x);
@@ -3052,7 +3053,7 @@ int svn_init(CSOUND *csound, SVN *p) {
     p->tab = tab;
     p->size = TABSIZE;
   } else {
-    FUNC *ftab = csound->FTnp2Find(csound, p->ifn);
+    FUNC *ftab = csoundFTnp2Find(csound, p->ifn);
     p->tab = ftab->ftable;
     p->size = ftab->flen;
     p->max = 1./(*p->mx*2);
@@ -3078,8 +3079,8 @@ int svn_perfkk(CSOUND *csound, SVN *p) {
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
-  double scal = csound->Get0dBFS(csound), iscal;
+  FUNC *ftab = csoundFTnp2Find(csound, p->inm);
+  double scal = csoundGet0dBFS(csound), iscal;
   iscal = 1./scal;
   D = 1./Q;
 
@@ -3159,8 +3160,8 @@ int svn_perfak(CSOUND *csound, SVN *p) {
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
-  double scal = csound->Get0dBFS(csound), iscal;
+  FUNC *ftab = csoundFTnp2Find(csound, p->inm);
+  double scal = csoundGet0dBFS(csound), iscal;
   iscal = 1./scal;
   Q = p->Q = *p->q >  0.5 ? *p->q : 0.5;
   D = 1./Q;
@@ -3235,8 +3236,8 @@ int svn_perfka(CSOUND *csound, SVN *p) {
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
-  double scal = csound->Get0dBFS(csound), iscal;
+  FUNC *ftab = csoundFTnp2Find(csound, p->inm);
+  double scal = csoundGet0dBFS(csound), iscal;
   iscal = 1./scal;
   w2 = w*w;
 
@@ -3317,8 +3318,8 @@ int svn_perfaa(CSOUND *csound, SVN *p) {
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
-  double scal = csound->Get0dBFS(csound), iscal;
+  FUNC *ftab = csoundFTnp2Find(csound, p->inm);
+  double scal = csoundGet0dBFS(csound), iscal;
   iscal = 1./scal;
 
   if (UNLIKELY(offset)) {
@@ -3545,7 +3546,7 @@ static OENTRY localops[] =
 
 int32_t newfils_init_(CSOUND *csound)
 {
-  return csound->AppendOpcodes(csound, &(localops[0]),
+  return csoundAppendOpcodes(csound, &(localops[0]),
                                (int32_t
                                 ) (sizeof(localops) / sizeof(OENTRY)));
 }

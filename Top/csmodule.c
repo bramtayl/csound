@@ -80,6 +80,8 @@
 
 #include "csoundCore_internal.h"
 #include "csmodule.h"
+#include "memalloc.h"
+#include "csound_orc_semantics_public.h"
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -285,7 +287,7 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
 
 __attribute__((used))
 void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, void *destFunc, void *errCodeToStr) {
-    csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+    csoundModule_t *module = mmalloc(csound, sizeof(csoundModule_t) + 1);
     module->h = (void*) NULL;
 
     // The javascript host must assert that this is provided
@@ -308,7 +310,7 @@ void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, voi
 
 __attribute__((used))
 void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcodeInitFunc) {
-    csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+    csoundModule_t *module = mmalloc(csound, sizeof(csoundModule_t) + 1);
     module->h = (void*) NULL;
 
     if (fgenInitFunc) {
@@ -342,7 +344,7 @@ int csoundDestroyModules(CSOUND *csound) {
       }
       csound->csmodule_db = (void*) m->nxt;
       /* free memory used by database */
-      csound->Free(csound, (void*) m);
+      mfree(csound, (void*) m);
     }
     /* return with error code */
     return retval;
@@ -414,15 +416,15 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
                libraryPath, err);
  #endif
       if (csound->delayederrormessages == NULL) {
-        csound->delayederrormessages = csound->Malloc(csound, strlen(ERRSTR)+1);
+        csound->delayederrormessages = mmalloc(csound, strlen(ERRSTR)+1);
         strcpy(csound->delayederrormessages, ERRSTR);
       }
       else {
         char *new =
-          csound->ReAlloc(csound, csound->delayederrormessages,
+          mrealloc(csound, csound->delayederrormessages,
                           strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
         if (UNLIKELY(new==NULL)) {
-          csound->Free(csound, csound->delayederrormessages);
+          mfree(csound, csound->delayederrormessages);
           return CSOUND_ERROR;
         }
         csound->delayederrormessages = new;
@@ -471,18 +473,18 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
         /* must have csound_opcode_init() or csound_fgen_init() */
         csoundCloseLibrary(h);
         if (UNLIKELY(csound->oparms->msglevel & 0x400))
-          csound->Warning(csound, Str("'%s' is not a Csound plugin library"),
+          csoundWarning(csound, Str("'%s' is not a Csound plugin library"),
                           libraryPath);
         return CSOUND_ERROR;
       }
     }
     /* set up module info structure */
     /* (note: space for NUL character is already included in size of struct) */
-    p = (void*) csound->Malloc(csound,
+    p = (void*) mmalloc(csound,
                                sizeof(csoundModule_t) + (size_t) strlen(fname));
     if (UNLIKELY(p == NULL)) {
       csoundCloseLibrary(h);
-      csound->ErrorMsg(csound,
+      csoundErrorMsg(csound,
                        Str("csoundLoadExternal(): memory allocation failure"));
       return CSOUND_MEMORY;
     }
@@ -532,13 +534,13 @@ static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
     while (deny) {
       /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
       if (strcmp(deny, buff)==0) {
-        csound->Free(csound, p);
+        mfree(csound, p);
         /* printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); */
         return 1;
       }
       deny = cs_strtok_r(NULL, ",", &th);
     }
-    csound->Free(csound, p);
+    mfree(csound, p);
     /* printf("DEBUG %s(%d): not found\n", __FILE__, __LINE__); */
     return 0;
 }
@@ -608,7 +610,7 @@ int csoundLoadModules(CSOUND *csound)
     /* opcodedir GLOBAL override **experimental** */
     if (csound->opcodedir != NULL) {
       dname = csound->opcodedir;
-      csound->Message(csound, "OPCODEDIR overridden to %s \n", dname);
+      csoundMessage(csound, "OPCODEDIR overridden to %s \n", dname);
     }
     size_t pos = strlen(dname);
     char *userplugindir = getenv("CS_USER_PLUGINDIR");
@@ -634,9 +636,9 @@ int csoundLoadModules(CSOUND *csound)
       size_t userplugindirlen = userplugindir ? strlen(userplugindir) : 0;
 
       if(pos + prefixlen + 2 > searchpath_buflen - 1) {
-        csound->ErrorMsg(csound, Str("Plugins search path too long\n"));
+        csoundErrorMsg(csound, Str("Plugins search path too long\n"));
       } else if(userplugindirlen + prefixlen + 1 >= buflen) {
-        csound->ErrorMsg(csound, Str("User plugin dir too long\n"));
+        csoundErrorMsg(csound, Str("User plugin dir too long\n"));
       } else {
       
         snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
@@ -649,7 +651,7 @@ int csoundLoadModules(CSOUND *csound)
     }
  
     if(UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, Str("Plugins search path: %s\n"), dname);
+      csoundMessage(csound, Str("Plugins search path: %s\n"), dname);
 
     /* We now loop through the directory list */
     while(read_directory) {
@@ -672,7 +674,7 @@ int csoundLoadModules(CSOUND *csound)
     /* protect for the case where there is an
        extra separator at the end */
     if(*dname1 == '\0') {
-      csound->Free(csound, dname1);
+      mfree(csound, dname1);
       break;
     }
     dir = opendir(dname1);
@@ -680,13 +682,13 @@ int csoundLoadModules(CSOUND *csound)
  #if defined(__HAIKU__)
         if(!dfltdir)
  #endif
-      csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
+      csoundWarning(csound, Str("Error opening plugin directory '%s': %s"),
                                dname1, strerror(errno));
-      csound->Free(csound, dname1);
+      mfree(csound, dname1);
       continue;
     }
     if(UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "Opening plugin directory: %s\n", dname1);
+      csoundMessage(csound, "Opening plugin directory: %s\n", dname1);
     /* load database for deferred plugin loading */
 /*     n = csoundLoadOpcodeDB(csound, dname); */
 /*     if (n != 0) */
@@ -718,7 +720,7 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       /* found a dynamic library, attempt to open it */
       if (UNLIKELY(((int) strlen(dname) + len + 2) > 1024)) {
-        csound->Warning(csound, Str("path name too long, skipping '%s'"),
+        csoundWarning(csound, Str("path name too long, skipping '%s'"),
                                 fname);
         continue;
       }
@@ -740,7 +742,7 @@ int csoundLoadModules(CSOUND *csound)
         err = n;                /* record serious errors */
     }
     closedir(dir);
-    csound->Free(csound, dname1);
+    mfree(csound, dname1);
     }
     return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
@@ -771,7 +773,7 @@ int csoundLoadExternals(CSOUND *csound)
       if (s[i] == ',')
         cnt++;
     } while (s[++i] != '\0');
-    lst = (char**) csound->Malloc(csound, sizeof(char*) * cnt);
+    lst = (char**) mmalloc(csound, sizeof(char*) * cnt);
     i = cnt = 0;
     lst[cnt++] = s;
     do {
@@ -793,8 +795,8 @@ int csoundLoadExternals(CSOUND *csound)
       }
     } while (++i < cnt);
     /* file list is no longer needed */
-    csound->Free(csound, lst);
-    csound->Free(csound, s);
+    mfree(csound, lst);
+    mfree(csound, s);
     return 0;
 }
 
@@ -922,7 +924,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
     /* protect for the case where there is an
        extra separator at the end */
     if(*dname1 == '\0') {
-      csound->Free(csound, dname1);
+      mfree(csound, dname1);
       break;
     }
 
@@ -931,14 +933,14 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
  #if defined(__HAIKU__)
         if(!dfltdir)
  #endif
-      csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
+      csoundWarning(csound, Str("Error opening plugin directory '%s': %s"),
                                dname1, strerror(errno));
-      csound->Free(csound, dname1);
+      mfree(csound, dname1);
       continue;
     }
 
     if(UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "Opening plugin directory: %s\n", dname1);
+      csoundMessage(csound, "Opening plugin directory: %s\n", dname1);
     /* load database for deferred plugin loading */
 /*     n = csoundLoadOpcodeDB(csound, dname); */
 /*     if (n != 0) */
@@ -970,7 +972,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
         continue;
       /* found a dynamic library, attempt to open it */
       if (UNLIKELY(((int) strlen(dname) + len + 2) > 1024)) {
-        csound->Warning(csound, Str("path name too long, skipping '%s'"),
+        csoundWarning(csound, Str("path name too long, skipping '%s'"),
                                 fname);
         continue;
       }
@@ -990,7 +992,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
         err = n;                /* record serious errors */
     }
     closedir(dir);
-    csound->Free(csound, dname1);
+    mfree(csound, dname1);
     }
     return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
@@ -1027,7 +1029,7 @@ int csoundDestroyModules(CSOUND *csound)
       csoundCloseLibrary(m->h);
       csound->csmodule_db = (void*) m->nxt;
       /* free memory used by database */
-      csound->Free(csound, (void*) m);
+      mfree(csound, (void*) m);
 
     }
     sfont_ModuleDestroy(csound);
@@ -1126,7 +1128,7 @@ void print_opcodedir_warning(CSOUND *p)
     if (!p->opcodedirWasOK) {
       const char  **sp;
       for (sp = &(opcodedirWarnMsg[0]); *sp != NULL; sp++)
-        p->MessageS(p, CSOUNDMSG_WARNING, "        %s\n", Str(*sp));
+        csoundMessageS(p, CSOUNDMSG_WARNING, "        %s\n", Str(*sp));
     }
 #else
     (void) p;

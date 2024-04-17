@@ -36,6 +36,8 @@
 
 #include "stdopcod.h"
 #include <math.h>
+#include "auxfd.h"
+#include "insert_public.h"
 
 #define DEFAULT_SRATE   44100.0
 #define MIN_SRATE       5000.0
@@ -173,12 +175,12 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
     else
       p->sampleRate = (double) *(p->iSampleRate);
     if (UNLIKELY(p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("reverbsc: sample rate is out of range"));
     }
     if (UNLIKELY(*(p->iPitchMod) < FL(0.0) ||
                  *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("reverbsc: invalid pitch modulation factor"));
     }
     /* calculate the number of bytes to allocate */
@@ -186,7 +188,7 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
     for (i = 0; i < 8; i++)
       nBytes += delay_line_bytes_alloc(p, i);
     if (nBytes != (int32_t)p->auxData.size)
-      csound->AuxAlloc(csound, (size_t) nBytes, &(p->auxData));
+      csoundAuxAlloc(csound, (size_t) nBytes, &(p->auxData));
     else if (p->initDone && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
     /* set up delay lines */
@@ -303,7 +305,7 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("reverbsc: not initialised"));
 }
 
@@ -311,7 +313,7 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 
 int32_t reverbsc_init_(CSOUND *csound)
 {
-    return csound->AppendOpcode(csound, "reverbsc",
+    return csoundAppendOpcode(csound, "reverbsc",
                                 (int32_t) sizeof(SC_REVERB), 0, 3, "aa", "aakkjpo",
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_init,
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_perf,

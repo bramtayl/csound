@@ -26,6 +26,9 @@
 #include "ugmoss.h"
 #include "aops.h"
 #include <math.h>
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>
@@ -40,18 +43,18 @@ static int32_t dconvset(CSOUND *csound, DCONV *p)
     FUNC *ftp;
 
     p->len = (int32_t)*p->isize;
-    if (LIKELY((ftp = csound->FTnp2Find(csound,
+    if (LIKELY((ftp = csoundFTnp2Find(csound,
                                         p->ifn)) != NULL)) {   /* find table */
       p->ftp = ftp;
       if ((uint32_t)ftp->flen < p->len)
         p->len = ftp->flen; /* correct len if flen shorter */
     }
     else {
-      return csound->InitError(csound, Str("No table for dconv"));
+      return csoundInitError(csound, Str("No table for dconv"));
     }
     if (p->sigbuf.auxp == NULL ||
         p->sigbuf.size < (uint32_t)(p->len*sizeof(MYFLT)))
-      csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
+      csoundAuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
     else
       memset(p->sigbuf.auxp, '\0', p->len*sizeof(MYFLT));
     p->curp = (MYFLT *)p->sigbuf.auxp;
@@ -666,18 +669,18 @@ static int32_t vcombset(CSOUND *csound, VCOMB *p)
 
     if (*p->insmps != FL(0.0)) {
       if (UNLIKELY((lpsiz = MYFLT2LONG(*p->imaxlpt)) <= 0)) {
-        return csound->InitError(csound, Str("illegal loop time"));
+        return csoundInitError(csound, Str("illegal loop time"));
       }
     }
     else if (UNLIKELY((lpsiz = (int32)(*p->imaxlpt * CS_ESR)) <= 0)) {
-      return csound->InitError(csound, Str("illegal loop time"));
+      return csoundInitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
     if (p->auxch.auxp == NULL || nbytes != (int32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (size_t)nbytes, &p->auxch);
+      csoundAuxAlloc(csound, (size_t)nbytes, &p->auxch);
       p->pntr = (MYFLT *) p->auxch.auxp;
       if (UNLIKELY(p->pntr==NULL)) {
-        return csound->InitError(csound, Str("could not allocate memory"));
+        return csoundInitError(csound, Str("could not allocate memory"));
       }
     }
     else if (!(*p->istor)) {
@@ -753,7 +756,7 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
     p->pntr = wp;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("vcomb: not initialised"));
 }
 
@@ -814,7 +817,7 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     p->pntr = wp;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("valpass: not initialised"));
 }
 
@@ -824,29 +827,29 @@ static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
     int32_t j = 0;
     uint32_t len;
     /* make sure resfn exists and set it up */
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->iresfn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->iresfn)) != NULL)) {
       p->resfn = ftp, len = p->resfn->flen;
     }
     else {
-      return csound->InitError(csound, Str("iresfn for ftmorf does not exist"));
+      return csoundInitError(csound, Str("iresfn for ftmorf does not exist"));
     }
     /* make sure ftfn exists and set it up */
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->iftfn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->iftfn)) != NULL)) {
       p->ftfn = ftp;
     }
     else {
-      return csound->InitError(csound, Str("iftfn for ftmorf does not exist"));
+      return csoundInitError(csound, Str("iftfn for ftmorf does not exist"));
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
-      if (LIKELY((ftp = csound->FTnp2Find(csound, p->ftfn->ftable + j)) != NULL)) {
+      if (LIKELY((ftp = csoundFTnp2Find(csound, p->ftfn->ftable + j)) != NULL)) {
         if (UNLIKELY((uint32_t)ftp->flen != len)) {
-          return csound->InitError(csound,
+          return csoundInitError(csound,
                                    Str("table in iftfn for ftmorf wrong size"));
         }
       }
       else {
-        return csound->InitError(csound, Str("table in iftfn for ftmorf "
+        return csoundInitError(csound, Str("table in iftfn for ftmorf "
                                              "does not exist"));
       }
     } while (++j < (int32_t)p->ftfn->flen);
@@ -868,8 +871,8 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
     f = *p->kftndx - i;
     if (p->ftndx != *p->kftndx) {
       p->ftndx = *p->kftndx;
-      ftp1 = csound->FTnp2Finde(csound, p->ftfn->ftable + i++);
-      ftp2 = csound->FTnp2Finde(csound, p->ftfn->ftable + i--);
+      ftp1 = csoundFTnp2Finde(csound, p->ftfn->ftable + i++);
+      ftp2 = csoundFTnp2Finde(csound, p->ftfn->ftable + i--);
       do {
         *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
           (*(ftp2->ftable + j) * f);
@@ -919,7 +922,7 @@ static OENTRY localops[] =
 
 int32_t ugmoss_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

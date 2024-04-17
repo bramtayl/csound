@@ -30,6 +30,8 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "memalloc.h"
+#include "fftlib.h"
 
 /* Do we do the whole buffer, or just indep vals? */
 #define someof(s)       (s)
@@ -59,7 +61,7 @@ void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
     /* kill spurious imag at dc & fs/2 */
     buf[1] = buf[i]; buf[i] = buf[i + 1] = FL(0.0);
     /* calculate inverse FFT */
-    csound->InverseRealFFT(csound, buf, FFTsize);
+    csoundInverseRealFFT(csound, buf, FFTsize);
 }
 
 #define MMmaskPhs(p,q,s) /* p is pha, q is as int32_t, s is 1/PI */ \
@@ -324,7 +326,7 @@ void MakeSinc(PVOC_GLOBALS *p)  /* initialise our static sinc table */
 
     if (p->dsputil_sncTab == NULL)
       p->dsputil_sncTab =
-          (MYFLT*) p->csound->Malloc(p->csound, (stLen + 1) * sizeof(MYFLT));
+          (MYFLT*) mmalloc(p->csound, (stLen + 1) * sizeof(MYFLT));
     /* (stLen+1 to include final zero; better for interpolation etc) */
     p->dsputil_sncTab[0] = FL(1.0);
     for (i = 1; i <= stLen; ++i) { /* build table of sin x / x */

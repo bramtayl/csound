@@ -23,8 +23,12 @@
 
 #include "csoundCore_internal.h"         /*                      UGENS4.C        */
 #include "ugens4.h"
+#include "ugens4_public.h"
 #include <math.h>
 #include <inttypes.h>
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /* The branch prediction slows it down!! */
 
@@ -32,7 +36,7 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0)
         p->lphs = (int32_t)(*p->iphs * FL(0.5) * FMAXLEN);
@@ -97,14 +101,14 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("buzz: not initialised"));
+    return csoundPerfError(csound, &(p->h), Str("buzz: not initialised"));
 }
 
 int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csoundFTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0) {
         p->lphs = (int32_t)(*p->iphs * FMAXLEN);
@@ -119,7 +123,7 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
     return NOTOK;
 }
 
-static inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power function */
+inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power function */
 {
     MYFLT ans = FL(1.0);
     while (n!=0) {
@@ -128,15 +132,6 @@ static inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power functio
       x = x*x;
     }
     return ans;
-}
-
-MYFLT intpow(MYFLT x, int32_t n)   /* Binary power function */
-{
-    if (n<0) {
-      n = -n;
-      x = FL(1.0)/x;
-    }
-    return intpow1(x, n);
 }
 
 int32_t gbuzz(CSOUND *csound, GBUZZ *p)
@@ -209,7 +204,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
     p->lphs = lphs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("gbuzz: not initialised"));
+    return csoundPerfError(csound, &(p->h), Str("gbuzz: not initialised"));
 }
 
 #define PLUKMIN 64
@@ -232,7 +227,7 @@ int plukset(CSOUND *csound, PLUCK *p)
     }
     if ((auxp = p->auxch.auxp) == NULL ||
         npts > p->maxpts) {     /* get newspace    */
-      csound->AuxAlloc(csound, (npts+1)*sizeof(MYFLT),&p->auxch);
+      csoundAuxAlloc(csound, (npts+1)*sizeof(MYFLT),&p->auxch);
       auxp = p->auxch.auxp;
       p->maxpts = npts;                         /*      if reqd    */
     }
@@ -240,7 +235,7 @@ int plukset(CSOUND *csound, PLUCK *p)
     if (*p->ifn == 0.0)
       for (n=npts; n--; )                       /* f0: fill w. rands */
         *ap++ = (MYFLT) rand16(csound) * DV32768;
-    else if ((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL) {
+    else if ((ftp = csoundFTnp2Finde(csound, p->ifn)) != NULL) {
       fp = ftp->ftable;                         /* else from ftable  */
       phs = FL(0.0);
       phsinc = (MYFLT)(ftp->flen/npts);
@@ -262,37 +257,37 @@ int plukset(CSOUND *csound, PLUCK *p)
       break;
     case 2:     /* stretch factor: param1 >= 1 */
       if (UNLIKELY(p->param1 < FL(1.0)))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("illegal stretch factor(param1) value"));
       else p->thresh1 =  (int16)(FL(32768.0) / p->param1);
       break;
     case 3: /* roughness factor: 0 <= param1 <= 1 */
       if (UNLIKELY(p->param1 < FL(0.0) || p->param1 > FL(1.0)))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("illegal roughness factor(param1) value"));
       else
         p->thresh1 = (int16)(FL(32768.0) * p->param1);
       break;
     case 4: /* rough and stretch factor: 0 <= param1 <= 1, param2 >= 1 */
       if (UNLIKELY(p->param1 < FL(0.0) || p->param1 > FL(1.0)))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("illegal roughness factor(param1) value"));
       else p->thresh1 = (int16)(FL(32768.0) * p->param1);
       if (UNLIKELY(p->param2 < FL(1.0)))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("illegal stretch factor(param2) value"));
       else p->thresh2 = (int16)(FL(32768.0) / p->param2);
       break;
     case 5: /* weighting coeff's: param1 + param2 <= 1 */
       if (UNLIKELY(p->param1 + p->param2 > 1))
-        return csound->InitError(csound, Str("coefficients too large "
+        return csoundInitError(csound, Str("coefficients too large "
                                              "(param1 + param2)"));
       break;
     case 6: /* ignore any given parameters */
       break;
 
     default:
-      return csound->InitError(csound, Str("unknown method code"));
+      return csoundInitError(csound, Str("unknown method code"));
     }
     return OK;
 }
@@ -392,9 +387,9 @@ int32_t pluck(CSOUND *csound, PLUCK *p)
     p->phs256 = phs256;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("pluck: not initialised"));
+    return csoundPerfError(csound, &(p->h), Str("pluck: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("pluck: kcps more than sample rate"));
 }
 
@@ -469,8 +464,8 @@ int32_t rndset(CSOUND *csound, RAND *p)
     if (*p->iseed >= FL(0.0)) {
       if (*p->iseed > FL(1.0)) {    /* As manual suggest seed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
-        seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
+        seed = csoundGetRandomSeedFromTime();
+        csoundWarning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           p->rand = (int32_t) (seed & 0xFFFFUL);
         }
@@ -582,8 +577,8 @@ int32_t rhset(CSOUND *csound, RANDH *p)
     if (*p->iseed >= FL(0.0)) {                       /* new seed:            */
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
-        seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
+        seed = csoundGetRandomSeedFromTime();
+        csoundWarning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           p->rand = (int32_t) (seed & 0xFFFFUL);
           p->num1 = (MYFLT) ((int16) p->rand) * DV32768;
@@ -688,8 +683,8 @@ int32_t riset(CSOUND *csound, RANDI *p)
     if (*p->iseed >= FL(0.0)) {                    /* new seed:            */
       if (*p->iseed > FL(1.0)) { /* As manual suggest seed in range [0,1] */
         uint32 seed;             /* I reinterpret >1 as a time seed */
-        seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
+        seed = csoundGetRandomSeedFromTime();
+        csoundWarning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */
@@ -821,8 +816,8 @@ int32_t rcset(CSOUND *csound, RANDC *p)
     if (*p->iseed >= FL(0.0)) {                    /* new seed:            */
       if (*p->iseed > FL(1.0)) { /* As manual suggest sseed in range [0,1] */
         uint32 seed;             /* I reinterpret >1 as a time seed */
-        seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
+        seed = csoundGetRandomSeedFromTime();
+        csoundWarning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */

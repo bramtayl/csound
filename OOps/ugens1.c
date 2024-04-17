@@ -24,6 +24,9 @@
 #include "csoundCore_internal.h"         /*                      UGENS1.C        */
 #include "ugens1.h"
 #include <math.h>
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 #define FHUND (FL(100.0))
 
@@ -88,10 +91,10 @@ int32_t expset(CSOUND *csound, EXPON *p)
         p->val = a;
       }
       else if (a == FL(0.0))
-        return csound->InitError(csound, Str("arg1 is zero"));
+        return csoundInitError(csound, Str("arg1 is zero"));
       else if (b == FL(0.0))
-        return csound->InitError(csound, Str("arg2 is zero"));
-      else return csound->InitError(csound, Str("unlike signs"));
+        return csoundInitError(csound, Str("arg2 is zero"));
+      else return csoundInitError(csound, Str("unlike signs"));
     }
     return OK;
 }
@@ -141,7 +144,7 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
     double val;
 
     if (UNLIKELY(!(p->INCOUNT & 1))) {
-      return csound->InitError(csound, Str("incomplete number of input arguments"));
+      return csoundInitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
@@ -151,7 +154,7 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
        can work properly without a fencepost bug */
     if (UNLIKELY((p->cursegp = (SEG *) p->auxch.auxp) == NULL ||
                  (nsegs+1)*sizeof(SEG) < (uint32_t)p->auxch.size)) {
-      csound->AuxAlloc(csound, (int32_t)(nsegs+1)*sizeof(SEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)(nsegs+1)*sizeof(SEG), &p->auxch);
       p->cursegp = (SEG *) p->auxch.auxp;
       segp = p->cursegp + 1; /* point to first seg */
       p->cursegp->cnt = 0;   /* zero duration of segment 0  */
@@ -193,7 +196,7 @@ int32_t lsgset_bkpt(CSOUND *csound, LINSEG *p)
     segp = p->cursegp;
     do {
       if (UNLIKELY(cnt > segp->cnt))
-        return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
+        return csoundInitError(csound, Str("Breakpoint %d not valid"), bkpt);
       segp->cnt -= cnt;
       cnt += segp->cnt;
       segp++;
@@ -233,7 +236,7 @@ int32_t klnseg(CSOUND *csound, LINSEG *p)
     }
     return OK;
  err1:
-    return csound->InitError(csound, Str("linseg not initialised (krate)\n"));
+    return csoundInitError(csound, Str("linseg not initialised (krate)\n"));
 }
 
 int32_t linseg(CSOUND *csound, LINSEG *p)
@@ -286,7 +289,7 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
     return OK;
  err1:
 
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("linseg: not initialised (arate)\n"));
 }
 
@@ -351,7 +354,7 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
     /* Should use p3 from score, but how.... */
     dur = len - *argp[4] - *argp[0] - *argp[1] - *argp[3];
     if (!midip && dur <0.0)
-      csound->Warning(csound, Str("length of ADSR note too short"));
+      csoundWarning(csound, Str("length of ADSR note too short"));
     segp->nxtpt = *argp[2];
     segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
     if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
@@ -509,14 +512,14 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
     int32_t         n=0;
 
     if (!(p->INCOUNT & 1)) {
-      return csound->InitError(csound, Str("incomplete number of input arguments"));
+      return csoundInitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (uint32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
       p->cursegp = segp = (XSEG *) p->auxch.auxp;
       (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
     }
@@ -548,10 +551,10 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n);
+      return csoundInitError(csound, Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n+1);
-    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+      return csoundInitError(csound, Str("ival%d is zero"), n+1);
+    return csoundInitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
@@ -563,14 +566,14 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
 
 
     if (!(p->INCOUNT & 1)){
-      return csound->InitError(csound, Str("incomplete number of input arguments"));
+      return csoundInitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (uint32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
       p->cursegp = segp = (XSEG *) p->auxch.auxp;
       (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
     }
@@ -585,7 +588,7 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
       val = nxtval;
       bkpt = **argp++;
       if (UNLIKELY(bkpt < dursum))
-          return csound->InitError(csound,
+          return csoundInitError(csound,
                                    Str("Breakpoint time %f not valid"), bkpt);
       dur = bkpt - dursum;
       dursum += dur;
@@ -607,10 +610,10 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n);
+      return csoundInitError(csound, Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n+1);
-    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+      return csoundInitError(csound, Str("ival%d is zero"), n+1);
+    return csoundInitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 
@@ -623,14 +626,14 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
 
 
     if (!(p->INCOUNT & 1)){
-      return csound->InitError(csound, Str("incomplete number of input arguments"));
+      return csoundInitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
         (uint32_t)nsegs*sizeof(XSEG) > (uint32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
       p->cursegp = segp = (XSEG *) p->auxch.auxp;
       (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
     }
@@ -644,7 +647,7 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
       val = nxtval;
       bkpt = **argp++;
       if (UNLIKELY(bkpt < dursum))
-          return csound->InitError(csound,
+          return csoundInitError(csound,
                                    Str("Breakpoint time %f not valid"), bkpt);
       dur = bkpt - dursum;
       dursum += dur;
@@ -669,10 +672,10 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n);
+      return csoundInitError(csound, Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n+1);
-    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+      return csoundInitError(csound, Str("ival%d is zero"), n+1);
+    return csoundInitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
@@ -684,14 +687,14 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 
 
     if (!(p->INCOUNT & 1)){
-      return csound->InitError(csound, Str("incomplete number of input arguments"));
+      return csoundInitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (XSEG*) p->auxch.auxp) == NULL ||
         (uint32_t)nsegs*sizeof(XSEG) > (uint32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
       p->cursegp = segp = (XSEG *) p->auxch.auxp;
       (segp+nsegs-1)->cnt = MAXPOS;   /* set endcount for safety */
     }
@@ -725,10 +728,10 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
  experr:
     n = segp - p->cursegp + 1;
     if (val == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n);
+      return csoundInitError(csound, Str("ival%d is zero"), n);
     else if (nxtval == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n+1);
-    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+      return csoundInitError(csound, Str("ival%d is zero"), n+1);
+    return csoundInitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 /***************************************/
@@ -775,7 +778,7 @@ int32_t xdsrset(CSOUND *csound, EXXPSEG *p)
 
     if (UNLIKELY(len<FL(0.0))) len = FL(100000.0); /* MIDI case set long */
     if (csound->curip->p3.value-delay-attack-decay<FL(0.0))
-      csound->Warning(csound, Str("length of XADSR note too short"));
+      csoundWarning(csound, Str("length of XADSR note too short"));
     len -= release;                      /* len is time remaining */
     if (UNLIKELY(len<FL(0.0))) { /* Odd case of release time greater than dur */
       release = csound->curip->p3.value; len = FL(0.0);
@@ -783,7 +786,7 @@ int32_t xdsrset(CSOUND *csound, EXXPSEG *p)
     nsegs = 5;          /* DXDSR */
     if ((segp = (XSEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(XSEG) < (uint32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)nsegs*sizeof(XSEG), &p->auxch);
       segp = (XSEG *) p->auxch.auxp;
     }
     segp[nsegs-1].cnt = MAXPOS;         /* set endcount for safety */
@@ -855,7 +858,7 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
     segp->val *= segp->mlt;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("expseg (krate): not initialised"));
 }
 
@@ -889,7 +892,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
     }
     return OK;
   err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("expseg (arate): not initialised"));
 }
 
@@ -902,7 +905,7 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
 
 
     if (!(p->INCOUNT & 1)){
-      return csound->InitError(csound, Str("incomplete number of input arguments"));
+      return csoundInitError(csound, Str("incomplete number of input arguments"));
     }
 
     //p->xtra = -1;
@@ -910,7 +913,7 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
     nsegs = (p->INOCOUNT - (!(p->INOCOUNT & 1))) >> 1;
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         (uint32_t)nsegs*sizeof(SEG) > (uint32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(SEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)nsegs*sizeof(SEG), &p->auxch);
       p->cursegp = segp = (SEG *) p->auxch.auxp;
     }
     argp = p->argums;
@@ -941,10 +944,10 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
  experr:
     n = segp - p->cursegp;// + 2;
     if (prvpt == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n);
+      return csoundInitError(csound, Str("ival%d is zero"), n);
     else if (segp->nxtpt == FL(0.0))
-      return csound->InitError(csound, Str("ival%d is zero"), n+1);
-    return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+      return csoundInitError(csound, Str("ival%d is zero"), n+1);
+    return csoundInitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
 /* **** MXDSR is just a construction and use of expseg */
@@ -961,7 +964,7 @@ int32_t mxdsrset(CSOUND *csound, EXPSEG *p)
     nsegs = 4;          /* DXDSR */
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32_t)nsegs*sizeof(SEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)nsegs*sizeof(SEG), &p->auxch);
       segp = (SEG *) p->auxch.auxp;
     }
     if (**argp <= FL(0.0))  return OK;  /* if idur1 <= 0, skip init  */
@@ -1097,7 +1100,7 @@ int32_t lnnset(CSOUND *csound, LINEN *p)
     if ((dur = *p->idur) > FL(0.0)) {
       MYFLT iris = *p->iris, idec = *p->idec;
       if (len<(iris<idec?idec:iris))
-        csound->Warning(csound, Str("p3 too short in linen"));
+        csoundWarning(csound, Str("p3 too short in linen"));
 
       p->cnt1 = (int32_t)(iris * CS_EKR + FL(0.5));
       if (p->cnt1 > (int32_t)0) {
@@ -1128,7 +1131,7 @@ int32_t alnnset(CSOUND *csound, LINEN *p)
     if ((dur = *p->idur) > FL(0.0)) {
       MYFLT iris = *p->iris, idec = *p->idec;
       if (len<(iris<idec?idec:iris))
-        csound->Warning(csound, Str("p3 too short in linen"));
+        csoundWarning(csound, Str("p3 too short in linen"));
       p->cnt1 = (int64_t)(*p->iris * CS_ESR + FL(0.5));
       if (p->cnt1 > 0) {
         p->inc1 = FL(1.0) / (MYFLT) p->cnt1;
@@ -1246,7 +1249,7 @@ int32_t lnrset(CSOUND *csound, LINENR *p)
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (UNLIKELY(*p->iatdec <= FL(0.0))) {
-        return csound->InitError(csound, Str("non-positive iatdec"));
+        return csoundInitError(csound, Str("non-positive iatdec"));
       }
       else p->mlt2 = POWER(*p->iatdec, CS_ONEDKR / *p->idec);
     }
@@ -1269,7 +1272,7 @@ int32_t alnrset(CSOUND *csound, LINENR *p)
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
       if (UNLIKELY(*p->iatdec <= FL(0.0))) {
-        return csound->InitError(csound, Str("non-positive iatdec"));
+        return csoundInitError(csound, Str("non-positive iatdec"));
       }
       else p->mlt2 = POWER(*p->iatdec, csound->onedsr / *p->idec);
     }
@@ -1350,16 +1353,16 @@ int32_t evxset(CSOUND *csound, ENVLPX *p)
     int32_t       cnt1;
     MYFLT       len = csound->curip->p3.value;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+    if ((ftp = csoundFTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
     if ((idur = *p->idur) > FL(0.0)) {
       if (UNLIKELY((iatss = FABS(*p->iatss)) == FL(0.0))) {
-        return csound->InitError(csound, "iatss = 0");
+        return csoundInitError(csound, "iatss = 0");
       }
       if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
         if (UNLIKELY(FABS(ixmod) > FL(0.95))) {
-          return csound->InitError(csound, Str("ixmod out of range."));
+          return csoundInitError(csound, Str("ixmod out of range."));
         }
         ixmod = -SIN(SIN(ixmod));
         prod = ixmod * iatss;
@@ -1378,7 +1381,7 @@ int32_t evxset(CSOUND *csound, ENVLPX *p)
       else asym = FL(0.0);
       if ((irise = *p->irise) > FL(0.0)) {
         if (irise + *p->idec > len)
-          csound->Warning(csound, Str("p3 too short in envlpx"));
+          csoundWarning(csound, Str("p3 too short in envlpx"));
         p->phs = 0;
         p->ki = (int32_t) (CS_KICVT / irise);
         p->val = *ftp->ftable;
@@ -1389,7 +1392,7 @@ int32_t evxset(CSOUND *csound, ENVLPX *p)
         irise = FL(0.0);  /* in case irise < 0 */
       }
       if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
-        return csound->InitError(csound, Str("rise func ends with zero"));
+        return csoundInitError(csound, Str("rise func ends with zero"));
       }
       cnt1 = (int32_t) ((idur - irise - *p->idec) * CS_EKR + FL(0.5));
       if (cnt1 < 0L) {
@@ -1404,7 +1407,7 @@ int32_t evxset(CSOUND *csound, ENVLPX *p)
       p->mlt1 = POWER(iatss, (FL(1.0)/nk));
       if (*p->idec > FL(0.0)) {
         if (UNLIKELY(*p->iatdec <= FL(0.0))) {
-          return csound->InitError(csound, Str("non-positive iatdec"));
+          return csoundInitError(csound, Str("non-positive iatdec"));
         }
         p->mlt2 = POWER(*p->iatdec, (CS_ONEDKR / *p->idec));
       }
@@ -1432,7 +1435,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
       if (phs >= MAXLEN) {  /* check that 2**N+1th pnt is good */
         p->val = *(ftp->ftable + ftp->flen );
         if (UNLIKELY(!p->val)) {
-          return csound->PerfError(csound, &(p->h),
+          return csoundPerfError(csound, &(p->h),
                                    Str("envlpx rise func ends with zero"));
         }
         p->val -= p->asym;
@@ -1454,7 +1457,7 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
     *p->rslt = *p->xamp * fact;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
 }
 
@@ -1465,16 +1468,16 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
     int32_t       cnt1;
     MYFLT       len = csound->curip->p3.value;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+    if ((ftp = csoundFTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
     if ((idur = *p->idur) > FL(0.0)) {
       if (UNLIKELY((iatss = FABS(*p->iatss)) == FL(0.0))) {
-        return csound->InitError(csound, "iatss = 0");
+        return csoundInitError(csound, "iatss = 0");
       }
       if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
         if (UNLIKELY(FABS(ixmod) > FL(0.95))) {
-          return csound->InitError(csound, Str("ixmod out of range."));
+          return csoundInitError(csound, Str("ixmod out of range."));
         }
         ixmod = -SIN(SIN(ixmod));
         prod = ixmod * iatss;
@@ -1494,7 +1497,7 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
 
       if ((irise = *p->irise) > FL(0.0)) {
         if (irise + *p->idec > len)
-          csound->Warning(csound, Str("p3 too short in envlpx"));
+          csoundWarning(csound, Str("p3 too short in envlpx"));
         p->phs = 0;
         p->ki = (int32_t) ((FMAXLEN / CS_ESR )/ irise);
         p->val = *ftp->ftable;
@@ -1505,7 +1508,7 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
         irise = FL(0.0);  /* in case irise < 0 */
       }
       if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
-        return csound->InitError(csound, Str("rise func ends with zero"));
+        return csoundInitError(csound, Str("rise func ends with zero"));
       }
       cnt1 = (int32_t) ((idur - irise - *p->idec) * CS_ESR);
       if (cnt1 < 0L) {
@@ -1520,7 +1523,7 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
       p->mlt1 = POWER(iatss, (FL(1.0)/nk));
       if (*p->idec > FL(0.0)) {
         if (UNLIKELY(*p->iatdec <= FL(0.0))) {
-          return csound->InitError(csound, Str("non-positive iatdec"));
+          return csoundInitError(csound, Str("non-positive iatdec"));
         }
         p->mlt2 = POWER(*p->iatdec, (csound->onedsr / *p->idec));
       }
@@ -1548,14 +1551,14 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
     asym = p->asym;
 
     if (UNLIKELY(p->ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
     ftab = p->ftp->ftable;
     lobits = p->ftp->lobits;
     lomask = p->ftp->lomask;
     lodiv  = p->ftp->lodiv;
     if (UNLIKELY(ftab[p->ftp->flen] == 0.0))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                              Str("envlpx rise func ends with zero"));
 
     if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
@@ -1605,15 +1608,15 @@ int32_t evrset(CSOUND *csound, ENVLPR *p)
     FUNC        *ftp;
     MYFLT       ixmod, iatss, prod, diff, asym, denom, irise;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+    if ((ftp = csoundFTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
     if (UNLIKELY((iatss = FABS(*p->iatss)) == FL(0.0))) {
-      return csound->InitError(csound, "iatss = 0");
+      return csoundInitError(csound, "iatss = 0");
     }
     if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
       if (UNLIKELY(FABS(ixmod) > FL(0.95))) {
-        return csound->InitError(csound, Str("ixmod out of range."));
+        return csoundInitError(csound, Str("ixmod out of range."));
       }
       ixmod = -SIN(SIN(ixmod));
       prod  = ixmod * iatss;
@@ -1641,7 +1644,7 @@ int32_t evrset(CSOUND *csound, ENVLPR *p)
       /* irise = FL(0.0); */          /* in case irise < 0 */
     }
     if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
-      return csound->InitError(csound, Str("rise func ends with zero"));
+      return csoundInitError(csound, Str("rise func ends with zero"));
     }
     p->mlt1 = POWER(iatss, CS_ONEDKR);
     if (*p->idec > FL(0.0)) {
@@ -1651,7 +1654,7 @@ int32_t evrset(CSOUND *csound, ENVLPR *p)
       else if (rlscnt > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int32_t)rlscnt;
       if (UNLIKELY((p->atdec = *p->iatdec) <= FL(0.0) )) {
-        return csound->InitError(csound, Str("non-positive iatdec"));
+        return csoundInitError(csound, Str("non-positive iatdec"));
       }
     }
     p->asym = asym;
@@ -1664,15 +1667,15 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
     FUNC        *ftp;
     MYFLT       ixmod, iatss, prod, diff, asym, denom, irise;
 
-    if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
+    if ((ftp = csoundFTFind(csound, p->ifn)) == NULL)
       return NOTOK;
     p->ftp = ftp;
     if (UNLIKELY((iatss = FABS(*p->iatss)) == FL(0.0))) {
-      return csound->InitError(csound, "iatss = 0");
+      return csoundInitError(csound, "iatss = 0");
     }
     if (iatss != FL(1.0) && (ixmod = *p->ixmod) != FL(0.0)) {
       if (UNLIKELY(FABS(ixmod) > FL(0.95))) {
-        return csound->InitError(csound, Str("ixmod out of range."));
+        return csoundInitError(csound, Str("ixmod out of range."));
       }
       ixmod = -SIN(SIN(ixmod));
       prod  = ixmod * iatss;
@@ -1700,7 +1703,7 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
       /* irise = FL(0.0); */          /* in case irise < 0 */
     }
     if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
-      return csound->InitError(csound, Str("rise func ends with zero"));
+      return csoundInitError(csound, Str("rise func ends with zero"));
     }
     p->mlt1 = POWER(iatss, csound->onedsr);
     if (*p->idec > FL(0.0)) {
@@ -1710,7 +1713,7 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
       else if (rlscnt > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = (int32_t)rlscnt;
       if (UNLIKELY((p->atdec = *p->iatdec) <= FL(0.0) )) {
-        return csound->InitError(csound, Str("non-positive iatdec"));
+        return csoundInitError(csound, Str("non-positive iatdec"));
       }
     }
     p->asym = asym;
@@ -1779,14 +1782,14 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
     asym = p->asym;
 
     if (UNLIKELY(p->ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
     ftab = p->ftp->ftable;
     lobits = p->ftp->lobits;
     lomask = p->ftp->lomask;
     lodiv  = p->ftp->lodiv;
     if (UNLIKELY(ftab[p->ftp->flen] == 0.0))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                              Str("envlpx rise func ends with zero"));
 
     if (UNLIKELY(offset)) memset(rslt, '\0', offset*sizeof(MYFLT));
@@ -1848,7 +1851,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
 
 
     if (!(p->INCOUNT & 1)) {
-      return csound->InitError(csound, Str("incomplete number of input arguments"));
+      return csoundInitError(csound, Str("incomplete number of input arguments"));
     }
 
     /* count segs & alloc if nec */
@@ -1856,7 +1859,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
     //printf("****nsegs = %d\n", nsegs);
     if ((segp = (SEG *) p->auxch.auxp) == NULL ||
         nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (int32_t)(1+nsegs)*sizeof(SEG), &p->auxch);
+      csoundAuxAlloc(csound, (int32_t)(1+nsegs)*sizeof(SEG), &p->auxch);
       p->cursegp = 1+(segp = (SEG *) p->auxch.auxp);
       segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
       segp[nsegs-1].acnt = MAXPOS;
@@ -1911,7 +1914,7 @@ int32_t csgset_bkpt(CSOUND *csound, COSSEG *p)
     if (IS_ASIG_ARG(p->rslt))
     do {
       if (UNLIKELY(cnt > segp->acnt))
-        return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
+        return csoundInitError(csound, Str("Breakpoint %d not valid"), bkpt);
       segp->acnt -= cnt;
       cnt += segp->acnt;
       segp++;
@@ -1919,12 +1922,12 @@ int32_t csgset_bkpt(CSOUND *csound, COSSEG *p)
     } while (--nsegs);
     else
     do {
-      //csound->Message(csound, "%d/ %d: %d, %d ", nsegs, bkpt, cnt, segp->cnt);
+      //csoundMessage(csound, "%d/ %d: %d, %d ", nsegs, bkpt, cnt, segp->cnt);
       if (UNLIKELY(cnt > segp->cnt))
-        return csound->InitError(csound, Str("Breakpoint %d not valid"), bkpt);
+        return csoundInitError(csound, Str("Breakpoint %d not valid"), bkpt);
       segp->cnt -= cnt;
       cnt += segp->cnt;
-      //csound->Message(csound, "-> %d, %d %f\n", cnt, segp->cnt, segp->nxtpt);
+      //csoundMessage(csound, "-> %d, %d %f\n", cnt, segp->cnt, segp->nxtpt);
       segp++;
       bkpt++;
     } while (--nsegs);
@@ -1983,7 +1986,7 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
+    return csoundInitError(csound, Str("cosseg not initialised (krate)\n"));
 }
 
 int32_t cosseg(CSOUND *csound, COSSEG *p)
@@ -2041,7 +2044,7 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("cosseg: not initialised (arate)\n"));
 }
 
@@ -2112,7 +2115,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
     p->val = val;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("cossegr: not initialised (arate)\n"));
 }
 
@@ -2179,7 +2182,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
     p->x = x;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("cossegr: not initialised (arate)\n"));
 }
 #endif
@@ -2238,5 +2241,5 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
     p->val = val;
     return OK;
  err1:
-    return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
+    return csoundInitError(csound, Str("cosseg not initialised (krate)\n"));
 }

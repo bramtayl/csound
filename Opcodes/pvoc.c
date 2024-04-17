@@ -68,14 +68,14 @@ PVOC_GLOBALS *PVOC_AllocGlobals(CSOUND *csound)
 {
     PVOC_GLOBALS  *p;
 #ifdef BETA
-    csound->Message(csound, "calling alloc globals");
+    csoundMessage(csound, "calling alloc globals");
 #endif
-    if (UNLIKELY(csound->CreateGlobalVariable(csound, "pvocGlobals",
+    if (UNLIKELY(csoundCreateGlobalVariable(csound, "pvocGlobals",
                                               sizeof(PVOC_GLOBALS)) != 0)){
-      csound->ErrorMsg(csound, Str("Error allocating PVOC globals"));
+      csoundErrorMsg(csound, Str("Error allocating PVOC globals"));
       return NULL;
     }
-    p = (PVOC_GLOBALS*) csound->QueryGlobalVariable(csound, "pvocGlobals");
+    p = (PVOC_GLOBALS*) csoundQueryGlobalVariable(csound, "pvocGlobals");
     p->csound = csound;
     p->dsputil_sncTab = (MYFLT*) NULL;
     p->pvbufreadaddr = (PVBUFREAD*) NULL;

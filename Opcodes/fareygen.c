@@ -21,8 +21,10 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <math.h>
+#include "memalloc.h"
+#include "fgens_public.h"
 
 #define MAX_PFACTOR 16
 static const int32_t MAX_PRIMES = 168; /* 168 primes < 1000 */
@@ -113,7 +115,7 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 2)) {
-      return csound->ftError(ff, Str("insufficient arguments for fareytable"));
+      return fterror(ff, Str("insufficient arguments for fareytable"));
     }
     ff->e.p[4] *= -1;
     pp = &(ff->e.p[5]);
@@ -121,8 +123,8 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     pp2 = &(ff->e.p[6]);
     mode = (int32_t) *pp2;
     farey_length = FareyLength(fareyseq);
-    flist = (RATIO*) csound->Calloc(csound, farey_length*sizeof(RATIO));
-    if (ff->flen <= 0) return csound->ftError(ff, Str("Illegal table size"));
+    flist = (RATIO*) mcalloc(csound, farey_length*sizeof(RATIO));
+    if (ff->flen <= 0) return fterror(ff, Str("Illegal table size"));
 
     GenerateFarey (fareyseq, flist, farey_length);
 
@@ -169,7 +171,7 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
       }
       break;
     }
-    csound->Free(csound,flist);
+    mfree(csound,flist);
     return OK;
 }
 

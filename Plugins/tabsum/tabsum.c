@@ -23,6 +23,8 @@
 
 #include "csdl.h"
 #include "interlocks.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 typedef struct {
     OPDS    h;
@@ -36,8 +38,8 @@ typedef struct {
 
 static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
-    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
-      return csound->InitError(csound, Str("tabsum: No table"));
+    if (UNLIKELY((p->ftp = csoundFTnp2Find(csound, p->itab)) == NULL)) {
+      return csoundInitError(csound, Str("tabsum: No table"));
     }
     return OK;
 }
@@ -53,7 +55,7 @@ static int32_t tabsum(CSOUND *csound, TABSUM *p)
 
     if (UNLIKELY(ftp==NULL))
 
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("tabsum: Not initialised"));
     t = p->ftp->ftable;
     min = MYFLT2LRND(*p->kmin);

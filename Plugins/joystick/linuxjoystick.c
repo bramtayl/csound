@@ -37,6 +37,7 @@
 
 #include "linuxjoystick.h"
 #include <errno.h>
+#include "fgens_public.h"
 
 static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 {
@@ -54,9 +55,9 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       stick->initme = 1;
     }
     if (UNLIKELY(*stick->ktable != stick->table)) {
-      if (UNLIKELY((void *)(stick->ftp = csound->FTnp2Find(csound, stick->ktable))
+      if (UNLIKELY((void *)(stick->ftp = csoundFTnp2Find(csound, stick->ktable))
                    == NULL)) {
-        csound->Warning(csound, Str("linuxjoystick: No such table %f"),
+        csoundWarning(csound, Str("linuxjoystick: No such table %f"),
                         *(float*)(stick->ktable));
         return OK;
       }
@@ -78,7 +79,7 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         ioctl(stick->devFD, JSIOCGAXES, &stick->numk);
         ioctl(stick->devFD, JSIOCGBUTTONS, &stick->numb);
         if (UNLIKELY(stick->ftp->flen < 2u+(stick->numk)+(stick->numb))) {
-          csound->Warning
+          csoundWarning
             (csound,
              Str("linuxjoystick: table %d of size %d too small for data size %d"),
              (int32_t
@@ -91,11 +92,11 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       }
       else {
         stick->timeout = 10000;
-        csound->Warning(csound,
+        csoundWarning(csound,
                         Str("linuxjoystick: could not open device "
                             "/dev/input/js%d for reason: %s\n"),
                         stick->dev, strerror(errno));
-        csound->Warning(csound,
+        csoundWarning(csound,
                         Str("linuxjoystick: could not open device "
                             "/dev/js%d for reason: %s\n"),
                         stick->dev, strerror(errno));
@@ -110,7 +111,7 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         getmore = 0;
       }
       else if (UNLIKELY(read_size < 1)) {
-        csound->Warning(csound, Str("linuxjoystick: read %d closing joystick"),
+        csoundWarning(csound, Str("linuxjoystick: read %d closing joystick"),
                         read_size);
         close(stick->devFD);
         stick->devFD = -1;
@@ -127,7 +128,7 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
             evtidx = 2 + stick->numk + js.number;
           }
           else {
-            csound->Warning(csound, Str("unknown joystick event type %i"),
+            csoundWarning(csound, Str("unknown joystick event type %i"),
                             js.type);
             return OK;
           }

@@ -184,12 +184,12 @@ bool setup(BelaContext *context, void *Data)
   csound->SetHostData((void *) context);
   csound->SetHostImplementedAudioIO(1,0);
   csound->SetHostImplementedMIDIIO(1);
-  csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
-  csound->SetExternalMidiReadCallback(ReadMidiData);
-  csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
-  csound->SetExternalMidiOutOpenCallback(OpenMidiOutDevice);
-  csound->SetExternalMidiWriteCallback(WriteMidiData);
-  csound->SetExternalMidiOutCloseCallback(CloseMidiOutDevice);
+  csoundSetExternalMidiInOpenCallback(OpenMidiInDevice);
+  csoundSetExternalMidiReadCallback(ReadMidiData);
+  csoundSetExternalMidiInCloseCallback(CloseMidiInDevice);
+  csoundSetExternalMidiOutOpenCallback(OpenMidiOutDevice);
+  csoundSetExternalMidiWriteCallback(WriteMidiData);
+  csoundSetExternalMidiOutCloseCallback(CloseMidiOutDevice);
   /* set up digi opcodes */
   if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela",
 			  "k","i", csnd::thread::ik) != 0)
@@ -209,19 +209,19 @@ bool setup(BelaContext *context, void *Data)
     printf("Error: Csound could not compile CSD file.\n");
     return false;
   }
-  gCsData.blocksize = csound->GetKsmps()*csound->GetNchnls();
+  gCsData.blocksize = csoundGetKsmps()*csoundGetNchnls();
   gCsData.count = 0;
 
   
   /* set up the channels */
   for(int i=0; i < ANCHNS; i++) {
-    gCsData.channel[i].samples.resize(csound->GetKsmps());
+    gCsData.channel[i].samples.resize(csoundGetKsmps());
     gCsData.channel[i].name << "analogIn" << i;
-    gCsData.ochannel[i].samples.resize(csound->GetKsmps());
+    gCsData.ochannel[i].samples.resize(csoundGetKsmps());
     gCsData.ochannel[i].name << "analogOut" << i;
   }
 
-  gCsData.schannel.samples.resize(csound->GetKsmps());
+  gCsData.schannel.samples.resize(csoundGetKsmps());
   gCsData.schannel.name << "scope";
   gCsData.scope.setup(1, context->audioSampleRate);
   
@@ -233,11 +233,11 @@ void render(BelaContext *context, void *Data)
   if(gCsData.res == 0) {
     int n,i,k,count, frmcount,blocksize,res = gCsData.res;
     Csound *csound = gCsData.csound;
-    MYFLT scal = csound->Get0dBFS();
+    MYFLT scal = csoundGet0dBFS();
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
     float scopeOut;
-    int nchnls = csound->GetNchnls();
+    int nchnls = csoundGetNchnls();
     int chns = nchnls < context->audioOutChannels ?
       nchnls : context->audioOutChannels;
     int an_chns = context->analogInChannels > ANCHNS ?
@@ -260,7 +260,7 @@ void render(BelaContext *context, void *Data)
 			     channel[i].samples.data());
 	 
 	/* run csound */
-	if((res = csound->PerformKsmps()) == 0) count = 0;
+	if((res = csoundPerformKsmpsInternal()) == 0) count = 0;
 	else break;
 
         /* get the channels */

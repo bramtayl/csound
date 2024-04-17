@@ -61,9 +61,7 @@ extern "C" {
    * New functions only need to be added here if
    * they are required by plugins.
    */
-  struct CSOUND_ {
-    CSOUND_PUBLIC_FIELDS
-  };
+  struct CSOUND_;
 
 #ifdef __cplusplus
 }

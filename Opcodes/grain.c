@@ -29,11 +29,14 @@
 
 #include "stdopcod.h"
 #include "grain.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
+    x = (MYFLT) (csoundRand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
     return (x * a);
 }
 
@@ -43,11 +46,11 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
     int32        bufsize;
     MYFLT       *d;
 
-    if (LIKELY((gftp = csound->FTnp2Finde(csound, p->igfn)) != NULL))
+    if (LIKELY((gftp = csoundFTnp2Finde(csound, p->igfn)) != NULL))
       p->gftp = gftp;
     else return NOTOK;
 
-    if (LIKELY((eftp = csound->FTnp2Finde(csound, p->iefn)) != NULL))
+    if (LIKELY((eftp = csoundFTnp2Finde(csound, p->iefn)) != NULL))
       p->eftp = eftp;
     else return NOTOK;
 
@@ -62,7 +65,7 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
                                + (3L * CS_KSMPS));
 
     if (p->aux.auxp == NULL || (uint32_t)bufsize > p->aux.size)
-      csound->AuxAlloc(csound, bufsize, &p->aux);
+      csoundAuxAlloc(csound, bufsize, &p->aux);
     else memset(p->aux.auxp, '\0', bufsize); /* Clear any old data */
     d  = p->x = (MYFLT *)p->aux.auxp;
     d +=  (int32_t)(CS_ESR * *p->imkglen) + CS_KSMPS;
@@ -97,19 +100,19 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
                                 /* Pick up common values to locals for speed */
     if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
     if (UNLIKELY(kglen<=FL(0.0)))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("grain: grain length zero"));
     gtp  = p->gftp;
     gtbl = gtp->ftable;
     glen = gtp->flen;
-    gcvt = glen/csound->GetSr(csound);
+    gcvt = glen/csoundGetSr(csound);
 
     pow2tab = ISPOW2(glen);
 
     etp  = p->eftp;
     etbl = etp->ftable;
     elen = etp->flen;
-    ecvt = elen/csound->GetSr(csound);
+    ecvt = elen/csoundGetSr(csound);
 
     lb   = gtp->lobits;
     lb2  = etp->lobits;
@@ -188,7 +191,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     p->gcount = gcount;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("grain: not initialised"));
 }
 
@@ -201,7 +204,7 @@ static OENTRY localops[] =
 
 int32_t grain_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

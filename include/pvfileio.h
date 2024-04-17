@@ -27,6 +27,7 @@
 #ifndef __PVFILEIO_H_INCLUDED
 #define __PVFILEIO_H_INCLUDED
 
+#include "csound.h"
 #include "sysdep.h"
 
 #if defined(_WIN32) || defined(_MSC_VER)
@@ -137,6 +138,19 @@ typedef struct {
  {8312B9C2-2E6E-11d4-A824-DE5B96C3AB21}
 
 **************/
+
+PUBLIC int32_t pvoc_createfile(CSOUND *, const char *, uint32, uint32, uint32, uint32,
+                    int32, int32_t, int32_t, float, float *, uint32);
+
+PUBLIC int32_t pvoc_openfile(CSOUND *, const char *filename, void *data_, void *fmt_);
+PUBLIC int32_t pvoc_closefile(CSOUND *, int32_t);
+
+PUBLIC int32_t pvoc_putframes(CSOUND *, int32_t ofd, const float *frame,
+                    int32 numframes);
+PUBLIC int32_t pvoc_getframes(CSOUND *, int32_t ifd, float *frames, uint32 nframes);
+PUBLIC int32_t pvoc_framecount(CSOUND *, int32_t ifd);
+PUBLIC int32_t pvoc_fseek(CSOUND *, int32_t ifd, int32_t offset);
+PUBLIC const char *pvoc_errorstr(CSOUND *);
 
 #endif  /* __PVFILEIO_H_INCLUDED */
 

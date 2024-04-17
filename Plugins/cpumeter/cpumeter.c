@@ -32,6 +32,9 @@
 #include <unistd.h>
 #include <limits.h>
 #include <float.h>
+#include "envvar_public.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 // only available on Linux (no /proc/stat on OSX)
 #if defined(__gnu_linux__)
@@ -82,27 +85,27 @@ int32_t cpupercent_init(CSOUND *csound, CPUMETER* p)
     TIC_t id, u, n, s, i, w, x, y, z;
     if (!(p->fp = fopen("/proc/stat", "r")))
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("Failed to open /proc/stat: %s"), strerror(errno));
     if (!fgets(buf, sizeof(buf), p->fp))
-      return csound->InitError(csound, Str("failed /proc/stat read"));
+      return csoundInitError(csound, Str("failed /proc/stat read"));
     num = sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                  &u, &n, &s, &i, &w, &x, &y, &z);
     for (k = 0; ; k++) {
       if (!fgets(buf, SMLBUFSIZ, p->fp))
-        return csound->InitError(csound,Str("failed /proc/stat read"));
+        return csoundInitError(csound,Str("failed /proc/stat read"));
       num = sscanf(buf, "cpu%llu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                    &id, &u, &n, &s, &i, &w, &x, &y, &z);
       if (num<4) break;
     }
     p->cpu_max = k-1;
-    csound->AuxAlloc(csound,k*sizeof(CPU_t), &(p->cpu_a));
+    csoundAuxAlloc(csound,k*sizeof(CPU_t), &(p->cpu_a));
     p->cpus = (CPU_t *) p->cpu_a.auxp;
     k = cpupercent_renew(csound, p);
-    p->cnt = (p->trig = (int32_t)(*p->itrig * csound->GetSr(csound)));
+    p->cnt = (p->trig = (int32_t)(*p->itrig * csoundGetSr(csound)));
     // Would it be better to add a deinit process so the closing happens in perf?
-    //csound->CreateFileHandle(csound, &p->fp, CSFILE_STD, "/proc/stat");
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_cpupercent);
+    //csoundCreateFileHandle(csound, &p->fp, CSFILE_STD, "/proc/stat");
+    csoundRegisterDeinitCallback(csound, (void *) p, deinit_cpupercent);
     return k;
 }
 
@@ -120,7 +123,7 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
     fflush(p->fp);
     k = p->cpu_max;
     if (!fgets(buf, SMLBUFSIZ, p->fp))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("failed /proc/stat read"));
     /*num = */sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                      &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
@@ -161,7 +164,7 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER* p)
 
     for (k=0; k<p->cpu_max && k+1<p->OUTOCOUNT; k++) {
       if (!fgets(buf, SMLBUFSIZ, p->fp))
-        return csound->PerfError(csound, &(p->h),
+        return csoundPerfError(csound, &(p->h),
                                  Str("failed /proc/stat read"));
       /*num = */ (void)sscanf(buf, "cpu %Lu %Lu %Lu %Lu %Lu %Lu %Lu %Lu",
                               &cpu[k].u, &cpu[k].n, &cpu[k].s, &cpu[k].i,
@@ -225,7 +228,7 @@ typedef struct {
 
 int32_t cpupercent_init(CSOUND *csound, CPUMETER *p) {
    IGN(p);
-  csound->Message(csound, "not implemented\n");
+  csoundMessage(csound, "not implemented\n");
   return OK;
 }
 

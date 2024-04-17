@@ -22,6 +22,9 @@
 
 #include "compile_ops.h"
 #include <stdio.h>
+#include "memalloc.h"
+#include "insert_public.h"
+
 int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
 
@@ -34,7 +37,7 @@ int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
     fp = fopen(name, "rb");
 
     if (fp == NULL) {
-      csound->Warning(csound, Str("compileorc: could not open %s\n"), name);
+      csoundWarning(csound, Str("compileorc: could not open %s\n"), name);
       *p->res = (MYFLT)(CSOUND_ERROR);
       return NOTOK;
     }
@@ -46,19 +49,19 @@ int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
       fclose(fp);
       *p->res = (MYFLT)(CSOUND_ERROR);
       return
-        csound->InitError(csound, Str("compileorc: could not read %s\n"), name);
+        csoundInitError(csound, Str("compileorc: could not read %s\n"), name);
     }
 
-    orc = (char *) csound->Calloc(csound, size+1);
+    orc = (char *) mcalloc(csound, size+1);
     fseek(fp, 0, SEEK_SET);
     if (UNLIKELY(fread(orc,1,size,fp)!=size)) {
       fclose(fp);
-      csound->Free(csound,orc);
+      mfree(csound,orc);
       return NOTOK;
     }
     *p->res = (MYFLT)(csoundCompileOrcInternal(csound, orc, 0));
     fclose(fp);
-    csound->Free(csound,orc);
+    mfree(csound,orc);
     return OK;
 }
 

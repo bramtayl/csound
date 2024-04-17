@@ -26,6 +26,8 @@ extern "C" {
 #include <cmath>
 #include <complex>
 #include <random>
+#include "fftlib.h"
+#include "fgens_public.h"
 
 /**
 
@@ -107,8 +109,8 @@ static void log(CSOUND *csound, const char *format, ...) {
   va_list args;
   va_start(args, format);
   if (csound) {
-    if (csound->GetMessageLevel(csound) & CS_WARNMSG)
-      csound->MessageV(csound, 0, format, args);
+    if (csoundGetMessageLevel(csound) & CS_WARNMSG)
+      csoundMessageV(csound, 0, format, args);
   } else {
     vfprintf(stdout, format, args);
   }
@@ -117,10 +119,10 @@ static void log(CSOUND *csound, const char *format, ...) {
 
 static void warn(CSOUND *csound, const char *format, ...) {
   if (csound) {
-    if (csound->GetMessageLevel(csound) & CS_WARNMSG) {
+    if (csoundGetMessageLevel(csound) & CS_WARNMSG) {
       va_list args;
       va_start(args, format);
-      csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
+      csoundMessageV(csound, CSOUNDMSG_WARNING, format, args);
       va_end(args);
     }
   } else {
@@ -462,7 +464,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   MYFLT p1_function_table_number = ff->fno;
   MYFLT p2_score_time = ff->e.p[2];
   int N = ff->flen;
-  if (N <= 0) return csound->ftError(ff, Str("Illegal table size %d"), N);
+  if (N <= 0) return fterror(ff, Str("Illegal table size %d"), N);
 
   MYFLT p5_fundamental_frequency = ff->e.p[5];
   MYFLT p6_partial_bandwidth = ff->e.p[6];
@@ -471,7 +473,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   int p9_profile_shape = (int)ff->e.p[9];
   // base_function_t base_function = get_base_function(p9_profile_shape);
   MYFLT p10_profile_parameter = ff->e.p[10];
-  MYFLT samplerate = csound->GetSr(csound);
+  MYFLT samplerate = csoundGetSr(csound);
   log(csound, "samplerate:                  %12d\n", (int)samplerate);
   log(csound, "p1_function_table_number:            %9.4f\n",
       p1_function_table_number);
@@ -550,7 +552,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
     spectrum[complexI].imag(real * std::sin(random_phase));
   };
   spectrum[0].imag(0);
-  csound->InverseRealFFT(csound, ftp->ftable, N);
+  csoundInverseRealFFT(csound, ftp->ftable, N);
   // Normalize,
   MYFLT maximum = FL(0.0);
   for (int i = 0; i < N; ++i) {

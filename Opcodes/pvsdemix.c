@@ -23,6 +23,8 @@
 
 #include "pvs_ops.h"
 #include "pvsdemix.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {
@@ -46,30 +48,30 @@ static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
     p->beta = (int32_t)(*p->slices);
 
     if (UNLIKELY(p->finleft->sliding))
-      return csound->InitError(csound, Str("SDFT case not implemented yet"));
+      return csoundInitError(csound, Str("SDFT case not implemented yet"));
    M = (N+2)*sizeof(float);
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<M)
-      csound->AuxAlloc(csound, M,&p->fout->frame);
+      csoundAuxAlloc(csound, M,&p->fout->frame);
 
     M = M*p->beta;
     if (p->left.auxp==NULL || p->left.size<M)
-      csound->AuxAlloc(csound, M, &p->left);
+      csoundAuxAlloc(csound, M, &p->left);
 
     if (p->right.auxp==NULL || p->right.size<M)
-      csound->AuxAlloc(csound, M, &p->right);
+      csoundAuxAlloc(csound, M, &p->right);
 
     M = (N/2+1)*sizeof(float);
       if (p->maxl.auxp==NULL || p->maxl.size<M)
-      csound->AuxAlloc(csound, M, &p->maxl);
+      csoundAuxAlloc(csound, M, &p->maxl);
 
     if (p->maxr.auxp==NULL || p->maxr.size<M)
-      csound->AuxAlloc(csound, M, &p->maxr);
+      csoundAuxAlloc(csound, M, &p->maxr);
 
     if (p->minl.auxp==NULL || p->minl.size<M)
-      csound->AuxAlloc(csound, M, &p->minl);
+      csoundAuxAlloc(csound, M, &p->minl);
 
     if (p->minr.auxp==NULL || p->minr.size<M)
-      csound->AuxAlloc(csound, M, &p->minr);
+      csoundAuxAlloc(csound, M, &p->minr);
 
     p->fout->N =  N;
     p->fout->overlap = olap;
@@ -81,7 +83,7 @@ static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
 
     if (!((p->fout->format==PVS_AMP_FREQ) ||
           (p->fout->format==PVS_AMP_PHASE)))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                   "pvsdemix: signal format must be amp-phase or amp-freq.\n");
 
     return OK;
@@ -180,10 +182,10 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("pvsdemix : formats are different.\n"));
  err2:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("pvsdemix : not initialised\n"));
 }
 
@@ -195,7 +197,7 @@ static OENTRY localops[] =
 
 int32_t pvsdemix_init_(CSOUND *csound)
 {
-  return csound->AppendOpcodes(csound, &(localops[0]),
+  return csoundAppendOpcodes(csound, &(localops[0]),
                                (int32_t
                                 ) (sizeof(localops) / sizeof(OENTRY)));
 }

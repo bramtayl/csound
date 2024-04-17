@@ -28,6 +28,10 @@
 #include "csoundCore.h"
 #include <string.h>
 #include <new>
+#include "fftlib.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "memfiles.h"
 
 
 /* Band-splitting constants */
@@ -263,7 +267,7 @@ public:
 
       /* sr */
 
-      sr_p = csound->GetSr(csound);
+      sr_p = csoundGetSr(csound);
 
       //char filel[MAXNAME] = "hrtf-44100-left.dat"; //../hrtf/
       //char filer[MAXNAME] = "hrtf-44100-right.dat";
@@ -271,8 +275,8 @@ public:
       if (sr_p != FL(44100.0) && sr_p != FL(48000.0) && sr_p != FL(96000.0))
         sr_p = FL(44100.0);
 
-      if (UNLIKELY(csound->GetSr(csound) != sr_p))
-        csound->Message(csound,
+      if (UNLIKELY(csoundGetSr(csound) != sr_p))
+        csoundMessage(csound,
                         Str("\n\nWARNING!!:\nOrchestra SR not compatible with "
                             "HRTF processing SR of: %.0f\n\n"), sr_p);
 
@@ -309,18 +313,18 @@ public:
 
 
       /* reading files, with byte swap */
-      fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+      fpl = ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
                                      swap4bytes);
       if (UNLIKELY(fpl == NULL))
         return
-          csound->InitError(csound, "%s",
+          csoundInitError(csound, "%s",
                             Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-      fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+      fpr = ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
                                      swap4bytes);
       if (UNLIKELY(fpr == NULL))
         return
-          csound->InitError(csound,
+          csoundInitError(csound,
                             "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
       irlength_p = irlength;
@@ -336,29 +340,29 @@ public:
       ////
       //    /* buffers */
       if (!insig_p.auxp || insig_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &insig_p);
+        csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &insig_p);
       if (!outl_p.auxp || outl_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outl_p);
+        csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outl_p);
       if (!outr_p.auxp || outr_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outr_p);
+        csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outr_p);
       if (!hrtflpad_p.auxp || hrtflpad_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &hrtflpad_p);
+        csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &hrtflpad_p);
       if (!hrtfrpad_p.auxp || hrtfrpad_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &hrtfrpad_p);
+        csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &hrtfrpad_p);
       if (!complexinsig_p.auxp || complexinsig_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), & complexinsig_p);
+        csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), & complexinsig_p);
       if (!hrtflfloat_p.auxp || hrtflfloat_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &hrtflfloat_p);
+        csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &hrtflfloat_p);
       if (!hrtfrfloat_p.auxp || hrtfrfloat_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &hrtfrfloat_p);
+        csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &hrtfrfloat_p);
       if (!outspecl_p.auxp || outspecl_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outspecl_p);
+        csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outspecl_p);
       if (!outspecr_p.auxp || outspecr_p.size < irlengthpad * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outspecr_p);
+        csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &outspecr_p);
       if (!overlapl_p.auxp || overlapl_p.size < overlapsize * sizeof(MYFLT))
-        csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &overlapl_p);
+        csoundAuxAlloc(csound, overlapsize*sizeof(MYFLT), &overlapl_p);
       if (!overlapr_p.auxp || overlapr_p.size < overlapsize * sizeof(MYFLT))
-        csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &overlapr_p);
+        csoundAuxAlloc(csound, overlapsize*sizeof(MYFLT), &overlapr_p);
 
       memset(insig_p.auxp, 0, irlength * sizeof(MYFLT));
       memset(outl_p.auxp, 0, irlengthpad * sizeof(MYFLT));
@@ -375,21 +379,21 @@ public:
 
       /* interpolation values */
       if (!lowl1_p.auxp || lowl1_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &lowl1_p);
+        csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &lowl1_p);
       if (!lowr1_p.auxp || lowr1_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &lowr1_p);
+        csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &lowr1_p);
       if (!lowl2_p.auxp || lowl2_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &lowl2_p);
+        csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &lowl2_p);
       if (!lowr2_p.auxp || lowr2_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &lowr2_p);
+        csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &lowr2_p);
       if (!highl1_p.auxp || highl1_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &highl1_p);
+        csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &highl1_p);
       if (!highr1_p.auxp || highr1_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &highr1_p);
+        csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &highr1_p);
       if (!highl2_p.auxp || highl2_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &highl2_p);
+        csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &highl2_p);
       if (!highr2_p.auxp || highr2_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &highr2_p);
+        csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &highr2_p);
 
       /* best to zero, for future changes (filled in init) */
       memset(lowl1_p.auxp, 0, irlength * sizeof(MYFLT));
@@ -404,10 +408,10 @@ public:
       /* shift buffers */
       if (!leftshiftbuffer_p.auxp ||
           leftshiftbuffer_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &leftshiftbuffer_p);
+        csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &leftshiftbuffer_p);
       if (!rightshiftbuffer_p.auxp ||
           rightshiftbuffer_p.size < irlength * sizeof(MYFLT))
-        csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &rightshiftbuffer_p);
+        csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &rightshiftbuffer_p);
 
       memset(leftshiftbuffer_p.auxp, 0, irlength * sizeof(MYFLT));
       memset(rightshiftbuffer_p.auxp, 0, irlength * sizeof(MYFLT));
@@ -673,8 +677,8 @@ public:
         }
 
       /* ifft */
-      csound->InverseRealFFT(csound, hrtflfloat, irlength);
-      csound->InverseRealFFT(csound, hrtfrfloat, irlength);
+      csoundInverseRealFFT(csound, hrtflfloat, irlength);
+      csoundInverseRealFFT(csound, hrtfrfloat, irlength);
 
       for (i = 0; i < irlength; i++)
         {
@@ -706,8 +710,8 @@ public:
         }
 
       /* back to freq domain */
-      csound->RealFFT(csound, hrtflpad, irlengthpad);
-      csound->RealFFT(csound, hrtfrpad, irlengthpad);
+      csoundRealFFT(csound, hrtflpad, irlengthpad);
+      csoundRealFFT(csound, hrtfrpad, irlengthpad);
 
       /* initialize counter */
       counter_p = 0;
@@ -787,17 +791,17 @@ public:
               for (i = irlength; i <  irlengthpad; i++)
                 complexinsig[i] = FL(0.0);
 
-              csound->RealFFT(csound, complexinsig, irlengthpad);
+              csoundRealFFT(csound, complexinsig, irlengthpad);
 
               /* complex multiplication */
-              csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
+              csoundRealFFTMult(csound, outspecl, hrtflpad, complexinsig,
                                   irlengthpad, FL(1.0));
-              csound->RealFFTMult(csound, outspecr, hrtfrpad, complexinsig,
+              csoundRealFFTMult(csound, outspecr, hrtfrpad, complexinsig,
                                   irlengthpad, FL(1.0));
 
               /* convolution is the inverse FFT of above result */
-              csound->InverseRealFFT(csound, outspecl, irlengthpad);
-              csound->InverseRealFFT(csound, outspecr, irlengthpad);
+              csoundInverseRealFFT(csound, outspecl, irlengthpad);
+              csoundInverseRealFFT(csound, outspecr, irlengthpad);
 
               /* scaled by a factor related to sr...? */
               for (i = 0; i < irlengthpad; i++)
@@ -916,7 +920,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
                  (p->numa<0) || (p->numa>MAXPOLES)))
-      return csound->InitError(csound,  "%s", Str("Filter order out of bounds: "
+      return csoundInitError(csound,  "%s", Str("Filter order out of bounds: "
                                                   "(1 <= nb < 51, 0 <= na <= 50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
@@ -942,38 +946,38 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     case 16: p->order = 3; break;
     case 25: p->order = 4; break;
     case 36: p->order = 5; break;
-    default : return csound->InitError(csound, "%s", Str("illegal number of inputs"));
+    default : return csoundInitError(csound, "%s", Str("illegal number of inputs"));
     }
 
     if ((isetup == 1) & (p->order >= 2)) {
-      return csound->InitError(csound, "%s", Str("Stereo configuration only works with first order"));
+      return csoundInitError(csound, "%s", Str("Stereo configuration only works with first order"));
     }
     if ((isetup == 2) & (p->order >= 2)) {
-      return csound->InitError(csound, "%s", Str("Quad configuration only works with first order"));
+      return csoundInitError(csound, "%s", Str("Quad configuration only works with first order"));
     }
 
     if ((isetup == 3) & (p->order >= 3)) {
-      return csound->InitError(csound, "%s", Str("5.0 configuration only works with first and second order"));
+      return csoundInitError(csound, "%s", Str("5.0 configuration only works with first and second order"));
     }
 
     if ((isetup == 4) & (p->order >= 4)) {
-      return csound->InitError(csound, "%s", Str("Octagon configuration only works with first, second and third order"));
+      return csoundInitError(csound, "%s", Str("Octagon configuration only works with first, second and third order"));
     }
 
     if ((isetup == 5) & (p->order >= 2)) {
-      return csound->InitError(csound, "%s", Str("Cube configuration only works with first order"));
+      return csoundInitError(csound, "%s", Str("Cube configuration only works with first order"));
     }
 
     if ((isetup == 6) & (p->order >= 3)) {
-      return csound->InitError(csound, "%s", Str("Hexagon configuration only works with first and second order"));
+      return csoundInitError(csound, "%s", Str("Hexagon configuration only works with first and second order"));
     }
 
     if ((isetup == 21) & (p->order >= 4)) {
-      return csound->InitError(csound, "%s", Str("2D Binaural configuration only works with first, second and third order"));
+      return csoundInitError(csound, "%s", Str("2D Binaural configuration only works with first, second and third order"));
     }
 
     if ((isetup == 31) & (p->order >= 4)) {
-      return csound->InitError(csound, "%s", Str("3D Binaural configuration only works with first, second and third order"));
+      return csoundInitError(csound, "%s", Str("3D Binaural configuration only works with first, second and third order"));
     }
 
     p->horizontal = ((isetup == 1) | (isetup == 2) | (isetup == 3)  | (isetup == 4)  | (isetup == 6) | (isetup == 21));
@@ -985,7 +989,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
 
     for (int j = 0; j < n_ins; j++) {
-      csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay[j]);
+      csoundAuxAlloc(csound, p->ndelay * sizeof(double), &p->delay[j]);
     }
 
     /* Set current position pointer to beginning of delay */
@@ -1003,7 +1007,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     }
 
 
-    double k = tan(freq * PI / csound->GetSr(csound));
+    double k = tan(freq * PI / csoundGetSr(csound));
     double k2 = (k*k + 2*k + 1);
 
     double b0_lf = k*k/k2; //b0
@@ -1680,7 +1684,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
       for (int j = 0; j < 8; j++) {
         if (p->binaural_mem[j].auxp == NULL)
-          csound->AuxAlloc(csound, sizeof(hrtf_c), &p->binaural_mem[j]);
+          csoundAuxAlloc(csound, sizeof(hrtf_c), &p->binaural_mem[j]);
         p->binaural[j] = new (p->binaural_mem[j].auxp) hrtf_c;
 
         p->binaural[j]->hrtfstat_init(csound, elev, angle[j], r, p->ifilel, p->ifiler);
@@ -1700,7 +1704,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
       for (int j = 0; j < 20; j++) {
         if (p->binaural_mem[j].auxp == NULL)
-          csound->AuxAlloc(csound, sizeof(hrtf_c), &p->binaural_mem[j]);
+          csoundAuxAlloc(csound, sizeof(hrtf_c), &p->binaural_mem[j]);
         p->binaural[j] = new (p->binaural_mem[j].auxp) hrtf_c;
         p->binaural[j]->hrtfstat_init(csound, elev[j], angle[j], r, p->ifilel, p->ifiler);
       }
@@ -1719,9 +1723,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
     }
     uint32_t nsmps = CS_KSMPS;
-    csound->AuxAlloc(csound, sizeof(MYFLT)*20*nsmps, &p->out_A);
-    csound->AuxAlloc(csound, sizeof(MYFLT)*nsmps, &p->out_binaural0);
-    csound->AuxAlloc(csound, sizeof(MYFLT)*nsmps, &p->out_binaural1);
+    csoundAuxAlloc(csound, sizeof(MYFLT)*20*nsmps, &p->out_A);
+    csoundAuxAlloc(csound, sizeof(MYFLT)*nsmps, &p->out_binaural0);
+    csoundAuxAlloc(csound, sizeof(MYFLT)*nsmps, &p->out_binaural1);
     return OK;
 }
 
@@ -1737,7 +1741,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
     int j;
     //char buffer [50];
     //int n1;
-    int ksmps = csound->GetKsmps(csound);
+    int ksmps = csoundGetKsmps(csound);
     int n_outs = p->out->sizes[0];
 
     //int n_ins = p->in->sizes[0];
@@ -1826,7 +1830,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
 
         if (signal_order != 0) {
           if ((int)*(p->r)!=-1)
-            process_nfc(csound,p,signal_order,n,j,in_ix,csound->GetSr(csound));
+            process_nfc(csound,p,signal_order,n,j,in_ix,csoundGetSr(csound));
         }
 
         // band splitting
@@ -1948,7 +1952,7 @@ static void insertFilter(HOAMBDEC* p, double val, int j)
  */
 static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, int j, int in_ix, int sr)
 {
-    int ksmps = csound->GetKsmps(csound);
+    int ksmps = csoundGetKsmps(csound);
     //char buffer[50];
 
     double d; // meters

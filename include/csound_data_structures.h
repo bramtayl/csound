@@ -24,27 +24,11 @@
 #ifndef __CSOUND_DATA_STRUCTURES_H
 #define __CSOUND_DATA_STRUCTURES_H
 
+#include "csound.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef struct _cons {
-    void* value; // should be car, but using value
-    struct _cons* next; // should be cdr, but to follow csound
-    // linked list conventions
-} CONS_CELL;
-
-typedef struct _cs_hash_bucket_item {
-    char* key;
-    void* value;
-    struct _cs_hash_bucket_item* next;
-} CS_HASH_TABLE_ITEM;
-
-typedef struct _cs_hash_table {
-    int table_size;
-    int count;
-    CS_HASH_TABLE_ITEM** buckets;
-} CS_HASH_TABLE;
 
 /* FUNCTIONS FOR CONS CELL */
 

@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"                            /*  SCXTRACT.C  */
 #include "corfile.h"
 #include "extract.h"
+#include "memalloc.h"
 
 extern void sfree(CSOUND *csound);
 extern int  sread(CSOUND *csound);
@@ -40,7 +41,7 @@ int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
 {
     int     n;
 
-    EXTRACT_STATICS* extractStatics =  csound->Calloc(csound,
+    EXTRACT_STATICS* extractStatics =  mcalloc(csound,
                                                       sizeof(EXTRACT_STATICS));
     corfile_seek(scin, 0, SEEK_END);
     corfile_puts(csound, "\n#exit\n", scin);
@@ -61,6 +62,6 @@ int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
     //printf("***extracted: >>%s<<\n", csound->scstr->body);
     corfile_flush(csound, csound->scstr);
     sfree(csound);              /* return all memory used */
-    csound->Free(csound, extractStatics);
+    mfree(csound, extractStatics);
     return 0;
 }

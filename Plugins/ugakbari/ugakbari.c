@@ -27,6 +27,7 @@
 #include "csdl.h"
 #include "interlocks.h"
 #include <math.h>
+#include "insert_public.h"
 
 #define LOGCURVE(x,y) ((LOG(x * (y-FL(1.0))+FL(1.0)))/(LOG(y)))
 #define EXPCURVE(x,y) ((EXP(x * LOG(y))-FL(1.0))/(y-FL(1.0)))
@@ -85,7 +86,7 @@ static int32_t scale_process(CSOUND *csound, scale *p)
     /*   //       min, max, kmin, kmax, *p->kinval); */
     /*   //printf("%d %d %d %d\n", */
     /*   //       max>min, fmax>fmin, *p->kinval<= max, *p->kinval >= min); */
-    /*   return csound->InitError(csound, Str("Invalid range in scale")); */
+    /*   return csoundInitError(csound, Str("Invalid range in scale")); */
     /* } */
     return OK;
 }

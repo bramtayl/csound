@@ -21,16 +21,20 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                           WINDIN.C   */
+/*                           WINDIN.C   */
+/* real-time input control units        */
+/* 26aug90 dpwe                         */
+
+#include "csoundCore.h"        
 #include "cwindow.h"
-#include "windin.h"             /* real-time input control units        */
-                                /* 26aug90 dpwe                         */
+#include "windin.h"             
+#include "insert_public.h"                 
 
 int xyinset(CSOUND *csound, XYIN *p)
 {
     // This is not the way to do it; set _QQ in interlocks
     IGN(p);
-    return csound->InitError(csound,
+    return csoundInitError(csound,
                              Str("xyin opcode has been deprecated in Csound6."));
 }
 
@@ -51,7 +55,7 @@ int xyinset(CSOUND *csound, XYIN *p)
 /*     MYFLT   ixinit = *p->ixinit; */
 
 /*     if (UNLIKELY((p->timcount = (int)(CS_EKR * *p->iprd + FL(0.5)))<=0)) { */
-/*       return csound->InitError(csound, Str("illegal iprd")); */
+/*       return csoundInitError(csound, Str("illegal iprd")); */
 /*     } */
 /*     if (UNLIKELY(iymin > iymax)) {        /\* swap if wrong order *\/ */
 /*       y = iymin; iymin = iymax; iymax = y; */
@@ -78,7 +82,7 @@ int xyinset(CSOUND *csound, XYIN *p)
 /*     p->w.x = x; */
 
 /*     csound->csoundMakeXYinCallback_(csound, &p->w, x, y); */
-/*     csound->RegisterDeinitCallback(csound, (void*) p, deinit_func); */
+/*     csoundRegisterDeinitCallback(csound, (void*) p, deinit_func); */
 
 /*     p->countdown = 1;           /\* init counter to run xyin on first call *\/ */
 /*     return OK; */

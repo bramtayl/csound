@@ -33,11 +33,16 @@
 #include "soundio.h"
 #include <ctype.h>
 
+#include "libsnd_u.h"
+#include "memalloc.h"
+#include "envvar_public.h"
+#include "utility.h"
+
 /* Constants */
 
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
-      csound->Die(csound, "%s", MSG);
+      csoundDie(csound, "%s", MSG);
 
 static const char *usage_txt[] = {
   Str_noop("Usage:\tscale [-flags] soundfile"),
@@ -69,8 +74,8 @@ static void usage(CSOUND *csound, char *mesg)
 {
     int32_t i;
     for (i = 0; usage_txt[i] != NULL; i++)
-      csound->Message(csound, "%s\n", Str(usage_txt[i]));
-    csound->Die(csound, "\n%s", mesg);
+      csoundMessage(csound, "%s\n", Str(usage_txt[i]));
+    csoundDie(csound, "\n%s", mesg);
 }
 
 static char set_output_format(OPARMS *p, char c, char outformch)
@@ -151,7 +156,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
     O.filetyp = O.outformat = 0;
     O.ringbell = O.heartbeat = 0;
     /* Check arguments */
-    if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
+    if ((envoutyp = csoundGetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
         O.filetyp = TYP_AIFF;
       else if (strcmp(envoutyp, "WAV") == 0)
@@ -159,7 +164,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       else if (strcmp(envoutyp, "IRCAM") == 0)
         O.filetyp = TYP_IRCAM;
       else {
-        csound->Die(csound, Str("%s not a recognized SFOUTYP env setting"),
+        csoundDie(csound, Str("%s not a recognized SFOUTYP env setting"),
                             envoutyp);
       }
     }
@@ -175,10 +180,10 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
-              csound->Die(csound, "%s", Str("-o cannot be stdin"));
+              csoundDie(csound, "%s", Str("-o cannot be stdin"));
 #if defined(_WIN32)
             if (UNLIKELY(strcmp(O.outfilename, "stdout") == 0)) {
-              csound->Die(csound, "%s", Str("stdout audio not supported"));
+              csoundDie(csound, "%s", Str("stdout audio not supported"));
             }
 #endif
             break;
@@ -206,7 +211,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
             break;
           case 'P':       /* Percentage */
             FIND(Str("No maximum"));
-            maximum = atof(s) * 0.01 * csound->Get0dBFS(csound);
+            maximum = atof(s) * 0.01 * csoundGet0dBFS(csound);
             while (*++s);
             break;
           case 'h':
@@ -253,7 +258,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
     /* Read sound file */
     if (UNLIKELY(inputfile == NULL)) return -1;
     if (UNLIKELY(!(infile = SCsndgetset(csound, &sc, inputfile)))) {
-      csound->Message(csound, Str("%s: error while opening %s"),
+      csoundMessage(csound, Str("%s: error while opening %s"),
                               argv[0], inputfile);
       return -1;
     }
@@ -263,13 +268,13 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       if (!O.outformat)
         O.outformat = sc.p->format;
       O.sfheader = (O.filetyp == TYP_RAW ? 0 : 1);
-      O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
+      O.sfsampsize = sfsampsize(FORMAT2SF(O.outformat));
       if (!O.sfheader)
         O.rewrt_hdr = 0;
       if (O.outfilename == NULL)
         O.outfilename = "test";
-      csound->SetUtilSr(csound, (MYFLT)sc.p->sr);
-      csound->SetUtilNchnls(csound, sc.p->nchanls);
+      set_util_sr(csound, (MYFLT)sc.p->sr);
+      set_util_nchnls(csound, sc.p->nchanls);
 
       memset(&sfinfo, 0, sizeof(SFLIB_INFO));
       //sfinfo.frames = 0/*was -1*/;
@@ -283,26 +288,26 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
         outfile = sflib_open_fd(1, SFM_WRITE, &sfinfo, 0);
         if (outfile != NULL) {
           if (UNLIKELY((fd =
-                        csound->CreateFileHandle(csound, &outfile,
+                        csoundCreateFileHandle(csound, &outfile,
                                                  CSFILE_SND_W, "stdout")) == NULL)) {
             sflib_close(outfile);
-            csound->Die(csound, "%s", Str("Memory allocation failure"));
+            csoundDie(csound, "%s", Str("Memory allocation failure"));
           }
         }
       }
       else
-        fd = csound->FileOpen2(csound, &outfile, CSFILE_SND_W,
+        fd = csoundFileOpenWithType(csound, &outfile, CSFILE_SND_W,
                        O.outfilename, &sfinfo, "SFDIR",
-                       csound->type2csfiletype(O.filetyp, O.outformat), 0);
+                       type2csfiletype(O.filetyp, O.outformat), 0);
       if (UNLIKELY(fd == NULL))
-        csound->Die(csound, Str("Failed to open output file %s: %s"),
+        csoundDie(csound, Str("Failed to open output file %s: %s"),
                     O.outfilename, Str(sflib_strerror(NULL)));
       outbufsiz = 1024 * O.sfsampsize;    /* calc outbuf size  */
-      csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
+      csoundMessage(csound, Str("writing %d-byte blks of %s to %s %s\n"),
                               (int32_t) outbufsiz,
-                              csound->getstrformat(O.outformat),
+                              getstrformat(O.outformat),
                               O.outfilename,
-                              csound->type2string(O.filetyp));
+                              type2string(O.filetyp));
       InitScaleTable(csound, &sc, factor, factorfile);
       ScaleSound(csound, &sc, infile, outfile, &O);
     }
@@ -314,7 +319,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
     else
       FindAndReportMax(csound, &sc, infile, &O);
     if (O.ringbell)
-      csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
+      csoundMessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
     return 0;
 }
 
@@ -326,12 +331,12 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
       FILE    *f;
       double  samplepert = (double)thissc->p->sr;
       double  x, y;
-      if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD, factorfile, "r", NULL,
+      if (UNLIKELY(csoundFileOpenWithType(csound, &f, CSFILE_STD, factorfile, "r", NULL,
                                      CSFTYPE_FLOATS_TEXT, 0) == NULL))
-        csound->Die(csound, Str("Failed to open %s"), factorfile);
+        csoundDie(csound, Str("Failed to open %s"), factorfile);
       while (fscanf(f, "%lf %lf\n", &x, &y) == 2) {
         scalepoint *newpoint =
-          (scalepoint*) csound->Malloc(csound, sizeof(scalepoint));
+          (scalepoint*) mmalloc(csound, sizeof(scalepoint));
         thissc->end_table->next = newpoint;
         newpoint->x0 = thissc->end_table->x1;
         newpoint->y0 = thissc->end_table->y1;
@@ -346,7 +351,7 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
       }
       {
         scalepoint *newpoint = (scalepoint*)
-          csound->Malloc(csound,sizeof(scalepoint));
+          mmalloc(csound,sizeof(scalepoint));
         thissc->end_table->next = newpoint;
         newpoint->x0 = thissc->end_table->x1;
         newpoint->y0 = thissc->end_table->y1;
@@ -360,13 +365,13 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
       thissc->end_table = &thissc->scale_table;
 /*      { */
 /*          scalepoint *tt = &thissc->scale_table; */
-/*          csound->Message(csound, "Scale table is\n"); */
+/*          csoundMessage(csound, "Scale table is\n"); */
 /*          while (tt != NULL) { */
-/*              csound->Message(csound, "(%d %f) -> %d %f [%f]\n", */
+/*              csoundMessage(csound, "(%d %f) -> %d %f [%f]\n", */
 /*                      tt->x0, tt->y0, tt->x1, tt->y1, tt->yr); */
 /*              tt = tt->next; */
 /*          } */
-/*          csound->Message(csound, "END of Table\n"); */
+/*          csoundMessage(csound, "END of Table\n"); */
 /*      } */
       thissc->table_used = 1;
     }
@@ -377,7 +382,7 @@ static double gain(SCALE *thissc, int32_t i)
     if (!thissc->table_used) return thissc->ff;
     while (i<thissc->end_table->x0 ||
            i>thissc->end_table->x1) {/* Get correct segment */
-/*      csound->Message(csound, "Next table: %d (%d %f) -> %d %f [%f]\n", */
+/*      csoundMessage(csound, "Next table: %d (%d %f) -> %d %f [%f]\n", */
       /*            i, thissc->end_table->x0, thissc->end_table->y0, */
       /*            thissc->end_table->x1, thissc->end_table->y1, */
 /*            thissc->end_table->yr); */
@@ -394,17 +399,17 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
     double  dur;
     SOUNDIN *p;
 
-    csound->SetUtilSr(csound, FL(0.0));         /* set esr 0. with no orchestra */
-    thissc->p = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
+    set_util_sr(csound, FL(0.0));         /* set esr 0. with no orchestra */
+    thissc->p = p = (SOUNDIN *) mcalloc(csound, sizeof(SOUNDIN));
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
     p->analonly = 1;
     strNcpy(p->sfname, inputfile, MAXSNDNAME-1);//p->sfname[MAXSNDNAME-1]='\0';
-    if ((infile = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skptim*/
+    if ((infile = sndgetset(csound, p)) == 0) /*open sndfil, do skptim*/
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
-    csound->Message(csound, "%s %" PRId64 " %s (%3.1f secs)\n",
+    csoundMessage(csound, "%s %" PRId64 " %s (%3.1f secs)\n",
                     Str("scaling"), p->getframes, Str("sample frame"), dur);
     return(infile);
 }
@@ -429,7 +434,7 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
     tpersample = 1.0 / (double) thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
-    while ((read_in = csound->getsndin(csound, infile, buffer,
+    while ((read_in = getsndin(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
       for (i = 0; i < read_in; i++) {
         j = (i / chans) + (bufferLenFrames * block);
@@ -440,24 +445,24 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
           max = buffer[i], mxpos = i + bufferLenSamples * block, maxtimes = 1;
         if (buffer[i] < min)
           min = buffer[i], minpos = i + bufferLenSamples * block, mintimes = 1;
-        buffer[i] *= (1.0/csound->Get0dBFS(csound));
+        buffer[i] *= (1.0/csoundGet0dBFS(csound));
       }
       sflib_write_MYFLT(outfd, buffer, read_in);
       block++;
       if (oparms->heartbeat) {
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
       }
     }
-    csound->Message(csound, Str("Max val %.3f at index %ld (time %.4f, chan %d) "
+    csoundMessage(csound, Str("Max val %.3f at index %ld (time %.4f, chan %d) "
                                 "%d times\n"), max, (long) mxpos / (long) chans,
                             tpersample * (double) mxpos / (double) chans,
                             ((int32_t) mxpos % chans) + 1, (int32_t) maxtimes);
-    csound->Message(csound, Str("Min val %.3f at index %ld (time %.4f, chan %d) "
+    csoundMessage(csound, Str("Min val %.3f at index %ld (time %.4f, chan %d) "
                                 "%d times\n"), min, (long) minpos / (long) chans,
                             tpersample * (double) minpos / (double) chans,
                             ((int32_t) minpos % chans) + 1, (int32_t) mintimes);
-    csound->Message(csound, Str("Max scale factor = %.3f\n"),
-                            (double) csound->Get0dBFS(csound) / (max > -min ?
+    csoundMessage(csound, Str("Max scale factor = %.3f\n"),
+                            (double) csoundGet0dBFS(csound) / (max > -min ?
                                                                  max:-min));
 }
 
@@ -478,7 +483,7 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
     tpersample = 1.0 / (double) thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
-    while ((read_in = csound->getsndin(csound, infile, buffer,
+    while ((read_in = getsndin(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
       for (i = 0; i < read_in; i++) {
         //j = (i / chans) + (bufferLenFrames * block);
@@ -491,19 +496,19 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
       }
       block++;
       if (oparms->heartbeat) {
-        csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
+        csoundMessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
       }
     }
-    csound->Message(csound, Str("Max val %.3f at index %ld (time %.4f, chan %d) "
+    csoundMessage(csound, Str("Max val %.3f at index %ld (time %.4f, chan %d) "
                                 "%d times\n"), max, (long) mxpos / (long) chans,
                             tpersample * (double) mxpos / (double) chans,
                             ((int32_t) mxpos % chans) + 1, (int32_t) maxtimes);
-    csound->Message(csound, Str("Min val %.3f at index %ld (time %.4f, chan %d) "
+    csoundMessage(csound, Str("Min val %.3f at index %ld (time %.4f, chan %d) "
                                 "%d times\n"), min, (long) minpos / (long) chans,
                             tpersample * (double) minpos / (double) chans,
                             ((int32_t) minpos % chans) + 1, (int32_t) mintimes);
-    csound->Message(csound, Str("Max scale factor = %.3f\n"),
-                            (double) csound->Get0dBFS(csound)/ (max > -min ?
+    csoundMessage(csound, Str("Max scale factor = %.3f\n"),
+                            (double) csoundGet0dBFS(csound)/ (max > -min ?
                                                                 max:-min));
     return (float) (max > -min ? max : -min);
 }
@@ -512,10 +517,10 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
 
 int32_t scale_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "scale", scale);
+    int32_t retval = csoundAddUtility(csound, "scale", scale);
     if (retval)
       return retval;
     return
-      csound->SetUtilityDescription(csound, "scale",
+      csoundSetUtilityDescription(csound, "scale",
                                     Str("Reports and/or adjusts maximum gain"));
 }

@@ -1,16 +1,18 @@
 #ifndef EMUGENS_COMMON_H
 #define EMUGENS_COMMON_H
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
+#include "memalloc.h"
+#include "insert_public.h"
 
 
-#define INITERR(m) (csound->InitError(csound, "%s", m))
-#define INITERRF(fmt, ...) (csound->InitError(csound, fmt, __VA_ARGS__))
+#define INITERR(m) (csoundInitError(csound, "%s", m))
+#define INITERRF(fmt, ...) (csoundInitError(csound, fmt, __VA_ARGS__))
 // VL this is needed for -Wformat-security
-#define MSG(m) (csound->Message(csound, "%s", m))
-#define MSGF(fmt, ...) (csound->Message(csound, fmt, __VA_ARGS__))
-#define PERFERR(m) (csound->PerfError(csound, &(p->h), "%s", m))
-#define PERFERRF(fmt, ...) (csound->PerfError(csound, &(p->h), fmt, __VA_ARGS__))
+#define MSG(m) (csoundMessage(csound, "%s", m))
+#define MSGF(fmt, ...) (csoundMessage(csound, fmt, __VA_ARGS__))
+#define PERFERR(m) (csoundPerfError(csound, &(p->h), "%s", m))
+#define PERFERRF(fmt, ...) (csoundPerfError(csound, &(p->h), fmt, __VA_ARGS__))
 
 
 #define CHECKARR1D(arr)           \
@@ -35,16 +37,16 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
     size_t ss;
     if (p->dimensions==0) {
         p->dimensions = 1;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+        p->sizes = (int32_t*)mmalloc(csound, sizeof(int32_t));
     }
     if (p->data == NULL) {
         CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*size;
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->data = (MYFLT*)mcalloc(csound, ss);
         p->allocated = ss;
     } else if( (ss = p->arrayMemberSize*size) > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->data = (MYFLT*) mrealloc(csound, p->data, ss);
         p->allocated = ss;
     }
     p->sizes[0] = size;

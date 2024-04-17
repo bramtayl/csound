@@ -33,6 +33,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include "memalloc.h"
+#include "fftlib.h"
+#include "envvar_public.h"
+#include "utility.h"
 
 #if defined(__GNUC__) && defined(__STRICT_ANSI__)
 #  ifndef inline
@@ -529,26 +533,26 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     void    *fd;
 
     /* open output file */
-    fd = csound->FileOpen2(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
+    fd = csoundFileOpenWithType(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
                           NULL, CSFTYPE_ATS, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->Die(csound, Str("\nCould not open %s for writing, %s\nbye...\n"),
+      csoundDie(csound, Str("\nCould not open %s for writing, %s\nbye...\n"),
                   ats_outfile, Str(sflib_strerror(NULL)));
     }
     /* call tracker */
     sound = tracker(csound, anargs, soundfile, resfile);
     /* save sound */
     if (LIKELY(sound != NULL)) {
-      csound->Message(csound, "%s", Str("saving ATS data..."));
+      csoundMessage(csound, "%s", Str("saving ATS data..."));
       ats_save(csound, sound, outfile, anargs->SMR_thres, anargs->type);
-      csound->Message(csound, "%s", Str("done!\n"));
+      csoundMessage(csound, "%s", Str("done!\n"));
     }
     else {
       /* file I/O error */
       return -2;
     }
     /* close output file */
-    csound->FileClose(csound, fd);
+    csoundFileClose(csound, fd);
     /* free ATS_SOUND memory */
     free_sound(csound, sound);
     return 0;
@@ -558,47 +562,47 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
 
 static CS_NOINLINE CS_NORETURN void usage(CSOUND *csound)
 {
-    csound->Message(csound, "ATSA 1.0\n");
-    csound->Message(csound, "%s", Str("atsa soundfile atsfile [flags]\n"));
-    csound->Message(csound, "%s", Str("Flags:\n"));
-    csound->Message(csound, Str("\t -b start (%f seconds)\n"), ATSA_START);
-    csound->Message(csound, Str("\t -e duration (%f seconds or end)\n"),
+    csoundMessage(csound, "ATSA 1.0\n");
+    csoundMessage(csound, "%s", Str("atsa soundfile atsfile [flags]\n"));
+    csoundMessage(csound, "%s", Str("Flags:\n"));
+    csoundMessage(csound, Str("\t -b start (%f seconds)\n"), ATSA_START);
+    csoundMessage(csound, Str("\t -e duration (%f seconds or end)\n"),
                     ATSA_DUR);
-    csound->Message(csound, Str("\t -l lowest frequency (%f Hertz)\n"),
+    csoundMessage(csound, Str("\t -l lowest frequency (%f Hertz)\n"),
                     ATSA_LFREQ);
-    csound->Message(csound, Str("\t -H highest frequency (%f Hertz)\n"),
+    csoundMessage(csound, Str("\t -H highest frequency (%f Hertz)\n"),
                     ATSA_HFREQ);
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("\t -d frequency deviation (%f of partial freq.)\n"),
                     ATSA_FREQDEV);
-    csound->Message(csound, Str("\t -c window cycles (%d cycles)\n"),
+    csoundMessage(csound, Str("\t -c window cycles (%d cycles)\n"),
                     ATSA_WCYCLES);
-    csound->Message(csound, Str("\t -w window type (type: %d)\n"), ATSA_WTYPE);
-    csound->Message(csound, "%s", Str("\t\t(Options: 0=BLACKMAN, 1=BLACKMAN_H, "
+    csoundMessage(csound, Str("\t -w window type (type: %d)\n"), ATSA_WTYPE);
+    csoundMessage(csound, "%s", Str("\t\t(Options: 0=BLACKMAN, 1=BLACKMAN_H, "
                                 "2=HAMMING, 3=VONHANN)\n"));
-    csound->Message(csound, Str("\t -h hop size (%f of window size)\n"),
+    csoundMessage(csound, Str("\t -h hop size (%f of window size)\n"),
                     ATSA_HSIZE);
-    csound->Message(csound, Str("\t -m lowest magnitude (%f)\n"), ATSA_LMAG);
-    csound->Message(csound, Str("\t -t track length (%d frames)\n"),
+    csoundMessage(csound, Str("\t -m lowest magnitude (%f)\n"), ATSA_LMAG);
+    csoundMessage(csound, Str("\t -t track length (%d frames)\n"),
                     ATSA_TRKLEN);
-    csound->Message(csound, Str("\t -s min. segment length (%d frames)\n"),
+    csoundMessage(csound, Str("\t -s min. segment length (%d frames)\n"),
                     ATSA_MSEGLEN);
-    csound->Message(csound, Str("\t -g min. gap length (%d frames)\n"),
+    csoundMessage(csound, Str("\t -g min. gap length (%d frames)\n"),
                     ATSA_MGAPLEN);
-    csound->Message(csound, Str("\t -T SMR threshold (%f dB SPL)\n"),
+    csoundMessage(csound, Str("\t -T SMR threshold (%f dB SPL)\n"),
                     ATSA_SMRTHRES);
-    csound->Message(csound, Str("\t -S min. segment SMR (%f dB SPL)\n"),
+    csoundMessage(csound, Str("\t -S min. segment SMR (%f dB SPL)\n"),
                     ATSA_MSEGSMR);
-    csound->Message(csound,  Str("\t -P last peak contribution "
+    csoundMessage(csound,  Str("\t -P last peak contribution "
                                 "(%f of last peak's parameters)\n"),
                     ATSA_LPKCONT);
-    csound->Message(csound, Str("\t -M SMR contribution (%f)\n"), ATSA_SMRCONT);
-    csound->Message(csound, Str("\t -F File Type (type: %d)\n"), ATSA_TYPE);
-    csound->Message(csound, "%s", Str("\t\t(Options: 1=amp.and freq. only, "
+    csoundMessage(csound, Str("\t -M SMR contribution (%f)\n"), ATSA_SMRCONT);
+    csoundMessage(csound, Str("\t -F File Type (type: %d)\n"), ATSA_TYPE);
+    csoundMessage(csound, "%s", Str("\t\t(Options: 1=amp.and freq. only, "
                                 "2=amp.,freq. and phase, "
                                 "3=amp.,freq. and residual, "
                                 "4=amp.,freq.,phase, and residual)\n\n"));
-    csound->LongJmp(csound, 1);
+    csoundLongJmp(csound, 1);
 }
 
 static int atsa_main(CSOUND *csound, int argc, char **argv)
@@ -609,7 +613,7 @@ static int atsa_main(CSOUND *csound, int argc, char **argv)
     char    *s = (char *) NULL;
     char    cur_opt = '\0';
 
-    anargs = (ANARGS *) csound->Calloc(csound, sizeof(ANARGS));
+    anargs = (ANARGS *) mcalloc(csound, sizeof(ANARGS));
 
     /* default values for analysis args */
     anargs->start = ATSA_START;
@@ -733,7 +737,7 @@ static int atsa_main(CSOUND *csound, int argc, char **argv)
 #else
     val = main_anal(csound, soundfile, ats_outfile, anargs, ATSA_RES_FILE);
 #endif
-    csound->Free(csound, anargs);
+    mfree(csound, anargs);
     return (val);
 }
 
@@ -858,7 +862,7 @@ static float *make_window(CSOUND *csound, int win_type, int win_size)
     int     i;
     float   arg = TWOPI / (float) (win_size - 1);
 
-    buffer = (float *) csound->Malloc(csound, win_size * sizeof(float));
+    buffer = (float *) mmalloc(csound, win_size * sizeof(float));
 
     for (i = 0; i < win_size; i++) {
       switch (win_type) {
@@ -912,7 +916,7 @@ static ATS_PEAK *push_peak(CSOUND *csound, ATS_PEAK *new_peak,
                            ATS_PEAK *peaks_list, int *peaks_size)
 {
     peaks_list =
-        (ATS_PEAK *) csound->ReAlloc(csound, peaks_list,
+        (ATS_PEAK *) mrealloc(csound, peaks_list,
                                      sizeof(ATS_PEAK) * ++*peaks_size);
     peaks_list[*peaks_size - 1] = *new_peak;
     return (peaks_list);
@@ -1048,8 +1052,8 @@ static ATS_PEAK *peak_detection(CSOUND *csound, ATS_FFT *ats_fft,
     ats_peak.pha = 0.0;
     ats_peak.smr = 0.0;
 
-    fftmags = (double *) csound->Malloc(csound, N * sizeof(double));
-    fftphase = (double *) csound->Malloc(csound, N * sizeof(double));
+    fftmags = (double *) mmalloc(csound, N * sizeof(double));
+    fftphase = (double *) mmalloc(csound, N * sizeof(double));
     /* convert spectrum to polar coordinates */
     to_polar(ats_fft, fftmags, fftphase, N, norm);
     central_bin = fftmags[first_bin - 2];
@@ -1075,8 +1079,8 @@ static ATS_PEAK *peak_detection(CSOUND *csound, ATS_FFT *ats_fft,
       }
     }
     /* free up fftmags and fftphase */
-    csound->Free(csound, fftmags);
-    csound->Free(csound, fftphase);
+    mfree(csound, fftmags);
+    mfree(csound, fftphase);
     return (peaks);
 }
 
@@ -1163,11 +1167,11 @@ static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
                                 float SMR_cont, int *n_partials)
 {
     ATS_CANDS *track_candidates =
-        (ATS_CANDS *) csound->Malloc(csound, *peaks_size * sizeof(ATS_CANDS));
+        (ATS_CANDS *) mmalloc(csound, *peaks_size * sizeof(ATS_CANDS));
     double  lo, hi;
     int     k, j, used, goback;
     ATS_FRAME *returned_peaks =
-        (ATS_FRAME *) csound->Malloc(csound, 2 * sizeof(ATS_FRAME));
+        (ATS_FRAME *) mmalloc(csound, 2 * sizeof(ATS_FRAME));
 
     returned_peaks[0].peaks = returned_peaks[1].peaks = NULL;
     returned_peaks[0].n_peaks = returned_peaks[1].n_peaks = 0;
@@ -1246,8 +1250,8 @@ static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
     }
 
     for (k = 0; k < *peaks_size; k++)
-      csound->Free(csound, track_candidates[k].cands);
-    csound->Free(csound, track_candidates);
+      mfree(csound, track_candidates[k].cands);
+    mfree(csound, track_candidates);
     return (returned_peaks);
 }
 
@@ -1487,13 +1491,13 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     void    *fd;
 
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo,  "SFDIR;SSDIR",
+    fd = csoundFileOpenWithType(csound, &sf, CSFILE_SND_R, file, &sfinfo,  "SFDIR;SSDIR",
                            CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->Die(csound, Str("atsa: error opening residual file '%s'"), file);
+      csoundDie(csound, Str("atsa: error opening residual file '%s'"), file);
     }
     if (UNLIKELY(sfinfo.channels != 2)) {
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("atsa: residual file has %d channels, must be stereo !"),
                   (int) sfinfo.channels);
     }
@@ -1502,23 +1506,23 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     hop = sound->frame_size;
     M = sound->window_size;
     N = residual_get_N(M, ATSA_RES_MIN_FFT_SIZE, ATSA_RES_PAD_FACTOR);
-    bufs = (mus_sample_t **) csound->Malloc(csound, 2 * sizeof(mus_sample_t *));
+    bufs = (mus_sample_t **) mmalloc(csound, 2 * sizeof(mus_sample_t *));
     bufs[0] =
-        (mus_sample_t *) csound->Malloc(csound, sflen * sizeof(mus_sample_t));
+        (mus_sample_t *) mmalloc(csound, sflen * sizeof(mus_sample_t));
     bufs[1] =
-        (mus_sample_t *) csound->Malloc(csound, sflen * sizeof(mus_sample_t));
+        (mus_sample_t *) mmalloc(csound, sflen * sizeof(mus_sample_t));
     fft.size = N;
     fft.rate = file_sampling_rate;
-    fft.data = (MYFLT *) csound->Malloc(csound, (N + 2) * sizeof(MYFLT));
+    fft.data = (MYFLT *) mmalloc(csound, (N + 2) * sizeof(MYFLT));
     threshold = /*AMP_DB*/(ATSA_NOISE_THRESHOLD);
     frames = sound->frames;
     fft_mag = (double) file_sampling_rate / (double) N;
     band_limits =
-        (int *) csound->Malloc(csound, sizeof(int) * (ATSA_CRITICAL_BANDS + 1));
+        (int *) mmalloc(csound, sizeof(int) * (ATSA_CRITICAL_BANDS + 1));
     residual_get_bands(fft_mag, edges, band_limits, ATSA_CRITICAL_BANDS + 1);
     band_arr = sound->band_energy;
     band_energy =
-        (double *) csound->Malloc(csound, ATSA_CRITICAL_BANDS * sizeof(double));
+        (double *) mmalloc(csound, ATSA_CRITICAL_BANDS * sizeof(double));
 
     M_2 = (int)floor(((double) M - 1.0) * 0.5);
     st_pt = N - M_2;
@@ -1538,7 +1542,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
       //smp = filptr - M_2 - 1;
       //time_domain_energy = residual_compute_time_domain_energy(&fft);
       /* take the fft */
-      csound->RealFFTnp2(csound, fft.data, N);
+      csoundRealFFTnp2(csound, fft.data, N);
       residual_compute_band_energy(&fft, band_limits, ATSA_CRITICAL_BANDS + 1,
                                    band_energy, norm);
       //sum = 0.0;
@@ -1558,12 +1562,12 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     }
     /* save data in sound */
     sound->band_energy = band_arr;
-    csound->Free(csound, fft.data);
-    csound->Free(csound, band_energy);
-    csound->Free(csound, band_limits);
-    csound->Free(csound, bufs[0]);
-    csound->Free(csound, bufs[1]);
-    csound->Free(csound, bufs);
+    mfree(csound, fft.data);
+    mfree(csound, band_energy);
+    mfree(csound, band_limits);
+    mfree(csound, bufs[0]);
+    mfree(csound, bufs[1]);
+    mfree(csound, bufs);
 }
 
 #if 0
@@ -1582,8 +1586,8 @@ static void band_energy_to_res(CSOUND *csound, ATS_SOUND *sound, int frame)
     double  *partialbandamp;  /* amplitude of the band that the partial is in */
     int     *bandnum;         /* the band number that the partial is in */
 
-    partialbandamp = csound->Malloc(csound, sizeof(double) * sound->partials);
-    bandnum = csound->Malloc(csound, sizeof(int) * sound->partials);
+    partialbandamp = mmalloc(csound, sizeof(double) * sound->partials);
+    bandnum = mmalloc(csound, sizeof(int) * sound->partials);
     /* initialise the sum per band */
     for (i = 0; i < ATSA_CRITICAL_BANDS; i++)
       bandsum[i] = 0;
@@ -1609,8 +1613,8 @@ static void band_energy_to_res(CSOUND *csound, ATS_SOUND *sound, int frame)
       else
         sound->res[i][frame] = 0.0;
     }
-    csound->Free(csound, partialbandamp);
-    csound->Free(csound, bandnum);
+    mfree(csound, partialbandamp);
+    mfree(csound, bandnum);
 }
 #endif
 
@@ -1810,28 +1814,28 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     partials = sound->partials;
     frm_samps = sound->frame_size;
     mag = TWOPI / (double) file_sampling_rate;
-    in_buff = (double *) csound->Malloc(csound, frm_samps * sizeof(double));
-    synth_buff = (double *) csound->Malloc(csound, frm_samps * sizeof(double));
+    in_buff = (double *) mmalloc(csound, frm_samps * sizeof(double));
+    synth_buff = (double *) mmalloc(csound, frm_samps * sizeof(double));
     /* open output file */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames = (sflib_count_t)0; /* was -1 */
     sfinfo.samplerate = file_sampling_rate;
     sfinfo.channels = 2;
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
+    fd = csoundFileOpenWithType(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
                           NULL, CSFTYPE_WAVE, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->Die(csound, Str("\nERROR: cannot open file %s for writing\n"),
+      csoundDie(csound, Str("\nERROR: cannot open file %s for writing\n"),
                   output_file);
     }
     sflib_set_string(sf, SF_STR_SOFTWARE, "created by ATSA");
     /* allocate memory */
-    obuf = (mus_sample_t **) csound->Malloc(csound, 2 * sizeof(mus_sample_t *));
+    obuf = (mus_sample_t **) mmalloc(csound, 2 * sizeof(mus_sample_t *));
     obuf[0] =
-        (mus_sample_t *) csound->Calloc(csound,
+        (mus_sample_t *) mcalloc(csound,
                                         frm_samps * sizeof(mus_sample_t));
     obuf[1] =
-        (mus_sample_t *) csound->Calloc(csound,
+        (mus_sample_t *) mcalloc(csound,
                                         frm_samps * sizeof(mus_sample_t));
     /* compute residual frame by frame */
     for (frm = 1; frm < frames; frm++) {
@@ -1886,13 +1890,13 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
       }
       atsa_sound_write_noninterleaved(sf, obuf, 2, frm_samps);
     }
-    csound->Free(csound, in_buff);
-    csound->Free(csound, synth_buff);
+    mfree(csound, in_buff);
+    mfree(csound, synth_buff);
     /* update header and close output file */
-    csound->FileClose(csound, fd);
-    csound->Free(csound, obuf[0]);
-    csound->Free(csound, obuf[1]);
-    csound->Free(csound, obuf);
+    csoundFileClose(csound, fd);
+    mfree(csound, obuf[0]);
+    mfree(csound, obuf[1]);
+    mfree(csound, obuf);
 }
 
  /* ------------------------------------------------------------------------ */
@@ -1917,7 +1921,7 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
     ATS_HEADER header;
 
     if (UNLIKELY(sound->optimized == NIL)) {
-      csound->Die(csound, "%s", Str("Error: sound not optimised !"));
+      csoundDie(csound, "%s", Str("Error: sound not optimised !"));
     }
     /* count how many partials are dead
      * unfortunately we have to do this first to
@@ -2015,22 +2019,22 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* open input file
        we get srate and total_samps in file in anargs */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo,
+    fd = csoundFileOpenWithType(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s': %s"),
+      csoundErrorMsg(csound, Str("atsa: cannot open input file '%s': %s"),
                        soundfile, Str(sflib_strerror(NULL)));
       return NULL;
     }
     /* warn about multi-channel sound files */
     if (UNLIKELY(sfinfo.channels != 1)) {
-      csound->ErrorMsg(csound,
+      csoundErrorMsg(csound,
                        Str("atsa: file has %d channels, must be mono !"),
                        (int) sfinfo.channels);
       return NULL;
     }
 
-    csound->Message(csound, "%s", Str("tracking...\n"));
+    csoundMessage(csound, "%s", Str("tracking...\n"));
 
     /* get sample rate and # of frames from file header */
     anargs->srate = sfinfo.samplerate;
@@ -2039,7 +2043,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* check analysis parameters */
     /* check start time */
     if (UNLIKELY(!(anargs->start >= 0.0 && anargs->start < sfdur))) {
-      csound->Warning(csound, Str("start %f out of bounds, corrected to 0.0"),
+      csoundWarning(csound, Str("start %f out of bounds, corrected to 0.0"),
                       anargs->start);
       anargs->start = 0.0f;
     }
@@ -2049,19 +2053,19 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     }
     f_tmp = anargs->duration + anargs->start;
     if (UNLIKELY(!(anargs->duration > 0.0 && f_tmp <= sfdur))) {
-      csound->Warning(csound, Str("duration %f out of bounds, "
+      csoundWarning(csound, Str("duration %f out of bounds, "
                                   "limited to file duration"),
                       anargs->duration);
       anargs->duration = sfdur - anargs->start;
     }
     /* print time bounds */
-    csound->Message(csound, Str("start: %f duration: %f file dur: %f\n"),
+    csoundMessage(csound, Str("start: %f duration: %f file dur: %f\n"),
                     anargs->start, anargs->duration, sfdur);
     /* check lowest frequency */
     if (UNLIKELY(!
         (anargs->lowest_freq > 0.0 &&
          anargs->lowest_freq < anargs->highest_freq))) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("lowest freq. %f out of bounds, "
                           "forced to default: %f"), anargs->lowest_freq,
                       ATSA_LFREQ);
@@ -2071,7 +2075,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     if (UNLIKELY(!
                  (anargs->highest_freq > anargs->lowest_freq &&
                   anargs->highest_freq <= anargs->srate * 0.5))) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("highest freq. %f out of bounds, "
                           "forced to default: %f"), anargs->highest_freq,
                       ATSA_HFREQ);
@@ -2079,7 +2083,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     }
     /* frequency deviation */
     if (UNLIKELY(!(anargs->freq_dev > 0.0f && anargs->freq_dev < 1.0f))) {
-      csound->Warning(csound, Str("freq. dev. %f out of bounds, "
+      csoundWarning(csound, Str("freq. dev. %f out of bounds, "
                                   "should be > 0.0 and <= 1.0, "
                                   "forced to default: %f"),
                       anargs->freq_dev, ATSA_FREQDEV);
@@ -2087,7 +2091,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     }
     /* window cycles */
     if (UNLIKELY(!(anargs->win_cycles >= 1 && anargs->win_cycles <= 8))) {
-      csound->Warning(csound, Str("windows cycles %d out of bounds, "
+      csoundWarning(csound, Str("windows cycles %d out of bounds, "
                                   "should be between 1 and 8, "
                                   "forced to default: %d"),
                       anargs->win_cycles, ATSA_WCYCLES);
@@ -2095,7 +2099,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     }
     /* window type */
     if (UNLIKELY(!(anargs->win_type >= 0 && anargs->win_type <= 3))) {
-      csound->Warning(csound, Str("window type %d out of bounds, "
+      csoundWarning(csound, Str("window type %d out of bounds, "
                                   "should be between 0 and 3, "
                                   "forced to default: %d"),
                       anargs->win_type, ATSA_WTYPE);
@@ -2103,7 +2107,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     }
     /* hop size */
     if (UNLIKELY(!(anargs->hop_size > 0.0 && anargs->hop_size <= 1.0))) {
-      csound->Warning(csound, Str("hop size %f out of bounds, "
+      csoundWarning(csound, Str("hop size %f out of bounds, "
                                   "should be > 0.0 and <= 1.0, "
                                   "forced to default: %f"),
                       anargs->hop_size, ATSA_HSIZE);
@@ -2111,7 +2115,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     }
     /* lowest mag */
     if (UNLIKELY(!(anargs->lowest_mag <= 0.0))) {
-      csound->Warning(csound, Str("lowest magnitude %f out of bounds, "
+      csoundWarning(csound, Str("lowest magnitude %f out of bounds, "
                                   "should be >= 0.0 and <= 1.0, "
                                   "forced to default: %f"),
                       anargs->lowest_mag, ATSA_LMAG);
@@ -2134,7 +2138,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     anargs->frames = compute_frames(anargs);
     /* check that we have enough frames for the analysis */
     if (UNLIKELY(!(anargs->frames >= ATSA_MFRAMES))) {
-      csound->ErrorMsg(csound,
+      csoundErrorMsg(csound,
                        Str("atsa: %d frames are not enough for analysis, "
                            "need at least %d"), anargs->frames, ATSA_MFRAMES);
       return NULL;
@@ -2143,7 +2147,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* track length */
     if (UNLIKELY(!(anargs->track_len >= 1 && anargs->track_len < anargs->frames))) {
       i_tmp = (ATSA_TRKLEN < anargs->frames) ? ATSA_TRKLEN : anargs->frames - 1;
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("track length %d out of bounds, forced to: %d"),
                       anargs->track_len, i_tmp);
       anargs->track_len = i_tmp;
@@ -2153,7 +2157,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                    anargs->min_seg_len < anargs->frames))) {
       i_tmp =
           (ATSA_MSEGLEN < anargs->frames) ? ATSA_MSEGLEN : anargs->frames - 1;
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("min. segment length %d out of bounds, "
                           "forced to: %d"), anargs->min_seg_len, i_tmp);
       anargs->min_seg_len = i_tmp;
@@ -2163,7 +2167,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                    anargs->min_gap_len < anargs->frames))) {
       i_tmp =
           (ATSA_MGAPLEN < anargs->frames) ? ATSA_MGAPLEN : anargs->frames - 1;
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("min. gap length %d out of bounds, forced to: %d"),
                       anargs->min_gap_len, i_tmp);
       anargs->min_gap_len = i_tmp;
@@ -2171,7 +2175,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* SMR threshold */
     if (UNLIKELY(!(anargs->SMR_thres >= 0.0 &&
                    anargs->SMR_thres < ATSA_MAX_DB_SPL))) {
-      csound->Warning(csound, Str("SMR threshold %f out of bounds, "
+      csoundWarning(csound, Str("SMR threshold %f out of bounds, "
                                   "should be >= 0.0 and < %f dB SPL, "
                                   "forced to default: %f"),
                       anargs->SMR_thres, ATSA_MAX_DB_SPL, ATSA_SMRTHRES);
@@ -2181,7 +2185,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     if (UNLIKELY(!
         (anargs->min_seg_SMR >= anargs->SMR_thres &&
          anargs->min_seg_SMR < ATSA_MAX_DB_SPL))) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("min. seg. SMR %f out of bounds, "
                           "should be >= %f and < %f dB SPL, "
                           "forced to default: %f"), anargs->min_seg_SMR,
@@ -2191,7 +2195,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* last peak contribution */
     if (UNLIKELY(!(anargs->last_peak_cont >= 0.0 &&
                    anargs->last_peak_cont <= 1.0))) {
-      csound->Warning(csound, Str("last peak contribution %f out of bounds, "
+      csoundWarning(csound, Str("last peak contribution %f out of bounds, "
                                   "should be >= 0.0 and <= 1.0, "
                                   "forced to default: %f"),
                       anargs->last_peak_cont, ATSA_LPKCONT);
@@ -2199,7 +2203,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     }
     /* SMR cont. */
     if (UNLIKELY(!(anargs->SMR_cont >= 0.0 && anargs->SMR_cont <= 1.0))) {
-      csound->Warning(csound, Str("SMR contribution %f out of bounds, "
+      csoundWarning(csound, Str("SMR contribution %f out of bounds, "
                                   "should be >= 0.0 and <= 1.0, "
                                   "forced to default: %f"),
                       anargs->SMR_cont, ATSA_SMRCONT);
@@ -2210,9 +2214,9 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     anargs->fft_size = ppp2(2 * anargs->win_size);
 
     /* allocate memory for sound, we read the whole sound in memory */
-    bufs = (mus_sample_t **) csound->Malloc(csound, sizeof(mus_sample_t *));
+    bufs = (mus_sample_t **) mmalloc(csound, sizeof(mus_sample_t *));
     bufs[0] =
-        (mus_sample_t *) csound->Malloc(csound, sflen * sizeof(mus_sample_t));
+        (mus_sample_t *) mmalloc(csound, sflen * sizeof(mus_sample_t));
     /* make our window */
     window = make_window(csound, anargs->win_type, anargs->win_size);
     /* get window norm */
@@ -2225,10 +2229,10 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     anargs->highest_bin = (int)floor(anargs->highest_freq / anargs->fft_mag);
     /* allocate an array analysis frames in memory */
     ana_frames =
-        (ATS_FRAME *) csound->Malloc(csound,
+        (ATS_FRAME *) mmalloc(csound,
                                      anargs->frames * sizeof(ATS_FRAME));
     /* alocate memory to store mid-point window sample numbers */
-    win_samps = (int *) csound->Malloc(csound, anargs->frames * sizeof(int));
+    win_samps = (int *) mmalloc(csound, anargs->frames * sizeof(int));
     /* center point of window */
     M_2 = (anargs->win_size-1)/2; /* Was (int)floor((anargs->win_size - 1) / 2) */
     /* first point in fft buffer to write */
@@ -2242,7 +2246,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     fft.size = anargs->fft_size;
     fft.rate = anargs->srate;
     fft.data =
-        (MYFLT *) csound->Malloc(csound,
+        (MYFLT *) mmalloc(csound,
                                  (anargs->fft_size + 2) * sizeof(MYFLT));
 
     /* main loop */
@@ -2262,7 +2266,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       /* move file pointer back */
       filptr = filptr - anargs->win_size + anargs->hop_smp;
       /* take the fft */
-      csound->RealFFTnp2(csound, fft.data, fft.size);
+      csoundRealFFTnp2(csound, fft.data, fft.size);
       /* peak detection */
       peaks_size = 0;
       peaks =
@@ -2290,7 +2294,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                 cpy_peak.amp = cpy_peak.smr = 0.0;
                 peaks = push_peak(csound, &cpy_peak, peaks, &peaks_size);
               }
-              csound->Free(csound, unmatched_peaks[0].peaks);
+              mfree(csound, unmatched_peaks[0].peaks);
             }
             /* give birth to peaks from new frame */
             if (unmatched_peaks[1].peaks != NULL) {
@@ -2305,7 +2309,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                               ana_frames[frame_n - 1].peaks,
                               &ana_frames[frame_n - 1].n_peaks);
               }
-              csound->Free(csound, unmatched_peaks[1].peaks);
+              mfree(csound, unmatched_peaks[1].peaks);
             }
           }
           else {
@@ -2328,7 +2332,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
             (double) (win_samps[frame_n] -
                       anargs->first_smp) / (double) anargs->srate;
         /* free memory */
-        csound->Free(csound, unmatched_peaks);
+        mfree(csound, unmatched_peaks);
       }
       else {
         /* if no peaks found, initialise empty frame */
@@ -2340,12 +2344,12 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       }
     }
     /* free up some memory */
-    csound->Free(csound, window);
-    csound->Free(csound, tracks);
-    csound->Free(csound, fft.data);
+    mfree(csound, window);
+    mfree(csound, tracks);
+    mfree(csound, fft.data);
     /* init sound */
-    csound->Message(csound, "%s", Str("Initializing ATS data..."));
-    sound = (ATS_SOUND *) csound->Malloc(csound, sizeof(ATS_SOUND));
+    csoundMessage(csound, "%s", Str("Initializing ATS data..."));
+    sound = (ATS_SOUND *) mmalloc(csound, sizeof(ATS_SOUND));
     init_sound(csound, sound, anargs->srate,
                (int) (anargs->hop_size * anargs->win_size), anargs->win_size,
                anargs->frames, anargs->duration, n_partials,
@@ -2363,26 +2367,26 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
           }
       }
     }
-    csound->Message(csound, "%s", Str("done!\n"));
+    csoundMessage(csound, "%s", Str("done!\n"));
     /* free up ana_frames memory */
     /* first, free all peaks in each slot of ana_frames... */
     for (k = 0; k < anargs->frames; k++)
-      csound->Free(csound, ana_frames[k].peaks);
+      mfree(csound, ana_frames[k].peaks);
     /* ...then free ana_frames */
-    csound->Free(csound, ana_frames);
+    mfree(csound, ana_frames);
     /* optimise sound */
     optimize_sound(csound, anargs, sound);
     /* compute residual */
     if (UNLIKELY(anargs->type == 3 || anargs->type == 4)) {
-      csound->Message(csound, "%s", Str("Computing residual..."));
+      csoundMessage(csound, "%s", Str("Computing residual..."));
       compute_residual(csound, bufs, sflen, resfile, sound, win_samps,
                        anargs->srate);
-      csound->Message(csound, "%s", Str("done!\n"));
+      csoundMessage(csound, "%s", Str("done!\n"));
     }
     /* free the rest of the memory */
-    csound->Free(csound, win_samps);
-    csound->Free(csound, bufs[0]);
-    csound->Free(csound, bufs);
+    mfree(csound, win_samps);
+    mfree(csound, bufs[0]);
+    mfree(csound, bufs);
     /* analyse residual */
     if (UNLIKELY(anargs->type == 3 || anargs->type == 4)) {
 #ifdef _WIN32
@@ -2393,15 +2397,15 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       // snd corrected
       //strlcat(buffer, ATSA_RES_FILE, 160);
       strncat(buffer, ATSA_RES_FILE, 159-strlen(buffer)); buffer[159]='\0';
-      csound->Message(csound, "%s", Str("Analysing residual..."));
+      csoundMessage(csound, "%s", Str("Analysing residual..."));
       residual_analysis(csound, buffer, sound);
 #else
-      csound->Message(csound, "%s", Str("Analysing residual..."));
+      csoundMessage(csound, "%s", Str("Analysing residual..."));
       residual_analysis(csound, ATSA_RES_FILE, sound);
 #endif
-      csound->Message(csound, "%s", Str("done!\n"));
+      csoundMessage(csound, "%s", Str("done!\n"));
     }
-    csound->Message(csound, "%s", Str("tracking completed.\n"));
+    csoundMessage(csound, "%s", Str("tracking completed.\n"));
     return (sound);
 }
 
@@ -2512,7 +2516,7 @@ static void fill_sound_gaps(CSOUND *csound, ATS_SOUND *sound, int min_gap_len)
     int     i, j, k, next_val, next_zero, prev_val, gap_size;
     double  f_inc, a_inc, s_inc, mag = TWOPI / (double) sound->srate;
 
-    csound->Message(csound, "%s", Str("Filling sound gaps..."));
+    csoundMessage(csound, "%s", Str("Filling sound gaps..."));
     for (i = 0; i < sound->partials; i++) {
       /* first we fix the freq gap before attack */
       next_val = find_next_val_arr(sound->frq[i], 0, sound->frames);
@@ -2541,12 +2545,12 @@ static void fill_sound_gaps(CSOUND *csound, ATS_SOUND *sound, int min_gap_len)
           if (next_val == NIL)
             break;
           gap_size = next_val - prev_val;
-       /* csound->Message(csound,
+       /* csoundMessage(csound,
                           "par: %d prev_val: %d next_val: %d gap_size %d\n",
                           i, prev_val, next_val, gap_size); */
           /* check validity of found gap */
           if (gap_size <= min_gap_len) {
-         /* csound->Message(csound, "Filling gap of par: %d\n", i); */
+         /* csoundMessage(csound, "Filling gap of par: %d\n", i); */
             f_inc =
                 (sound->frq[i][next_val] - sound->frq[i][prev_val]) / gap_size;
             a_inc =
@@ -2573,7 +2577,7 @@ static void fill_sound_gaps(CSOUND *csound, ATS_SOUND *sound, int min_gap_len)
           }
           else {
             /* gap not valid, move to next one */
-         /* csound->Message(csound, "jumping to next_val: %d\n", next_val); */
+         /* csoundMessage(csound, "jumping to next_val: %d\n", next_val); */
             k = next_val;
           }
         }
@@ -2582,7 +2586,7 @@ static void fill_sound_gaps(CSOUND *csound, ATS_SOUND *sound, int min_gap_len)
         }
       }
     }
-    csound->Message(csound, "%s", Str("done!\n"));
+    csoundMessage(csound, "%s", Str("done!\n"));
 }
 
 /* trim_partials
@@ -2600,7 +2604,7 @@ static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int min_seg_len,
     int     i, j, k, seg_beg, seg_end, seg_size, count = 0;
     double  val = 0.0, smr_av = 0.0;
 
-    csound->Message(csound, "%s", Str("Trimming short partials..."));
+    csoundMessage(csound, "%s", Str("Trimming short partials..."));
     for (i = 0; i < sound->partials; i++) {
       k = 0;
       while (k < sound->frames) {
@@ -2612,7 +2616,7 @@ static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int min_seg_len,
           if (seg_end == NIL)
             seg_end = sound->frames;
           seg_size = seg_end - seg_beg;
-       /* csound->Message(csound,
+       /* csoundMessage(csound,
                           "par: %d seg_beg: %d seg_end: %d seg_size %d\n",
                           i, seg_beg, seg_end, seg_size); */
           if (seg_size <= min_seg_len) {
@@ -2626,7 +2630,7 @@ static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int min_seg_len,
               smr_av = val / (double) count;
             if (smr_av < min_seg_smr) {
               /* trim segment, only amplitude and SMR data */
-           /* csound->Message(csound, "Trimming par: %d\n", i); */
+           /* csoundMessage(csound, "Trimming par: %d\n", i); */
               for (j = seg_beg; j < seg_end; j++) {
                 sound->amp[i][j] = 0.0;
                 sound->smr[i][j] = 0.0;
@@ -2636,7 +2640,7 @@ static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int min_seg_len,
           }
           else {
             /* segment not valid, move to the next one */
-         /* csound->Message(csound, "jumping to seg_end: %d\n", seg_end); */
+         /* csoundMessage(csound, "jumping to seg_end: %d\n", seg_end); */
             k = seg_end;
           }
         }
@@ -2645,7 +2649,7 @@ static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int min_seg_len,
         }
       }
     }
-    csound->Message(csound, "%s", Str("done!\n"));
+    csoundMessage(csound, "%s", Str("done!\n"));
 }
 
 /* auxiliary functions to fill_sound_gaps and trim_partials */
@@ -2696,7 +2700,7 @@ static void set_av(CSOUND *csound, ATS_SOUND *sound)
     int     i, j, count;
     double  val;
 
-    csound->Message(csound, "%s", Str("Computing averages..."));
+    csoundMessage(csound, "%s", Str("Computing averages..."));
     for (i = 0; i < sound->partials; i++) {
       /* smr */
       val = 0.0;
@@ -2713,7 +2717,7 @@ static void set_av(CSOUND *csound, ATS_SOUND *sound)
       else {
         sound->av[i].smr = 0.0;
       }
-   /* csound->Message(csound, "par: %d smr_av: %f\n",
+   /* csoundMessage(csound, "par: %d smr_av: %f\n",
                       i, (float)sound->av[i].smr); */
       /* frq */
       val = 0.0;
@@ -2733,7 +2737,7 @@ static void set_av(CSOUND *csound, ATS_SOUND *sound)
       /* set track# */
       sound->av[i].track = i;
     }
-    csound->Message(csound, "%s", Str("done!\n"));
+    csoundMessage(csound, "%s", Str("done!\n"));
 }
 
 /* init_sound
@@ -2747,7 +2751,7 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int sampling_rate,
     int     i /* , j*/;
 
     if (UNLIKELY(partials==0)) {
-      csound->Die(csound, "%s", Str("No partials to track -- stopping\n"));
+      csoundDie(csound, "%s", Str("No partials to track -- stopping\n"));
     }
     sound->srate = sampling_rate;
     sound->frame_size = frame_size;
@@ -2756,28 +2760,28 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int sampling_rate,
     sound->dur = duration;
     sound->partials = partials;
     sound->av =
-        (ATS_PEAK *) csound->Malloc(csound, partials * sizeof(ATS_PEAK));
+        (ATS_PEAK *) mmalloc(csound, partials * sizeof(ATS_PEAK));
     sound->optimized = NIL;
-    sound->time = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->frq  = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->amp  = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->pha  = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->smr  = (void *) csound->Malloc(csound, partials * sizeof(void *));
-    sound->res  = (void *) csound->Malloc(csound, partials * sizeof(void *));
+    sound->time = (void *) mmalloc(csound, partials * sizeof(void *));
+    sound->frq  = (void *) mmalloc(csound, partials * sizeof(void *));
+    sound->amp  = (void *) mmalloc(csound, partials * sizeof(void *));
+    sound->pha  = (void *) mmalloc(csound, partials * sizeof(void *));
+    sound->smr  = (void *) mmalloc(csound, partials * sizeof(void *));
+    sound->res  = (void *) mmalloc(csound, partials * sizeof(void *));
     /* allocate memory for time, amp, frq, smr, and res data */
     for (i = 0; i < partials; i++) {
       sound->time[i] =
-          (double *) csound->Malloc(csound, frames * sizeof(double));
+          (double *) mmalloc(csound, frames * sizeof(double));
       sound->amp[i] =
-          (double *) csound->Calloc(csound, frames * sizeof(double));
+          (double *) mcalloc(csound, frames * sizeof(double));
       sound->frq[i] =
-          (double *) csound->Calloc(csound, frames * sizeof(double));
+          (double *) mcalloc(csound, frames * sizeof(double));
       sound->pha[i] =
-          (double *) csound->Calloc(csound, frames * sizeof(double));
+          (double *) mcalloc(csound, frames * sizeof(double));
       sound->smr[i] =
-          (double *) csound->Calloc(csound, frames * sizeof(double));
+          (double *) mcalloc(csound, frames * sizeof(double));
       sound->res[i] =
-          (double *) csound->Calloc(csound, frames * sizeof(double));
+          (double *) mcalloc(csound, frames * sizeof(double));
     }
     /* init all array values with 0.0 */
     /* for (i = 0; i < partials; i++) */
@@ -2790,11 +2794,11 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int sampling_rate,
     /*   } */
     if (use_noise) {
       sound->band_energy =
-          (double **) csound->Malloc(csound,
+          (double **) mmalloc(csound,
                                      ATSA_CRITICAL_BANDS * sizeof(double *));
       for (i = 0; i < ATSA_CRITICAL_BANDS; i++)
         sound->band_energy[i] =
-            (double *) csound->Malloc(csound, frames * sizeof(double));
+            (double *) mmalloc(csound, frames * sizeof(double));
     }
     else
       sound->band_energy = NULL;
@@ -2809,32 +2813,32 @@ static void free_sound(CSOUND *csound, ATS_SOUND *sound)
     int     k;
 
     if (sound != NULL) {
-      csound->Free(csound, sound->av);
+      mfree(csound, sound->av);
       /* data */
       for (k = 0; k < sound->partials; k++) {
-        csound->Free(csound, sound->time[k]);
-        csound->Free(csound, sound->amp[k]);
-        csound->Free(csound, sound->frq[k]);
-        csound->Free(csound, sound->pha[k]);
-        csound->Free(csound, sound->smr[k]);
-        csound->Free(csound, sound->res[k]);
+        mfree(csound, sound->time[k]);
+        mfree(csound, sound->amp[k]);
+        mfree(csound, sound->frq[k]);
+        mfree(csound, sound->pha[k]);
+        mfree(csound, sound->smr[k]);
+        mfree(csound, sound->res[k]);
       }
       /* pointers to data */
-      csound->Free(csound, sound->time);
-      csound->Free(csound, sound->frq);
-      csound->Free(csound, sound->amp);
-      csound->Free(csound, sound->pha);
-      csound->Free(csound, sound->smr);
-      csound->Free(csound, sound->res);
+      mfree(csound, sound->time);
+      mfree(csound, sound->frq);
+      mfree(csound, sound->amp);
+      mfree(csound, sound->pha);
+      mfree(csound, sound->smr);
+      mfree(csound, sound->res);
       /* check if we have residual data
        * and free its memory up
        */
       if (sound->band_energy != NULL) {
         for (k = 0; k < ATSA_CRITICAL_BANDS; k++)
-          csound->Free(csound, sound->band_energy[k]);
-        csound->Free(csound, sound->band_energy);
+          mfree(csound, sound->band_energy[k]);
+        mfree(csound, sound->band_energy);
       }
-      csound->Free(csound, sound);
+      mfree(csound, sound);
     }
 }
 
@@ -2842,11 +2846,11 @@ static void free_sound(CSOUND *csound, ATS_SOUND *sound)
 
 int atsa_init_(CSOUND *csound)
 {
-    int     retval = csound->AddUtility(csound, "atsa", atsa_main);
+    int     retval = csoundAddUtility(csound, "atsa", atsa_main);
 
     if (!retval) {
       retval =
-          csound->SetUtilityDescription(csound, "atsa",
+          csoundSetUtilityDescription(csound, "atsa",
                                         Str("Soundfile analysis for ATS opcodes"));
     }
     return retval;

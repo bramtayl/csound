@@ -21,12 +21,15 @@
     02110-1301 USA
 */
 
-#include "cwindow_internal.h"
+#include "cwindow.h"
 
-#include "csoundCore_internal.h"                         /*      WINDOW.C        */
-#include "cwindow.h"                            /*  graph window mgr    */
-#include "winEPS.h"                             /* PostSCript routines  */
-                                                /*  dpwe 16may90        */
+/*      WINDOW.C        */
+/*  graph window mgr    */
+/* PostSCript routines  */
+/*  dpwe 16may90        */
+
+#include "csoundCore_internal.h"                                                          
+#include "winEPS.h"                             
 
 extern OENTRY* find_opcode_new(CSOUND*, char*, char*, char*);
 
@@ -66,7 +69,7 @@ static int DummyFn3(CSOUND *csound)
 void dispinit(CSOUND *csound)
 {
       OPARMS  O;
-      csound->GetOParms(csound, &O);
+      csoundGetOParms(csound, &O);
 
     if (O.displays && !(O.graphsoff || O.postscript)) {
       if (!csound->isGraphable_)
@@ -76,7 +79,7 @@ void dispinit(CSOUND *csound)
     }
     if (!O.displays) {
       if(csound->oparms->msglevel || csound->oparms->odebug)
-       csound->Message(csound, Str("displays suppressed\n"));
+       csoundMessage(csound, Str("displays suppressed\n"));
       csound->csoundMakeGraphCallback_ = DummyFn1;
       csound->csoundDrawGraphCallback_ = DummyFn2;
       csound->csoundKillGraphCallback_ = DummyFn2;
@@ -85,7 +88,7 @@ void dispinit(CSOUND *csound)
       if (csound->csoundDrawGraphCallback_ == NULL){
         // if callbacks are not set by host
         if(csound->oparms->msglevel ||csound->oparms->odebug)
-         csound->Message(csound, Str("graphics %s, ascii substituted\n"),
+         csoundMessage(csound, Str("graphics %s, ascii substituted\n"),
                         ((O.graphsoff || O.postscript) ?
                          Str("suppressed")
                          : Str("not supported on this terminal")));
@@ -110,7 +113,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
 
-    csound->GetOParms(csound, &O);
+    csoundGetOParms(csound, &O);
     if (!O.displays) return;    // return if displays disabled
     wdptr->fdata    = fdata;            // init remainder of data structure
     wdptr->npts     = npts;
@@ -137,7 +140,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
 int dispexit(CSOUND *csound)
 {
     OPARMS  O;
-    csound->GetOParms(csound, &O);
+    csoundGetOParms(csound, &O);
     if (O.postscript)
       PS_ExitGraph(csound);     /* Write trailer to PostScript file  */
     /* prompt for exit from last active window */
@@ -155,7 +158,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     MYFLT   max, min, absmax, fval;
     int     pol;
     OPARMS  O;
-    csound->GetOParms(csound, &O);
+    csoundGetOParms(csound, &O);
 
     if (!O.displays)  return;   /* displays disabled? return */
     fp = wdptr->fdata;
@@ -182,7 +185,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     else if (pol == (int16)NEGPOL && max > FL(0.0)) pol = (int16)BIPOL;
     wdptr->polarity = pol;
 
-    if (O.odebug) csound->Message(csound, " calling draw callback \n");
+    if (O.odebug) csoundMessage(csound, " calling draw callback \n");
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);
 

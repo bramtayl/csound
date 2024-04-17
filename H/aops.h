@@ -25,10 +25,18 @@
 
 #pragma once
 
+#include "csoundCore_internal.h"
+
 #define CSOUND_SPIN_SPINLOCK csoundSpinLock(&csound->spinlock);
 #define CSOUND_SPIN_SPINUNLOCK csoundSpinUnLock(&csound->spinlock);
 #define CSOUND_SPOUT_SPINLOCK csoundSpinLock(&csound->spoutlock);
 #define CSOUND_SPOUT_SPINUNLOCK csoundSpinUnLock(&csound->spoutlock);
+
+#if ULONG_MAX == 18446744073709551615UL
+#  define POW2MAX   (24.0)
+#else
+#  define POW2MAX   (15.0)
+#endif
 
 typedef struct {
     OPDS    h;

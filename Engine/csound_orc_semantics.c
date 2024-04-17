@@ -35,6 +35,8 @@
 #include "csound_standard_types.h"
 #include "csound_orc_expressions.h"
 #include "csound_orc_semantics.h"
+#include "memalloc.h"
+#include "csound_orc_semantics_public.h"
 
 extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);
@@ -57,7 +59,6 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);
 char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
-void do_baktrace(CSOUND *csound, uint64_t files);
 
 extern int add_udo_definition(CSOUND *csound, char *opname,
                               char *outtypes, char *intypes, int flags);
@@ -66,23 +67,6 @@ int is_reserved(char*);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
-
-char* cs_strdup(CSOUND* csound, char* str) {
-  size_t len;
-  char* retVal;
-
-  if (str == NULL) return NULL;
-
-  len = strlen(str);
-  retVal = csound->Malloc(csound, len + 1);
-
-  if (len > 0) {
-    memcpy(retVal, str, len);
-  }
-  retVal[len] = '\0';
-
-  return retVal;
-}
 
 char* cs_strndup(CSOUND* csound, char* str, size_t size) {
   size_t len;
@@ -95,7 +79,7 @@ char* cs_strndup(CSOUND* csound, char* str, size_t size) {
     return cs_strdup(csound, str);
   }
 
-  retVal = csound->Malloc(csound, size + 1);
+  retVal = mmalloc(csound, size + 1);
   memcpy(retVal, str, size);
   retVal[size] = '\0';
 
@@ -137,7 +121,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
   case S_ADDIN:
     return "##addin";
   }
-  csound->Warning(csound, Str("Unknown function type found: %d [%c]\n"),
+  csoundWarning(csound, Str("Unknown function type found: %d [%c]\n"),
                   tree->type, tree->type);
   return NULL;
 }
@@ -163,7 +147,7 @@ char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
   case S_UNOT:
     return "!";
   }
-  csound->Warning(csound,
+  csoundWarning(csound,
                   Str("Unknown boolean expression type found: %d\n"),
                   tree->type);
   return NULL;
@@ -195,7 +179,7 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
 
   char* varTypeName = arrayVar->subType->varTypeName;
   int len = arrayVar->dimensions + strlen(varTypeName) + 2;
-  char* retVal = csound->Malloc(csound, len);
+  char* retVal = mmalloc(csound, len);
   memset(retVal, '[', arrayVar->dimensions);
   strNcpy(retVal + arrayVar->dimensions, varTypeName, strlen(varTypeName) + 1);
   retVal[len - 1] = '\0';
@@ -332,7 +316,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                       opentries,
                                       condInTypes);
 
-      csound->Free(csound, opentries);
+      mfree(csound, opentries);
       if (UNLIKELY(out == NULL)) {
         synterr(csound,
                 Str("unable to find ternary operator for "
@@ -342,9 +326,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return NULL;
       }
 
-      csound->Free(csound, arg1);
-      csound->Free(csound, arg2);
-      csound->Free(csound, ans);
+      mfree(csound, arg1);
+      mfree(csound, arg2);
+      mfree(csound, ans);
       return cs_strdup(csound, out);
 
     }
@@ -381,16 +365,16 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                             "types %s not found, line %d\n"),
                 opname, argTypeRight, tree->line);
         do_baktrace(csound, tree->locn);
-        csound->Free(csound, argTypeRight);
-        csound->Free(csound, entries);
+        mfree(csound, argTypeRight);
+        mfree(csound, entries);
         return NULL;
       }
 
       if (argsRequired(out) == 1) {
         char** args = splitArgs(csound, out);
         char *ret = cs_strdup(csound, args[0]);
-        csound->Free(csound, argTypeRight);
-        csound->Free(csound, entries);
+        mfree(csound, argTypeRight);
+        mfree(csound, entries);
         return ret;
       }
 
@@ -399,8 +383,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
               opname, argTypeRight, tree->line);
       do_baktrace(csound, tree->locn);
 
-      csound->Free(csound, argTypeRight);
-      csound->Free(csound, entries);
+      mfree(csound, argTypeRight);
+      mfree(csound, entries);
       return NULL;
 
     }
@@ -432,7 +416,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       len1 = strlen(argTypeLeft);
       len2 = strlen(argTypeRight);
-      inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
+      inArgTypes = mmalloc(csound, len1 + len2 + 1);
 
       memcpy(inArgTypes, argTypeLeft, len1);
       memcpy(inArgTypes + len1, argTypeRight, len2);
@@ -440,20 +424,20 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       inArgTypes[len1 + len2] = '\0';
 
       out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
-      csound->Free(csound, entries);
+      mfree(csound, entries);
 
       if (UNLIKELY(out == NULL)) {
         synterr(csound, Str("error: opcode '%s' for expression with arg "
                             "types %s not found, line %d\n"),
                 opname, inArgTypes, tree->line);
         do_baktrace(csound, tree->locn);
-        csound->Free(csound, inArgTypes);
+        mfree(csound, inArgTypes);
         return NULL;
       }
 
-      csound->Free(csound, argTypeLeft);
-      csound->Free(csound, argTypeRight);
-      csound->Free(csound, inArgTypes);
+      mfree(csound, argTypeLeft);
+      mfree(csound, argTypeRight);
+      mfree(csound, inArgTypes);
       return cs_strdup(csound, out);
 
     } else {
@@ -489,7 +473,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       len1 = strlen(argTypeLeft);
       len2 = strlen(argTypeRight);
-      inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
+      inArgTypes = mmalloc(csound, len1 + len2 + 1);
 
       memcpy(inArgTypes, argTypeLeft, len1);
       memcpy(inArgTypes + len1, argTypeRight, len2);
@@ -497,20 +481,20 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       inArgTypes[len1 + len2] = '\0';
 
       out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
-      csound->Free(csound, entries);
+      mfree(csound, entries);
 
       if (UNLIKELY(out == NULL)) {
         synterr(csound, Str("error: boolean expression '%s' with arg "
                             "types %s not found, line %d\n"),
                 opname, inArgTypes, tree->line);
         do_baktrace(csound, tree->locn);
-        csound->Free(csound, inArgTypes);
+        mfree(csound, inArgTypes);
         return NULL;
       }
 
-      csound->Free(csound, argTypeLeft);
-      csound->Free(csound, argTypeRight);
-      csound->Free(csound, inArgTypes);
+      mfree(csound, argTypeLeft);
+      mfree(csound, argTypeRight);
+      mfree(csound, inArgTypes);
       return cs_strdup(csound, out);
 
     }
@@ -655,7 +639,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       len++;
     }
 
-    char* retVal = csound->Malloc(csound, (len + 2) * sizeof(char));
+    char* retVal = mmalloc(csound, (len + 2) * sizeof(char));
     memcpy(retVal, s, len);
     retVal[len] = ']';
     retVal[len + 1] = '\0';
@@ -697,14 +681,14 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
   head = cs_hash_table_get(csound, csound->opcodes, shortName);
 
   retVal = (head != NULL) ? head->value : NULL;
-  if (shortName != opname) csound->Free(csound, shortName);
+  if (shortName != opname) mfree(csound, shortName);
 
   return retVal;
 }
 
 static OENTRIES* get_entries(CSOUND* csound, int count)
 {
-  OENTRIES* x = csound->Calloc(csound, sizeof(OENTRIES*)+sizeof(OENTRY*)*count);
+  OENTRIES* x = mcalloc(csound, sizeof(OENTRIES*)+sizeof(OENTRY*)*count);
   x->count = count;
   return x;
 }
@@ -732,7 +716,7 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
   }
 
   if (shortName != opname) {
-    csound->Free(csound, shortName);
+    mfree(csound, shortName);
   }
 
   return retVal;
@@ -846,7 +830,7 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 
     if ((argsFoundCount > argsRequiredCount) &&
         !(is_in_var_arg(argsRequired[argsRequiredCount - 1]))) {
-      csound->Free(csound, argsRequired);
+      mfree(csound, argsRequired);
       return 0;
     }
 
@@ -893,15 +877,15 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
     int n;
     for (n=0; argsFound[n] != NULL; n++) {
       // printf("delete %p\n", argsFound[n]);
-      csound->Free(csound, argsFound[n]);
+      mfree(csound, argsFound[n]);
     }
-    csound->Free(csound, argsFound);
+    mfree(csound, argsFound);
     //printf("delete %p\n", argsRequired);
     for (n=0; argsRequired[n] != NULL; n++) {
       //printf("delete %p\n", argsRequired[n]);
-      csound->Free(csound, argsRequired[n]);
+      mfree(csound, argsRequired[n]);
     }
-    csound->Free(csound, argsRequired);
+    mfree(csound, argsRequired);
 
     return returnVal;
   }
@@ -981,7 +965,7 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 
     if ((argsFoundCount > argsRequiredCount) &&
         !(is_out_var_arg(argsRequired[argsRequiredCount - 1]))) {
-      csound->Free(csound, argsRequired);
+      mfree(csound, argsRequired);
       return 0;
     }
 
@@ -1020,15 +1004,15 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
     int n;
     for (n=0; argsFound[n] != NULL; n++) {
       // printf("delete %p\n", argsFound[n]);
-      csound->Free(csound, argsFound[n]);
+      mfree(csound, argsFound[n]);
     }
-    csound->Free(csound, argsFound);
+    mfree(csound, argsFound);
     //printf("delete %p\n", argsRequired);
     for (n=0; argsRequired[n] != NULL; n++) {
       //printf("delete %p\n", argsRequired[n]);
-      csound->Free(csound, argsRequired[n]);
+      mfree(csound, argsRequired[n]);
     }
-    csound->Free(csound, argsRequired);
+    mfree(csound, argsRequired);
 
     return returnVal;
   }
@@ -1127,7 +1111,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
 
   if (strchr(arg, '[') == NULL) {
     /* User-Defined Struct */
-    retVal = csound->Malloc(csound, sizeof(char) * (len + 3));
+    retVal = mmalloc(csound, sizeof(char) * (len + 3));
     current = retVal;
     *current++ = ':';
     strncpy(current, arg, len);
@@ -1149,7 +1133,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
     nameLen += 2;
   }
 
-  retVal = csound->Malloc(csound, sizeof(char) * (nameLen + (dimensions * 2) + 1));
+  retVal = mmalloc(csound, sizeof(char) * (nameLen + (dimensions * 2) + 1));
   current = retVal;
 
   if (nameLen > 1) {
@@ -1166,7 +1150,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
     *current++ = ']';
   }
   *current = '\0';
-  //csound->Free(csound, arg);
+  //mfree(csound, arg);
   return retVal;
 }
 
@@ -1181,7 +1165,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
 
   dimensions = (strlen(arg) - 1) / 2;
 
-  retVal = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
+  retVal = mmalloc(csound, sizeof(char) * (dimensions + 3));
   retVal[dimensions + 2] = '\0';
   retVal[dimensions + 1] = ']';
   retVal[dimensions] = *arg;
@@ -1189,7 +1173,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
   for (i = 0; i < dimensions; i++) {
     retVal[i] = '[';
   }
-  //csound->Free(csound, arg);
+  //mfree(csound, arg);
   return retVal;
 }
 
@@ -1204,7 +1188,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     return NULL;
   }
 
-  char** argTypes = csound->Malloc(csound, len * sizeof(char*));
+  char** argTypes = mmalloc(csound, len * sizeof(char*));
   char* argString = NULL;
   TREE* current = tree;
   int index = 0;
@@ -1225,19 +1209,19 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     current = current->next;
   }
 
-  argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+  argString = mmalloc(csound, (argsLen + 1) * sizeof(char));
   char* temp = argString;
 
   for (i = 0; i < len; i++) {
     int size = strlen(argTypes[i]);
     memcpy(temp, argTypes[i], size);
     temp += size;
-    csound->Free(csound, argTypes[i]);
+    mfree(csound, argTypes[i]);
   }
 
   argString[argsLen] = '\0';
 
-  csound->Free(csound, argTypes);
+  mfree(csound, argTypes);
   return argString;
 }
 
@@ -1256,7 +1240,7 @@ char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) 
 char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 
   int len = tree_arg_list_count(tree);
-  char* argTypes = csound->Malloc(csound, len * 256 * sizeof(char));
+  char* argTypes = mmalloc(csound, len * 256 * sizeof(char));
   int i;
 
   if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
@@ -1296,7 +1280,7 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
     i += 1;
   }
 
-  char* argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+  char* argString = mmalloc(csound, (argsLen + 1) * sizeof(char));
   char* curLoc = argString;
 
   for (i = 0; i < len; i++) {
@@ -1306,7 +1290,7 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
   }
 
   argString[argsLen] = '\0';
-  csound->Free(csound, argTypes);
+  mfree(csound, argTypes);
   return argString;
 }
 
@@ -1314,7 +1298,7 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 OENTRY* find_opcode_new(CSOUND* csound, char* opname,
                         char* outArgsFound, char* inArgsFound) {
 
-  //    csound->Message(csound, "Searching for opcode: %s | %s | %s\n",
+  //    csoundMessage(csound, "Searching for opcode: %s | %s | %s\n",
   //                    outArgsFound, opname, inArgsFound);
 
   OENTRIES* opcodes = find_opcode2(csound, opname);
@@ -1324,7 +1308,7 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
   }
   OENTRY* retVal = resolve_opcode(csound, opcodes, outArgsFound, inArgsFound);
 
-  csound->Free(csound, opcodes);
+  mfree(csound, opcodes);
   return retVal;
 
 }
@@ -1342,7 +1326,7 @@ OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
   OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
                                         outArgsFound, inArgsFound);
 
-  csound->Free(csound, opcodes);
+  mfree(csound, opcodes);
 
   return retVal;
 }
@@ -1390,10 +1374,10 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
         //FIXME - this feels like a hack
         if (*argType == 'c' || *argType == 'r' || *argType == 'p') {
-          csound->Free(csound, argType);
+          mfree(csound, argType);
           break;
         }
-        csound->Free(csound, argType);
+        mfree(csound, argType);
         pool = (*varName == 'g') ?
           typeTable->globalPool : typeTable->localPool;
         var = csoundFindVariableWithName(csound, pool, varName);
@@ -1871,7 +1855,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     synterr(csound, Str("Unable to find opcode with name: %s\n"),
             root->value->lexeme);
     if (entries != NULL) {
-      csound->Free(csound, entries);
+      mfree(csound, entries);
     }
     return 0;
   }
@@ -1904,9 +1888,9 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                   root->line);
     do_baktrace(csound, root->locn);
 
-    csound->Free(csound, leftArgString);
-    csound->Free(csound, rightArgString);
-    csound->Free(csound, entries);
+    mfree(csound, leftArgString);
+    mfree(csound, rightArgString);
+    mfree(csound, entries);
 
     return 0;
   }
@@ -1941,9 +1925,9 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     }
     root->markup = oentry;
   }
-  csound->Free(csound, leftArgString);
-  csound->Free(csound, rightArgString);
-  csound->Free(csound, entries);
+  mfree(csound, leftArgString);
+  mfree(csound, rightArgString);
+  mfree(csound, entries);
   return 1;
 }
 
@@ -2058,10 +2042,10 @@ int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       outArg = get_arg_type2(csound, current->left, typeTable);
 
       if (outArg == NULL || (*outArg != 'b' && *outArg != 'B')) {
-        csound->Free(csound, outArg);
+        mfree(csound, outArg);
         return 0;
       }
-      csound->Free(csound, outArg);
+      mfree(csound, outArg);
       current = (current->right == NULL) ? NULL : current->right->next;
     }
 
@@ -2105,8 +2089,8 @@ int initStructVar(CSOUND* csound, void* p) {
   int len = cs_cons_length(type->members);
   int i;
 
-  //    csound->Message(csound, "Initializing Struct...\n");
-  //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  //    csoundMessage(csound, "Initializing Struct...\n");
+  //    csoundMessage(csound, "Struct Type: %s\n", type->varTypeName);
 
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
@@ -2123,15 +2107,15 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   int len = cs_cons_length(members);
   int i;
 
-  structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
+  structVar->members = mcalloc(csound, len * sizeof(CS_VAR_MEM*));
 
-  //    csound->Message(csound, "Initializing Struct...\n");
-  //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  //    csoundMessage(csound, "Initializing Struct...\n");
+  //    csoundMessage(csound, "Struct Type: %s\n", type->varTypeName);
 
   for (i = 0; i < len; i++) {
     CS_VARIABLE* var = members->value;
     size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
-    CS_VAR_MEM* mem = csound->Calloc(csound, size);
+    CS_VAR_MEM* mem = mcalloc(csound, size);
     if (var->initializeVariableMemory != NULL) {
       var->initializeVariableMemory(csound, var, &mem->value);
     }
@@ -2147,11 +2131,11 @@ CS_VARIABLE* createStructVar(void* cs, void* p) {
   CS_TYPE* type = (CS_TYPE*)p;
 
   if (type == NULL) {
-    csound->Message(csound, "ERROR: no type given for struct creation\n");
+    csoundMessage(csound, "ERROR: no type given for struct creation\n");
     return NULL;
   }
 
-  CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+  CS_VARIABLE* var = mcalloc(csound, sizeof (CS_VARIABLE));
   IGN(p);
   var->memBlockSize = sizeof(CS_STRUCT_VAR);
   var->initializeVariableMemory = initializeStructVar;
@@ -2176,7 +2160,7 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
 
 
 int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
-  CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
+  CS_TYPE* type = mcalloc(csound, sizeof(CS_TYPE));
   TREE* current = structDefTree->right;
   int index = 0;
   char temp[256];
@@ -2203,9 +2187,9 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     var->varName = cs_strdup(csound, memberName);
     var->varType = memberType;
 
-    //        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
+    //        csoundMessage(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
 
-    CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
+    CONS_CELL* member = mcalloc(csound, sizeof(CONS_CELL));
     member->value = var;
     type->members = cs_cons_append(type->members, member);
     current = current->next;
@@ -2349,21 +2333,21 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   //if (root->value)
   //printf("###verify %p %p (%s)\n", root, root->value, root->value->lexeme);
 
-  if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Verifying AST\n");
+  if (UNLIKELY(PARSER_DEBUG)) csoundMessage(csound, "Verifying AST\n");
 
   while (current != NULL) {
     switch(current->type) {
     case STRUCT_TOKEN:
-      if (PARSER_DEBUG) csound->Message(csound, "Struct definition found\n");
-      //        csound->Message(csound, "%s: ", current->left->value->lexeme);
+      if (PARSER_DEBUG) csoundMessage(csound, "Struct definition found\n");
+      //        csoundMessage(csound, "%s: ", current->left->value->lexeme);
       //        TREE* args = current->right;
       //        while (args != NULL) {
-      //          csound->Message(csound, "%s ", args->value->lexeme);
+      //          csoundMessage(csound, "%s ", args->value->lexeme);
       //          args = args->next;
       //        }
-      //        csound->Message(csound, "\n");
+      //        csoundMessage(csound, "\n");
       if(!add_struct_definition(csound, current)) {
-        csound->ErrorMsg(csound,
+        csoundErrorMsg(csound,
                          "Error: Unable to define new struct type: %s\n",
                          current->left->value->lexeme);
         return NULL;
@@ -2371,7 +2355,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       break;
     case INSTR_TOKEN:
       csound->inZero = 0;
-      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Instrument found\n");
+      if (UNLIKELY(PARSER_DEBUG)) csoundMessage(csound, "Instrument found\n");
       typeTable->localPool = csoundCreateVarPool(csound);
       current->markup = typeTable->localPool;
 
@@ -2394,7 +2378,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       break;
     case UDO_TOKEN:
-      if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
+      if (PARSER_DEBUG) csoundMessage(csound, "UDO found\n");
 
       top = current->left;
       if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
@@ -2429,7 +2413,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                            0x0000);
       }
       csound->inZero = 0;
-      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
+      if (UNLIKELY(PARSER_DEBUG)) csoundMessage(csound, "UDO found\n");
 
       typeTable->localPool = csoundCreateVarPool(csound);
       current->markup = typeTable->localPool;
@@ -2465,7 +2449,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       char* inArgStringDecl = get_in_types_from_tree(csound, current->left->right, typeTable);
       add_udo_definition(csound, current->value->lexeme, inArgStringDecl, outArgStringDecl, UNDEFINED);
       csound->inZero = 0;
-      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
+      if (UNLIKELY(PARSER_DEBUG)) csoundMessage(csound, "UDO found\n");
 
       typeTable->localPool = csoundCreateVarPool(csound);
       current->markup = typeTable->localPool;
@@ -2592,7 +2576,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
         current->type = NUMBER_TOKEN;
         current->value->fvalue = lval;
-        csound->Free(csound, current->left); csound->Free(csound, current->right);
+        mfree(csound, current->left); mfree(csound, current->right);
       }
       break;
     case ENDIN_TOKEN:
@@ -2642,7 +2626,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
   }
 
-  if (PARSER_DEBUG) csound->Message(csound, "[End Verifying AST]\n");
+  if (PARSER_DEBUG) csoundMessage(csound, "[End Verifying AST]\n");
 
   cs_cons_free(csound, typeTable->labelList);
   typeTable->labelList = parentLabelList;
@@ -2679,10 +2663,10 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
   if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
   //printf("LINE: %d\n", line);
 
-  csound->ErrorMsg(csound, Str("\nerror: %s  (token \"%s\")"),
+  csoundErrorMsg(csound, Str("\nerror: %s  (token \"%s\")"),
                   str, csound_orcget_text(yyscanner));
   do_baktrace(csound, files);
-  csound->ErrorMsg(csound, Str(" line %d:\n>>>"), line);
+  csoundErrorMsg(csound, Str(" line %d:\n>>>"), line);
   while ((ch=*--p) != '\n' && ch != '\0');
   do {
     ch = *++p;
@@ -2691,9 +2675,9 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     if (ch=='#' && strncmp(p,"sline ",6)) {
       p+=7; while (isdigit(*p)) p++;
     }
-    else csound->ErrorMsg(csound, "%c", ch);
+    else csoundErrorMsg(csound, "%c", ch);
   } while (ch != '\n' && ch != '\0');
-  csound->ErrorMsg(csound, " <<<\n");
+  csoundErrorMsg(csound, " <<<\n");
 
 
 }
@@ -2703,7 +2687,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
   while (files) {
     unsigned int ff = files&0xff;
     files = files >>8;
-    csound->ErrorMsg(csound, Str(" from file %s (%d)\n"),
+    csoundErrorMsg(csound, Str(" from file %s (%d)\n"),
                     csound->filedir[ff], ff);
   }
 
@@ -2754,7 +2738,7 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
   TREE *ans = NULL;
 
   if(tree != NULL) {
-    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+    ans = (TREE*)mmalloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -2783,7 +2767,7 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
                 TREE* left, TREE* right)
 {
   TREE *ans;
-  ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+  ans = (TREE*)mmalloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
     /* fprintf(stderr, "Out of memory\n"); */
     exit(1);
@@ -2799,14 +2783,14 @@ TREE* make_node(CSOUND *csound, int line, int locn, int type,
   ans->locn  = locn;
   ans->markup = NULL;
   //printf("make node %p %p %p\n", ans, ans->left, ans->right);
-  //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
+  //csoundDebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
   return ans;
 }
 
 TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
 {
   TREE *ans;
-  ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
+  ans = (TREE*)mcalloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
     /* fprintf(stderr, "Out of memory\n"); */
     exit(1);
@@ -2823,7 +2807,7 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
   ans->markup = NULL;
   //if (ans->value)
   //printf("make leaf %p %p (%s)\n", ans, ans->value, ans->value->lexeme);
-  csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
+  csoundDebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
                    __LINE__, line);
   return ans;
 }
@@ -2855,11 +2839,11 @@ void delete_tree(CSOUND *csound, TREE *l)
     if (l->value) {
       if (l->value->lexeme) {
         //printf("Free %p %p (%s)\n", l, l->value, l->value->lexeme);
-        csound->Free(csound, l->value->lexeme);
+        mfree(csound, l->value->lexeme);
         //l->value->lexeme = NULL;
       }
       //printf("Free val %p\n", l->value);
-      csound->Free(csound, l->value);
+      mfree(csound, l->value);
       //l->value = NULL;
     }
     // printf("left %p right %p\n", l->left, l->right);
@@ -2869,7 +2853,7 @@ void delete_tree(CSOUND *csound, TREE *l)
     //l->right = NULL;
     l = l->next;
     //printf("Free old %p next: %p\n", old, l);
-    csound->Free(csound, old);
+    mfree(csound, old);
   }
 }
 
@@ -2888,10 +2872,10 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     return;
   }
   for (i=0; i<n; i++) {
-    csound->Message(csound, " ");
+    csoundMessage(csound, " ");
   }
 
-  csound->Message(csound, "TYPE: %d ", l->type);
+  csoundMessage(csound, "TYPE: %d ", l->type);
 
   switch (l->type) {
   case ',':
@@ -2907,112 +2891,112 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
   case '(':
   case ')':
   case '=':
-    csound->Message(csound,"%c:(%d:%s)\n", l->type,
+    csoundMessage(csound,"%c:(%d:%s)\n", l->type,
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case NEWLINE:
-    csound->Message(csound,"NEWLINE:(%d:%s)\n",
+    csoundMessage(csound,"NEWLINE:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_NEQ:
-    csound->Message(csound,"S_NEQ:(%d:%s)\n",
+    csoundMessage(csound,"S_NEQ:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_AND:
-    csound->Message(csound,"S_AND:(%d:%s)\n",
+    csoundMessage(csound,"S_AND:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_OR:
-    csound->Message(csound,"S_OR:(%d:%s)\n",
+    csoundMessage(csound,"S_OR:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_LT:
-    csound->Message(csound,"S_LT:(%d:%s)\n",
+    csoundMessage(csound,"S_LT:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_LE:
-    csound->Message(csound,"S_LE:(%d:%s)\n",
+    csoundMessage(csound,"S_LE:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_EQ:
-    csound->Message(csound,"S_EQ:(%d:%s)\n",
+    csoundMessage(csound,"S_EQ:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_UNOT:
-    csound->Message(csound,"S_UNOT:(%d:%s)\n",
+    csoundMessage(csound,"S_UNOT:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_GT:
-    csound->Message(csound,"S_GT:(%d:%s)\n",
+    csoundMessage(csound,"S_GT:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_GE:
-    csound->Message(csound,"S_GE:(%d:%s)\n",
+    csoundMessage(csound,"S_GE:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case LABEL_TOKEN:
-    csound->Message(csound,"LABEL_TOKEN: %s\n", l->value->lexeme); break;
+    csoundMessage(csound,"LABEL_TOKEN: %s\n", l->value->lexeme); break;
   case IF_TOKEN:
-    csound->Message(csound,"IF_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"IF_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case THEN_TOKEN:
-    csound->Message(csound,"THEN_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"THEN_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case ITHEN_TOKEN:
-    csound->Message(csound,"ITHEN_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"ITHEN_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case KTHEN_TOKEN:
-    csound->Message(csound,"KTHEN_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"KTHEN_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case ELSEIF_TOKEN:
-    csound->Message(csound,"ELSEIF_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"ELSEIF_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case ELSE_TOKEN:
-    csound->Message(csound,"ELSE_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"ELSE_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case UNTIL_TOKEN:
-    csound->Message(csound,"UNTIL_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"UNTIL_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case WHILE_TOKEN:
-    csound->Message(csound,"WHILE_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"WHILE_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case DO_TOKEN:
-    csound->Message(csound,"DO_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"DO_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case OD_TOKEN:
-    csound->Message(csound,"OD_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"OD_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case GOTO_TOKEN:
-    csound->Message(csound,"GOTO_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"GOTO_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case IGOTO_TOKEN:
-    csound->Message(csound,"IGOTO_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"IGOTO_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case KGOTO_TOKEN:
-    csound->Message(csound,"KGOTO_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"KGOTO_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case INSTR_TOKEN:
-    csound->Message(csound,"INSTR_TOKEN:(%d:%s)\n",
+    csoundMessage(csound,"INSTR_TOKEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case STRING_TOKEN:
-    csound->Message(csound,"STRING_TOKEN: %s\n", l->value->lexeme); break;
+    csoundMessage(csound,"STRING_TOKEN: %s\n", l->value->lexeme); break;
   case T_IDENT:
-    csound->Message(csound,"T_IDENT: %s\n", l->value->lexeme); break;
+    csoundMessage(csound,"T_IDENT: %s\n", l->value->lexeme); break;
   /* case T_OPCALL: */
-  /*   csound->Message(csound,"T_OPCALL: %s\n", l->value->lexeme); break; */
+  /*   csoundMessage(csound,"T_OPCALL: %s\n", l->value->lexeme); break; */
   case INTEGER_TOKEN:
-    csound->Message(csound,"INTEGER_TOKEN: %d\n", l->value->value); break;
+    csoundMessage(csound,"INTEGER_TOKEN: %d\n", l->value->value); break;
   case NUMBER_TOKEN:
-    csound->Message(csound,"NUMBER_TOKEN: %f\n", l->value->fvalue); break;
+    csoundMessage(csound,"NUMBER_TOKEN: %f\n", l->value->fvalue); break;
   case S_ANDTHEN:
-    csound->Message(csound,"S_ANDTHEN:(%d:%s)\n",
+    csoundMessage(csound,"S_ANDTHEN:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_APPLY:
-    csound->Message(csound,"S_APPLY:(%d:%s)\n",
+    csoundMessage(csound,"S_APPLY:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case T_FUNCTION:
-    csound->Message(csound,"T_FUNCTION: %s\n",
+    csoundMessage(csound,"T_FUNCTION: %s\n",
                     l->value->lexeme); break;
   case S_UMINUS:
-    csound->Message(csound,"S_UMINUS:(%d:%s)\n",
+    csoundMessage(csound,"S_UMINUS:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_UPLUS:
-    csound->Message(csound,"S_UPLUS:(%d:%s)\n",
+    csoundMessage(csound,"S_UPLUS:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case '[':
-    csound->Message(csound,"[:(%d:%s)\n",
+    csoundMessage(csound,"[:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   default:
-    csound->Message(csound,"unknown:%d(%d:%s)\n",
+    csoundMessage(csound,"unknown:%d(%d:%s)\n",
                     l->type, l->line, csound->filedir[(l->locn)&0xff]);
   }
 
@@ -3033,10 +3017,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     return;
   }
   for (i=0; i<n; i++) {
-    csound->Message(csound, " ");
+    csoundMessage(csound, " ");
   }
 
-  csound->Message(csound,
+  csoundMessage(csound,
                   "<tree%s addresses=\"(%p : %p)\" type=\"%d\" ",
                   child[which],l, l->value, l->type);
 
@@ -3058,149 +3042,149 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
   case '&':
   case '#':
   case '~':
-    csound->Message(csound,"name=\"%c\"", l->type); break;
+    csoundMessage(csound,"name=\"%c\"", l->type); break;
   case NEWLINE:
-    csound->Message(csound,"name=\"NEWLINE\""); break;
+    csoundMessage(csound,"name=\"NEWLINE\""); break;
   case S_NEQ:
-    csound->Message(csound,"name=\"S_NEQ\""); break;
+    csoundMessage(csound,"name=\"S_NEQ\""); break;
   case S_AND:
-    csound->Message(csound,"name=\"S_AND\""); break;
+    csoundMessage(csound,"name=\"S_AND\""); break;
   case S_OR:
-    csound->Message(csound,"name=\"S_OR\""); break;
+    csoundMessage(csound,"name=\"S_OR\""); break;
   case S_LT:
-    csound->Message(csound,"name=\"S_LT\""); break;
+    csoundMessage(csound,"name=\"S_LT\""); break;
   case S_LE:
-    csound->Message(csound,"name=\"S_LE\""); break;
+    csoundMessage(csound,"name=\"S_LE\""); break;
   case S_EQ:
-    csound->Message(csound,"name=\"S_EQ\""); break;
+    csoundMessage(csound,"name=\"S_EQ\""); break;
   case S_UNOT:
-    csound->Message(csound,"name=\"S_UNOT\""); break;
+    csoundMessage(csound,"name=\"S_UNOT\""); break;
   case S_GT:
-    csound->Message(csound,"name=\"S_GT\""); break;
+    csoundMessage(csound,"name=\"S_GT\""); break;
   case S_GE:
-    csound->Message(csound,"name=\"S_GE\""); break;
+    csoundMessage(csound,"name=\"S_GE\""); break;
   case S_BITSHIFT_RIGHT:
-    csound->Message(csound,"name=\"S_BITSHIFT_RIGHT\""); break;
+    csoundMessage(csound,"name=\"S_BITSHIFT_RIGHT\""); break;
   case S_BITSHIFT_LEFT:
-    csound->Message(csound,"name=\"S_BITSHIFT_LEFT\""); break;
+    csoundMessage(csound,"name=\"S_BITSHIFT_LEFT\""); break;
   case LABEL_TOKEN:
-    csound->Message(csound,"name=\"LABEL_TOKEN\" label=\"%s\"",
+    csoundMessage(csound,"name=\"LABEL_TOKEN\" label=\"%s\"",
                     l->value->lexeme); break;
   case IF_TOKEN:
-    csound->Message(csound,"name=\"IF_TOKEN\""); break;
+    csoundMessage(csound,"name=\"IF_TOKEN\""); break;
   case THEN_TOKEN:
-    csound->Message(csound,"name=\"THEN_TOKEN\""); break;
+    csoundMessage(csound,"name=\"THEN_TOKEN\""); break;
   case ITHEN_TOKEN:
-    csound->Message(csound,"name=\"ITHEN_TOKEN\""); break;
+    csoundMessage(csound,"name=\"ITHEN_TOKEN\""); break;
   case KTHEN_TOKEN:
-    csound->Message(csound,"name=\"KTHEN_TOKEN\""); break;
+    csoundMessage(csound,"name=\"KTHEN_TOKEN\""); break;
   case ELSEIF_TOKEN:
-    csound->Message(csound,"name=\"ELSEIF_TOKEN\""); break;
+    csoundMessage(csound,"name=\"ELSEIF_TOKEN\""); break;
   case ELSE_TOKEN:
-    csound->Message(csound,"name=\"ELSE_TOKEN\""); break;
+    csoundMessage(csound,"name=\"ELSE_TOKEN\""); break;
   case UNTIL_TOKEN:
-    csound->Message(csound,"name=\"UNTIL_TOKEN\""); break;
+    csoundMessage(csound,"name=\"UNTIL_TOKEN\""); break;
   case WHILE_TOKEN:
-    csound->Message(csound,"name=\"WHILE_TOKEN\""); break;
+    csoundMessage(csound,"name=\"WHILE_TOKEN\""); break;
   case DO_TOKEN:
-    csound->Message(csound,"name=\"DO_TOKEN\""); break;
+    csoundMessage(csound,"name=\"DO_TOKEN\""); break;
   case OD_TOKEN:
-    csound->Message(csound,"name=\"OD_TOKEN\""); break;
+    csoundMessage(csound,"name=\"OD_TOKEN\""); break;
   case GOTO_TOKEN:
-    csound->Message(csound,"name=\"GOTO_TOKEN\""); break;
+    csoundMessage(csound,"name=\"GOTO_TOKEN\""); break;
   case IGOTO_TOKEN:
-    csound->Message(csound,"name=\"IGOTO_TOKEN\""); break;
+    csoundMessage(csound,"name=\"IGOTO_TOKEN\""); break;
   case KGOTO_TOKEN:
-    csound->Message(csound,"name=\"KGOTO_TOKEN\""); break;
+    csoundMessage(csound,"name=\"KGOTO_TOKEN\""); break;
   case INSTR_TOKEN:
-    csound->Message(csound,"name=\"INSTR_TOKEN\""); break;
+    csoundMessage(csound,"name=\"INSTR_TOKEN\""); break;
   case STRING_TOKEN:
-    csound->Message(csound,"name=\"T_STRCONST\" str=\"%s\"",
+    csoundMessage(csound,"name=\"T_STRCONST\" str=\"%s\"",
                     l->value->lexeme); break;
   case T_IDENT:
-    csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
+    csoundMessage(csound,"name=\"T_IDENT\" varname=\"%s\"",
                     l->value->lexeme); break;
   case T_OPCALL:
     if (l->left)
-      csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
+      csoundMessage(csound,"name=\"T_OPCALL\" varname=\"%s\"",
                       l->left->value->lexeme);
     else
-       csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
+       csoundMessage(csound,"name=\"T_OPCALL\" varname=\"%s\"",
                        l->value->lexeme);
     break;
   case T_DECLARE:
-    csound->Message(csound,"name=\"T_DECLARE\" declvar=\"%s\"",
+    csoundMessage(csound,"name=\"T_DECLARE\" declvar=\"%s\"",
                     l->value->lexeme); break;
   case T_ARRAY:
-    csound->Message(csound,"name=\"T_ARRAY\""); break;
+    csoundMessage(csound,"name=\"T_ARRAY\""); break;
 
   case T_ARRAY_IDENT:
-    csound->Message(csound,"name=\"T_ARRAY_IDENT\" varname=\"%s\"",
+    csoundMessage(csound,"name=\"T_ARRAY_IDENT\" varname=\"%s\"",
                     l->value->lexeme); break;
 
   case INTEGER_TOKEN:
-    csound->Message(csound,"name=\"INTEGER_TOKEN\" value=\"%d\"",
+    csoundMessage(csound,"name=\"INTEGER_TOKEN\" value=\"%d\"",
                     l->value->value); break;
   case NUMBER_TOKEN:
-    csound->Message(csound,"name=\"NUMBER_TOKEN\" value=\"%f\"",
+    csoundMessage(csound,"name=\"NUMBER_TOKEN\" value=\"%f\"",
                     l->value->fvalue); break;
   case S_ANDTHEN:
-    csound->Message(csound,"name=\"S_ANDTHEN\""); break;
+    csoundMessage(csound,"name=\"S_ANDTHEN\""); break;
   case S_APPLY:
-    csound->Message(csound,"name=\"S_APPLY\""); break;
+    csoundMessage(csound,"name=\"S_APPLY\""); break;
   case T_FUNCTION:
-    csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"",
+    csoundMessage(csound,"name=\"T_FUNCTION\" fname=\"%s\"",
                     l->value->lexeme); break;
   case S_UMINUS:
-    csound->Message(csound,"name=\"S_UMINUS\""); break;
+    csoundMessage(csound,"name=\"S_UMINUS\""); break;
   case S_UPLUS:
-    csound->Message(csound,"name=\"S_UPLUS\""); break;
+    csoundMessage(csound,"name=\"S_UPLUS\""); break;
 
   case UDO_TOKEN:
-    csound->Message(csound,"name=\"UDO_TOKEN\""); break;
+    csoundMessage(csound,"name=\"UDO_TOKEN\""); break;
   case UDO_ANS_TOKEN:
-    csound->Message(csound,"name=\"UDO_ANS_TOKEN\" signature=\"%s\"",
+    csoundMessage(csound,"name=\"UDO_ANS_TOKEN\" signature=\"%s\"",
                     l->value->lexeme); break;
   case UDO_ARGS_TOKEN:
-    csound->Message(csound,"name=\"UDO_ARGS_TOKEN\" signature=\"%s\"",
+    csoundMessage(csound,"name=\"UDO_ARGS_TOKEN\" signature=\"%s\"",
                     l->value->lexeme); break;
   case S_ELIPSIS:
-    csound->Message(csound,"name=\"S_ELIPSIS\""); break;
+    csoundMessage(csound,"name=\"S_ELIPSIS\""); break;
   case S_ADDIN:
-    csound->Message(csound,"name=\"##addin\""); break;
+    csoundMessage(csound,"name=\"##addin\""); break;
     //    case T_MAPI:
-    //      csound->Message(csound,"name=\"T_MAPI\""); break;
+    //      csoundMessage(csound,"name=\"T_MAPI\""); break;
     //    case T_MAPK:
-    //      csound->Message(csound,"name=\"T_MAPK\""); break;
+    //      csoundMessage(csound,"name=\"T_MAPK\""); break;
     //    case T_TADD:
-    //      csound->Message(csound,"name=\"T_TADD\""); break;
+    //      csoundMessage(csound,"name=\"T_TADD\""); break;
     //    case T_SUB:
-    //      csound->Message(csound,"name=\"T_SUB\""); break;
+    //      csoundMessage(csound,"name=\"T_SUB\""); break;
     //    case S_TUMINUS:
-    //      csound->Message(csound,"name=\"S_TUMINUS\""); break;
+    //      csoundMessage(csound,"name=\"S_TUMINUS\""); break;
     //    case T_TMUL:
-    //      csound->Message(csound,"name=\"T_TMUL\""); break;
+    //      csoundMessage(csound,"name=\"T_TMUL\""); break;
     //    case T_TDIV:
-    //      csound->Message(csound,"name=\"T_TDIV\""); break;
+    //      csoundMessage(csound,"name=\"T_TDIV\""); break;
     //    case T_TREM:
-    //      csound->Message(csound,"name=\"T_TREM\""); break;
+    //      csoundMessage(csound,"name=\"T_TREM\""); break;
   case '[':
-    csound->Message(csound,"name=\"[\""); break;
+    csoundMessage(csound,"name=\"[\""); break;
   default:
-    csound->Message(csound,"name=\"unknown(%d)\"", l->type);
+    csoundMessage(csound,"name=\"unknown(%d)\"", l->type);
   }
 
-  csound->Message(csound, " loc=\"%d:%s\">\n",
+  csoundMessage(csound, " loc=\"%d:%s\">\n",
                   l->line, csound->filedir[(l->locn)&0xff]);
 
   print_tree_xml(csound, l->left,n+1, TREE_LEFT);
   print_tree_xml(csound, l->right,n+1, TREE_RIGHT);
 
   for (i=0; i<n; i++) {
-    csound->Message(csound, " ");
+    csoundMessage(csound, " ");
   }
 
-  csound->Message(csound, "</tree%s>\n", child[which]);
+  csoundMessage(csound, "</tree%s>\n", child[which]);
 
   if (l->next != NULL) {
     print_tree_xml(csound, l->next, n, TREE_NEXT);
@@ -3210,12 +3194,12 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
 void print_tree(CSOUND * csound, char* msg, TREE *l)
 {
   if (msg)
-    csound->Message(csound, "%s", msg);
+    csoundMessage(csound, "%s", msg);
   else
-    csound->Message(csound, "Printing Tree\n");
-  csound->Message(csound, "<ast>\n");
+    csoundMessage(csound, "Printing Tree\n");
+  csoundMessage(csound, "<ast>\n");
   print_tree_xml(csound, l, 0, TREE_NONE);
-  csound->Message(csound, "</ast>\n");
+  csoundMessage(csound, "</ast>\n");
 }
 
 void handle_optional_args(CSOUND *csound, TREE *l)
@@ -3239,9 +3223,9 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     }
 
     if (UNLIKELY(PARSER_DEBUG)) {
-      csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
+      csoundMessage(csound, "Handling Optional Args for opcode %s, %d, %d",
                       ep->opname, incnt, nreqd);
-      csound->Message(csound, "ep->intypes = >%s<\n", ep->intypes);
+      csoundMessage(csound, "ep->intypes = >%s<\n", ep->intypes);
     }
     if (incnt < nreqd) {         /*  or set defaults: */
       do {
@@ -3314,9 +3298,9 @@ void handle_optional_args(CSOUND *csound, TREE *l)
       int n;
       for (n=0; inArgParts[n] != NULL; n++) {
         //printf("delete %p\n", inArgParts[n]);
-        csound->Free(csound, inArgParts[n]);
+        mfree(csound, inArgParts[n]);
       }
-      csound->Free(csound, inArgParts);
+      mfree(csound, inArgParts);
     }
   }
 }

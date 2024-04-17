@@ -370,7 +370,7 @@ public:
       memset(&output0[nn], '\0', early * sizeof(MYFLT));
     }
     for (int32_t i = offset; i < nn; i++) {
-      iRec8[0] = (csound->GetRandSeed(csound, 1) + (1103515245 * iRec8[1]));
+      iRec8[0] = (csoundGetRandSeed(csound, 1) + (1103515245 * iRec8[1]));
       fRec7[0] =
           -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + (iRec8[0] * dv2_31);
       fRec6[0] =
@@ -437,9 +437,9 @@ int32_t fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p) {
 int32_t fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
   p->faust = new mydsp;
   p->cs_interface = new csUI;
-  p->faust->init((int32_t)csound->GetSr(csound));
+  p->faust->init((int32_t)csoundGetSr(csound));
   p->faust->buildUserInterface(p->cs_interface);
-  csound->RegisterDeinitCallback(
+  csoundRegisterDeinitCallback(
       csound, p, (int32_t (*)(CSOUND *, void *))fractalnoise_cleanup);
   return OK;
 }
@@ -464,7 +464,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
 PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
   int32_t status = 0;
   for (OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
-    status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
+    status |= csoundAppendOpcode(csound, oentry->opname, oentry->dsblksiz,
                                    oentry->flags, oentry->thread,
                                    oentry->outypes, oentry->intypes,
                                    (int32_t (*)(CSOUND *, void *))oentry->iopadr,

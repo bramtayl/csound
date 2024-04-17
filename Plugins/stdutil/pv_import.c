@@ -34,10 +34,12 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include "pvfileio.h"
+#include "memalloc.h"
+#include "utility.h"
 
 static void pv_import_usage(CSOUND *csound)
 {
-    csound->Message(csound, "%s", Str("Usage: pv_import cstext_file pv_file\n"));
+    csoundMessage(csound, "%s", Str("Usage: pv_import cstext_file pv_file\n"));
 }
 
 static float getnum(FILE* inf, int *term)
@@ -64,13 +66,13 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
     }
     inf = fopen(argv[1], "rb");
     if (UNLIKELY(inf == NULL)) {
-      csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
+      csoundMessage(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
     if (UNLIKELY(UNLIKELY(EOF == fscanf(inf,
            "FormatTag,Channels,SamplesPerSec,AvgBytesPerSec,"
                                         "BlockAlign,BitsPerSample,cbSize\n")))) {
-      csound->Message(csound, "%s", Str("Not a PV file\n"));
+      csoundMessage(csound, "%s", Str("Not a PV file\n"));
       exit(1);
     }
     {
@@ -90,7 +92,7 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(EOF == fscanf(inf, "WordFormat,AnalFormat,SourceFormat,WindowType,"
             "AnalysisBins,Winlen,Overlap,FrameAlign,"
             "AnalysisRate,WindowParam\n"))) {
-      csound->Message(csound, "%s", Str("Not a PV file\n"));
+      csoundMessage(csound, "%s", Str("Not a PV file\n"));
       exit(1);
     }
     {
@@ -112,7 +114,7 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
       pv_stype stype = (fmt.wBitsPerSample==16?STYPE_16:
                         fmt.wBitsPerSample==24?STYPE_24:
                         fmt.wBitsPerSample==32?STYPE_32:STYPE_IEEE_FLOAT);
-      outf = csound->PVOC_CreateFile(csound, argv[2],
+      outf = pvoc_createfile(csound, argv[2],
                                      (data.nAnalysisBins-1)*2, data.dwOverlap,
                                      fmt.nChannels, data.wAnalFormat,
                                      fmt.nSamplesPerSec, stype,
@@ -120,17 +122,17 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
                                      NULL, data.dwWinlen);
     }
     if (UNLIKELY(outf < 0)) {
-      csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
+      csoundMessage(csound, Str("Cannot open output file %s\n"), argv[2]);
       fclose(inf);
       return 1;
     }
 
     {
       float *frame =
-        (float*) csound->Malloc(csound, data.nAnalysisBins*2*sizeof(float));
+        (float*) mmalloc(csound, data.nAnalysisBins*2*sizeof(float));
       int32_t i;
       if (UNLIKELY(frame==NULL)) {
-        csound->Message(csound, "%s", Str("Memory failure\n"));
+        csoundMessage(csound, "%s", Str("Memory failure\n"));
         exit(1);
       }
       for (i=1;;i++) {
@@ -141,16 +143,16 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
           if (term==EOF) goto ending;
           if (feof(inf)) goto ending;
           if (UNLIKELY(term!=',' && term!='\n'))
-            csound->Message(csound, "%s", Str("Sync error\n"));
+            csoundMessage(csound, "%s", Str("Sync error\n"));
         }
-        if (UNLIKELY(i%100==0)) csound->Message(csound, "%d\n", i);
-        csound->PVOC_PutFrames(csound, outf, frame, 1);
+        if (UNLIKELY(i%100==0)) csoundMessage(csound, "%d\n", i);
+        pvoc_putframes(csound, outf, frame, 1);
       }
     ending:
-      csound->Free(csound,frame);
+      mfree(csound,frame);
     }
     fclose(inf);
-    csound->PVOC_CloseFile(csound, outf);
+    pvoc_closefile(csound, outf);
     return 0;
 }
 
@@ -158,10 +160,10 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t pv_import_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "pv_import", pv_import);
+    int32_t retval = csoundAddUtility(csound, "pv_import", pv_import);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "pv_import",
+        csoundSetUtilityDescription(csound, "pv_import",
                                       Str("translate text form to "
                                           "PVOC analysis file"));
     }

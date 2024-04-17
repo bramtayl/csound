@@ -37,7 +37,7 @@
 +++ Csound5.13.0/Top/main.c	2011-04-07 10:43:02.001313569 +0100
 @@ -89,7 +89,9 @@
      dbfs_init(csound, DFLT_DBFS);
-     csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
+     csound->csRtClock = (RTCLOCK*) mcalloc(csound, sizeof(RTCLOCK));
      csoundInitTimerStruct(csound->csRtClock);
 -    csound->engineState |= CS_STATE_COMP | CS_STATE_CLN;
 +    /* WTB - Oct 15 2009: only set CS_STATE_CLN; CS_STATE_COMP set when retval=0. */

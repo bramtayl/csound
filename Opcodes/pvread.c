@@ -28,6 +28,11 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "fgens_public.h"
+#include "memfiles.h"
+#include "insert_public.h"
 
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
@@ -73,9 +78,9 @@ int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
     char      pvfilnam[256];
 
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->ifilno))
+      if (isstrcod(*p->ifilno))
         strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME);
-      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      else strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
 
@@ -106,7 +111,7 @@ int32_t pvread(CSOUND *csound, PVREAD *p)
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csoundWarning(csound, Str("PVOC ktimpnt truncated to last frame"));
       }
     }
     FetchInOne(p->frPtr, &(buf[0]), size, frIndx, p->mybin);
@@ -114,19 +119,19 @@ int32_t pvread(CSOUND *csound, PVREAD *p)
     *p->kamp = buf[0];
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("PVOC timpnt < 0"));
+    return csoundPerfError(csound, &(p->h), Str("PVOC timpnt < 0"));
 }
 
 static int32_t pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
 {
     PVOCEX_MEMFILE  pp;
 
-    if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
-      return csound->InitError(csound, Str("PVREAD cannot load %s"), fname);
+    if (UNLIKELY(PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
+      return csoundInitError(csound, Str("PVREAD cannot load %s"), fname);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (UNLIKELY(pp.chans > 1)) {
-      return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+      return csoundInitError(csound, Str("pvoc-ex file %s is not mono"), fname);
     }
     /* ignore the window spec until we can use it! */
     p->frSiz    = pp.fftsize;

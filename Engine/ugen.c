@@ -43,6 +43,7 @@
 #include "ugen.h"
 #include "csound_standard_types.h"
 #include "csound_orc.h"
+#include "memalloc.h"
 
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern char** splitArgs(CSOUND* csound, char* argString);
@@ -59,8 +60,8 @@ typedef struct {
  * as well as create instances of UGENs. User should configure the CSOUND
  * instance for sr and ksmps before creating a factory. */ 
 PUBLIC UGEN_FACTORY* ugen_factory_new(CSOUND* csound) {
-  UGEN_FACTORY* factory = csound->Calloc(csound, sizeof(UGEN_FACTORY));
-  INSDS* insds = csound->Calloc(csound, sizeof(INSDS));
+  UGEN_FACTORY* factory = mcalloc(csound, sizeof(UGEN_FACTORY));
+  INSDS* insds = mcalloc(csound, sizeof(INSDS));
 
   factory->csound = csound;
   factory->insds = insds;
@@ -78,7 +79,7 @@ PUBLIC UGEN_FACTORY* ugen_factory_new(CSOUND* csound) {
 
 /* Delete a UGEN_FACTORY */
 PUBLIC bool ugen_factory_delete(CSOUND* csound, UGEN_FACTORY* factory) {
-  csound->Free(csound, factory);
+  mfree(csound, factory);
   return true;
 }
 
@@ -117,7 +118,7 @@ static CONS_CELL* get_assignable_in_types(CSOUND* csound, char* intypes) {
     
     while (*temp != 0) {
         char c = *temp;
-        UGEN_ARG* arg = csound->Calloc(csound, sizeof(UGEN_ARG));
+        UGEN_ARG* arg = mcalloc(csound, sizeof(UGEN_ARG));
        
         // if var-arg found, break and complete
         if (strchr("My", c)) {
@@ -181,7 +182,7 @@ static CONS_CELL* get_assignable_out_types(CSOUND* csound, char* intypes) {
     
     while (*temp != 0) {
         char c = *temp;
-        UGEN_ARG* arg = csound->Calloc(csound, sizeof(UGEN_ARG));
+        UGEN_ARG* arg = mcalloc(csound, sizeof(UGEN_ARG));
 
         //        if (strchr("p", c) != NULL) {
         //            c = 'i';
@@ -244,13 +245,13 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
    
 
     //CSOpcode* opcode = new CSOpcode(csound, insds, entry);
-    ugen = csound->Calloc(csound, sizeof(UGEN));
-    optxt = (OPTXT*)csound->Calloc(csound, sizeof(OPTXT));
+    ugen = mcalloc(csound, sizeof(UGEN));
+    optxt = (OPTXT*)mcalloc(csound, sizeof(OPTXT));
 
     ugen->csound = csound;
     ugen->insds = insds;
     ugen->oentry = oentry; 
-    ugen->opcodeMem = csound->Calloc(csound, sizeof(oentry->dsblksiz)); 
+    ugen->opcodeMem = mcalloc(csound, sizeof(oentry->dsblksiz)); 
 
     opds = ugen->opcodeMem;
     opds->insdshead = insds;
@@ -262,8 +263,8 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     CONS_CELL* inTypes = get_assignable_in_types(csound, oentry->intypes);
     CONS_CELL* outTypes = get_assignable_out_types(csound, oentry->outypes);
     
-    ugen->outPool = (CS_VAR_POOL*)csound->Calloc(csound, sizeof(CS_VAR_POOL));
-    ugen->inPool = (CS_VAR_POOL*)csound->Calloc(csound, sizeof(CS_VAR_POOL));
+    ugen->outPool = (CS_VAR_POOL*)mcalloc(csound, sizeof(CS_VAR_POOL));
+    ugen->inPool = (CS_VAR_POOL*)mcalloc(csound, sizeof(CS_VAR_POOL));
     ugen->inPoolCount = cs_cons_length(inTypes);
     ugen->outPoolCount = cs_cons_length(outTypes);
 
@@ -305,7 +306,7 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
   
     // FIXME - this needs to be adjusted for CS_VAR and
     // CS_VAR_TYPE's
-    ugen->data = (MYFLT*)csound->Calloc(csound, ugen->outPool->poolSize + ugen->inPool->poolSize);
+    ugen->data = (MYFLT*)mcalloc(csound, ugen->outPool->poolSize + ugen->inPool->poolSize);
     
     /*MYFLT* temp = (MYFLT*)this->opcodeMem +(sizeof(OPDS) / sizeof(MYFLT));*/
     /*MYFLT** p = (MYFLT**) temp;*/
@@ -378,11 +379,11 @@ PUBLIC int ugen_perform(UGEN* ugen) {
 
 PUBLIC bool ugen_delete(UGEN* ugen) {
   CSOUND* csound = ugen->csound;
-  csound->Free(csound, ugen->opcodeMem);
-  csound->Free(csound, ugen->outPool);
-  csound->Free(csound, ugen->inPool);
-  csound->Free(csound, ugen->data);
-  csound->Free(csound, ugen);
+  mfree(csound, ugen->opcodeMem);
+  mfree(csound, ugen->outPool);
+  mfree(csound, ugen->inPool);
+  mfree(csound, ugen->data);
+  mfree(csound, ugen);
   return true;
 }
 

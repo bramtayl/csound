@@ -24,6 +24,8 @@
 #ifndef CSOUND_LINEVENT_H
 #define CSOUND_LINEVENT_H
 
+#include "csoundCore_internal.h"
+
 /*****************************************************************/
 /* linevent                                                      */
 /* Dec 2001 by matt ingalls                                      */

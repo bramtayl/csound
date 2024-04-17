@@ -24,8 +24,9 @@
 #include "csoundCore_internal.h"
 #include "csound_standard_types.h"
 #include "pstream.h"
+#include "memalloc.h"
 #include <stdlib.h>
-
+#include "auxfd.h"
 
 /* MEMORY COPYING FUNCTIONS */
 
@@ -57,7 +58,7 @@ void fsig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     memcpy(dest, src, sizeof(PVSDAT) - sizeof(AUXCH));
     if(fsigout->frame.auxp == NULL ||
        fsigout->frame.size < (N + 2) * sizeof(float))
-      ((CSOUND *)csound)->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                                    (N + 2) * sizeof(float), &fsigout->frame);
     memcpy(fsigout->frame.auxp, fsigin->frame.auxp, (N + 2) * sizeof(float));
 }
@@ -72,10 +73,10 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
-    int64_t kcnt = csound->GetKcounter(csound);
+    int64_t kcnt = csoundGetKcounter(csound);
     if (sSrc->size > sDest->size) {
-      cs->Free(cs, sDest->data);
-      sDest->data = csound->Calloc(csound, sSrc->size); 
+      mfree(cs, sDest->data);
+      sDest->data = mcalloc(csound, sSrc->size); 
       memcpy(sDest->data, sSrc->data, sSrc->size); 
       sDest->size = sSrc->size;
     } else {
@@ -122,16 +123,16 @@ void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
         aDest->arrayMemberSize = aSrc->arrayMemberSize;
         aDest->dimensions = aSrc->dimensions;
         if(aDest->sizes != NULL) {
-            cs->Free(cs, aDest->sizes);
+            mfree(cs, aDest->sizes);
         }
-        aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
+        aDest->sizes = mmalloc(cs, sizeof(int) * aSrc->dimensions);
         memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
         aDest->arrayType = aSrc->arrayType;
 
         if(aDest->data != NULL) {
-            cs->Free(cs, aDest->data);
+            mfree(cs, aDest->data);
         }
-        aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
+        aDest->data = mcalloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
     }
 
     var = aDest->arrayType->createVariable(cs, aDest->arrayType);
@@ -168,7 +169,7 @@ void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     (void)(var);
     STRINGDAT *str = (STRINGDAT *)memblock;
-    str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
+    str->data = (char *) mcalloc(csound, DEFAULT_STRING_SIZE);
     str->size = DEFAULT_STRING_SIZE;
     str->timestamp = 0;
     //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
@@ -197,7 +198,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
     ksmps = csound->ksmps;
 //    }
 
-    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
     var->updateMemBlockSize = &updateAsigMemBlock;
     var->initializeVariableMemory = &varInitMemory;
@@ -206,7 +207,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
 
 CS_VARIABLE* createMyflt(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
-    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
     var->initializeVariableMemory = &varInitMemory;
@@ -215,7 +216,7 @@ CS_VARIABLE* createMyflt(void* cs, void* p) {
 
 CS_VARIABLE* createBool(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
-    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
     var->initializeVariableMemory = &varInitMemory;
@@ -224,7 +225,7 @@ CS_VARIABLE* createBool(void* cs, void* p) {
 
 CS_VARIABLE* createWsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
-    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(SPECDAT));
     var->initializeVariableMemory = &varInitMemory;
@@ -233,7 +234,7 @@ CS_VARIABLE* createWsig(void* cs, void* p) {
 
 CS_VARIABLE* createFsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
-    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(PVSDAT));
     var->initializeVariableMemory = &varInitMemoryFsig;
@@ -243,7 +244,7 @@ CS_VARIABLE* createFsig(void* cs, void* p) {
 
 CS_VARIABLE* createString(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
-    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(STRINGDAT));
     var->initializeVariableMemory = &varInitMemoryString;
@@ -255,7 +256,7 @@ CS_VARIABLE* createArray(void* csnd, void* p) {
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
 
 
-    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    CS_VARIABLE* var = mcalloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
     var->initializeVariableMemory = &arrayInitMemory;
 
@@ -274,7 +275,7 @@ void string_free_var_mem(void* csnd, void* p ) {
     STRINGDAT* dat = (STRINGDAT*)p;
 
     if(dat->data != NULL) {
-        csound->Free(csound, dat->data);
+        mfree(csound, dat->data);
     }
 }
 
@@ -299,11 +300,11 @@ void array_free_var_mem(void* csnd, void* p) {
             }
         }
 
-        csound->Free(csound, dat->data);
+        mfree(csound, dat->data);
     }
 
     if (dat->sizes != NULL) {
-        csound->Free(csound, dat->sizes);
+        mfree(csound, dat->sizes);
     }
 }
 

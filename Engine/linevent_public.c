@@ -1,5 +1,5 @@
 /*
-    linevent.c:
+    linevent_public.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch, matt ingalls
 
@@ -29,6 +29,13 @@
 #endif
 
 #include "linevent.h"
+#include "linevent_public.h"
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "insert_public.h"
+#include "musmon.h"
 
 #ifdef PIPES
 # if defined(SGI) || defined(__gnu_linux__) || defined(NeXT) || defined(__MACH__)
@@ -67,12 +74,12 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 {                                   /*     callable once from musmon.c        */
     OPARMS  *O = csound->oparms;
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
-    /*                            csound->Calloc(csound, */
+    /*                            mcalloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
 
     STA(linebufsiz) = LBUFSIZ1;
-    STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
-    STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
+    STA(Linebuf) = (char *) mcalloc(csound, STA(linebufsiz));
+    STA(orchestrab) = (char *) mcalloc(csound, MAXSTR);
     STA(orchestra) = STA(orchestrab);
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
@@ -102,9 +109,9 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
       if (UNLIKELY((csound->Linefd=open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
         csoundDie(csound, Str("Cannot open %s"), O->Linename);
     if(csound->oparms->odebug)
-    csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
+    csoundMessage(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
-    csound->RegisterSenseEventCallback(csound, sensLine, NULL);
+    csoundRegisterSenseEventCallback(csound, sensLine, NULL);
 }
 
 #ifdef PIPES
@@ -117,7 +124,7 @@ void RTclose(CSOUND *csound)
       return;
     csound->oparms->Linein = 0;
     if(csound->oparms->odebug)
-    csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
+    csoundMessage(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
 #ifdef PIPES
     if (csound->oparms->Linename[0] == '|')
@@ -134,7 +141,7 @@ void RTclose(CSOUND *csound)
 #endif
       }
 
-//csound->Free(csound, csound->lineventGlobals);
+//mfree(csound, csound->lineventGlobals);
 //csound->lineventGlobals = NULL;
 }
 
@@ -159,7 +166,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
       /* VL 20-11-17 need to record the STA(Linep) offset
          in relation to STA(Linebuf) */
       tmp = (STA(Linep) - STA(Linebuf));
-      STA(Linebuf) = (char *) csound->ReAlloc(csound,
+      STA(Linebuf) = (char *) mrealloc(csound,
                                               (void *) STA(Linebuf), reallocsize);
 
       STA(linebufsiz) = reallocsize;
@@ -169,12 +176,12 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
       STA(Linep) =  STA(Linebuf) + tmp;
     } else if (STA(Linebuf)==NULL) {
        STA(linebufsiz) = LBUFSIZ1;
-       STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
+       STA(Linebuf) = (char *) mcalloc(csound, STA(linebufsiz));
     }
     if (STA(Linebuf) == NULL) {
        return 1;
     }
-    //csound->Message(csound, "1. realloc: %d\n", reallocsize);
+    //csoundMessage(csound, "1. realloc: %d\n", reallocsize);
     if (STA(Linep)) return 0;
     csound->Linefd = -1;
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
@@ -189,7 +196,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
-    csound->RegisterSenseEventCallback(csound, sensLine, NULL);
+    csoundRegisterSenseEventCallback(csound, sensLine, NULL);
 
     return 0;
 }
@@ -209,8 +216,8 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int extralloc = STA(Linep) + size - STA(Linebufend);
-      csound->Message(csound, "realloc %d\n", extralloc);
-      // csound->Message(csound, "extralloc: %d %d %d\n",
+      csoundMessage(csound, "realloc %d\n", extralloc);
+      // csoundMessage(csound, "extralloc: %d %d %d\n",
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
       // FIXME -- Coverity points out that this test is always false
       // and n is never used
@@ -225,7 +232,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 
 #endif
     }
-    //csound->Message(csound, "%u = %u\n", (STA(Linep) + size),  STA(Linebufend) );
+    //csoundMessage(csound, "%u = %u\n", (STA(Linep) + size),  STA(Linebufend) );
     memcpy(STA(Linep), message, size);
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';
@@ -277,7 +284,7 @@ static void sensLine(CSOUND *csound, void *userData)
             STA(oflag) = 0;
             STA(orchestra) = STA(orchestrab);
             csoundCompileOrc(csound, STA(orchestrab));
-            csound->Message(csound, "::compiling orchestra::\n");
+            csoundMessage(csound, "::compiling orchestra::\n");
             Linestart = (++cp);
             continue;
           }
@@ -302,7 +309,7 @@ static void sensLine(CSOUND *csound, void *userData)
           }
         } else if(c == '{') {
           STA(oflag) = 1;
-          csound->Message(csound,
+          csoundMessage(csound,
                           "::reading orchestra, use '}' to terminate::\n");
           cp++;
           continue;
@@ -318,7 +325,7 @@ static void sensLine(CSOUND *csound, void *userData)
           e.opcod = c;
           break;
         default:
-          csound->ErrorMsg(csound, Str("unknown opcode %c"), c);
+          csoundErrorMsg(csound, Str("unknown opcode %c"), c);
           goto Lerr;
         }                                       /* for params that follow:  */
         pcnt = 0;
@@ -332,7 +339,7 @@ static void sensLine(CSOUND *csound, void *userData)
           pcnt++;
           if (c == '"') {                       /* if find character string */
             if (e.strarg == NULL)
-              e.strarg = csound->Malloc(csound, strsiz=SSTRSIZ);
+              e.strarg = mmalloc(csound, strsiz=SSTRSIZ);
             sstrp = e.strarg;
             n = scnt;
             while (n-->0) sstrp += strlen(sstrp)+1;
@@ -341,7 +348,7 @@ static void sensLine(CSOUND *csound, void *userData)
             while ((c = *(++cp)) != '"') {
               /* VL: allow strings to be multi-line */
               // if (UNLIKELY(c == LF)) {
-              //  csound->ErrorMsg(csound, Str("unmatched quotes"));
+              //  csoundErrorMsg(csound, Str("unmatched quotes"));
               //  goto Lerr;
               //}
 
@@ -354,7 +361,7 @@ static void sensLine(CSOUND *csound, void *userData)
               sstrp[n++] = c;                   /*   save in private strbuf */
 
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
-                e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
+                e.strarg = mrealloc(csound, e.strarg, strsiz+=SSTRSIZ);
                 sstrp = e.strarg+n;
               }
             }
@@ -377,12 +384,12 @@ static void sensLine(CSOUND *csound, void *userData)
               (isblank(n = cp[1]) || n == LF)) {
             if (UNLIKELY(e.opcod != 'i' ||
                          STA(prve).opcod != 'i' || pcnt > STA(prve).pcnt)) {
-              csound->ErrorMsg(csound, Str("dot carry has no reference"));
+              csoundErrorMsg(csound, Str("dot carry has no reference"));
               goto Lerr;
             }                                   /*        pfld carry   */
             e.p[pcnt] = STA(prve).p[pcnt];
-            if (UNLIKELY(csound->ISSTRCOD(e.p[pcnt]))) {
-              csound->ErrorMsg(csound, Str("cannot carry string p-field"));
+            if (UNLIKELY(isstrcod(e.p[pcnt]))) {
+              csoundErrorMsg(csound, Str("cannot carry string p-field"));
               goto Lerr;
             }
             continue;
@@ -393,11 +400,11 @@ static void sensLine(CSOUND *csound, void *userData)
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
         else  /* Check for sufficient pfields (0-based, opcode counted already). */
           if (UNLIKELY(pcnt < 2 && e.opcod != 'e')) {
-            csound->ErrorMsg(csound, Str("too few pfields (%d)"), pcnt + 1);
+            csoundErrorMsg(csound, Str("too few pfields (%d)"), pcnt + 1);
             goto Lerr;
           }
         if (UNLIKELY(pcnt > 1 && e.p[2] < FL(0.0))) {
-          csound->ErrorMsg(csound, Str("-L with negative p2 illegal"));
+          csoundErrorMsg(csound, Str("-L with negative p2 illegal"));
           goto Lerr;
         }
         e.pcnt = pcnt;                          /*   &  record pfld count    */
@@ -408,7 +415,7 @@ static void sensLine(CSOUND *csound, void *userData)
           STA(prve).strarg = NULL;
         }
         if (UNLIKELY(pcnt >= PMAX && c != LF)) {
-          csound->ErrorMsg(csound, Str("too many pfields"));
+          csoundErrorMsg(csound, Str("too many pfields"));
           while (*(++cp) != LF)                 /* flush any excess data     */
             ;
         }
@@ -420,7 +427,7 @@ static void sensLine(CSOUND *csound, void *userData)
         while (*cp != LF)
           cp++;                                 /* go on to LF    */
         *cp = '\0';                             /*  & insert NULL */
-        csound->ErrorMsg(csound, Str("illegal RT scoreline:\n%s\n%*s"),
+        csoundErrorMsg(csound, Str("illegal RT scoreline:\n%s\n%*s"),
                                  Linestart, n + 1, "^");  /* mark the error */
         Linestart = (++cp);
       }
@@ -461,7 +468,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e' && opcod != 'd')
                  /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
-      return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_1));
+      return csoundPerfError(csound, &(p->h), "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
     if (p->flag==1) evt.pcnt = p->argno-2;
@@ -473,16 +480,16 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       if (insname) {
         int res;
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
-          return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_2));
-        res = csound->strarg2insno(csound, ((STRINGDAT*) p->args[1])->data, 1);
+          return csoundPerfError(csound, &(p->h), "%s", Str(errmsg_2));
+        res = strarg2insno(csound, ((STRINGDAT*) p->args[1])->data, 1);
         if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
         evt.p[1] = (MYFLT) res;
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
         int res;
-        if (csound->ISSTRCOD(*p->args[1])) {
-          res = csound->strarg2insno(csound,
+        if (isstrcod(*p->args[1])) {
+          res = strarg2insno(csound,
                                      get_arg_string(csound, *p->args[1]), 1);
           if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
           evt.p[1] = (MYFLT)res;
@@ -492,7 +499,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
           if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
                        insno > csound->engineState.maxinsno ||
                        !csound->engineState.instrtxtp[(int)insno]))) {
-            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d. No action."),
+            csoundMessage(csound, Str("WARNING: Cannot Find Instrument %d. No action."),
                            (int) insno);
             return OK;
           }
@@ -509,7 +516,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     }
 
     if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("event: error creating '%c' event"),
                                opcod);
     return OK;
@@ -542,7 +549,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e' && opcod != 'd')
                  /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
-      return csound->InitError(csound, "%s", Str(errmsg_1));
+      return csoundInitError(csound, "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
     if (p->flag==1) evt.pcnt = p->argno-1;
@@ -553,8 +560,8 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       if (insname) {
         int res;
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
-          return csound->InitError(csound, "%s", Str(errmsg_2));
-        res = csound->strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
+          return csoundInitError(csound, "%s", Str(errmsg_2));
+        res = strarg2insno(csound,((STRINGDAT *)p->args[1])->data, 1);
         if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
         evt.p[1] = (MYFLT)res;
         evt.strarg = NULL; evt.scnt = 0;
@@ -563,8 +570,8 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       }
       else {
         evt.strarg = NULL; evt.scnt = 0;
-        if (csound->ISSTRCOD(*p->args[1])) {
-          int res = csound->strarg2insno(csound,
+        if (isstrcod(*p->args[1])) {
+          int res = strarg2insno(csound,
                                          get_arg_string(csound, *p->args[1]), 1);
           if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
           evt.p[1] = (MYFLT)res;
@@ -575,7 +582,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
           if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
                        insno > csound->engineState.maxinsno ||
                        !csound->engineState.instrtxtp[(int)insno]))) {
-            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d. No action."),
+            csoundMessage(csound, Str("WARNING: Cannot Find Instrument %d. No action."),
                            (int) insno);
             return OK;
           }
@@ -594,12 +601,12 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
-      err = csound->hfgens(csound, &dummyftp, &evt, 0);
+      err = hfgens(csound, &dummyftp, &evt, 0);
     }
     else
       err = insert_score_event_at_sample(csound, &evt, csound->icurTime);
     if (UNLIKELY(err))
-      csound->InitError(csound, Str("event_i: error creating '%c' event"),
+      csoundInitError(csound, Str("event_i: error creating '%c' event"),
                                 opcod);
     return (err == 0 ? OK : NOTOK);
 }
@@ -630,7 +637,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
     if (evt.pcnt > 0) {
       int res;
       if (insname) {
-        res = csound->strarg2insno(csound,
+        res = strarg2insno(csound,
                                    ((STRINGDAT*) p->args[0])->data, 1);
         /* The comprison below and later is suspect */
         if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
@@ -638,8 +645,8 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
-        if (csound->ISSTRCOD(*p->args[0])) {
-          res = csound->strarg2insno(csound,
+        if (isstrcod(*p->args[0])) {
+          res = strarg2insno(csound,
                                      get_arg_string(csound, *p->args[0]), 1);
           if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
           evt.p[1] = (MYFLT)res;
@@ -650,7 +657,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
         evt.p[i] = *p->args[i-1];
     }
     if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0)
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("instance: error creating event"));
 
     return OK;

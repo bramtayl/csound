@@ -31,8 +31,11 @@
 
 #include "stdopcod.h"
 #include "sndwarp.h"
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
-#define unirand(x) ((MYFLT) (x->Rand31(&(x->randSeed1)) - 1) / FL(2147483645.0))
+#define unirand(x) ((MYFLT) (csoundRand31(&(x->randSeed1)) - 1) / FL(2147483645.0))
 
 static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
 {
@@ -47,18 +50,18 @@ static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
       if (nsections != p->nsections)
         auxp = p->auxch.auxp=NULL;
-      csound->AuxAlloc(csound, (size_t)nsections*sizeof(WARPSECTION), &p->auxch);
+      csoundAuxAlloc(csound, (size_t)nsections*sizeof(WARPSECTION), &p->auxch);
       auxp = p->auxch.auxp;
       p->nsections = nsections;
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if (UNLIKELY((ftpSamp = csound->FTnp2Finde(csound, p->isampfun)) == NULL))
+    if (UNLIKELY((ftpSamp = csoundFTnp2Finde(csound, p->isampfun)) == NULL))
       return NOTOK;
     p->ftpSamp  = ftpSamp;
     p->sampflen = ftpSamp->flen;
 
-    if (UNLIKELY((ftpWind = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftpWind = csoundFTnp2Finde(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftpWind = ftpWind;
     p->flen    = ftpWind->flen;
@@ -159,7 +162,7 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            csound->Warning(csound, Str("SNDWARP at last sample frame"));
+            csoundWarning(csound, Str("SNDWARP at last sample frame"));
           }
         }
         longphase = (int32)exp[i].ampphs;
@@ -193,7 +196,7 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("sndwarp: not initialised"));
 }
 
@@ -211,25 +214,25 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     MYFLT       iwsize;
 
     if (UNLIKELY(p->OUTOCOUNT > 2 && p->OUTOCOUNT < 4)) {
-      return csound->InitError(csound, Str("Wrong number of outputs "
+      return csoundInitError(csound, Str("Wrong number of outputs "
                                            "in sndwarpst; must be 2 or 4"));
     }
     nsections = (int32_t)*p->ioverlap;
     if ((auxp = p->auxch.auxp) == NULL || nsections != p->nsections) {
       if (nsections != p->nsections)
         auxp=p->auxch.auxp=NULL;
-      csound->AuxAlloc(csound, (size_t)nsections*sizeof(WARPSECTION), &p->auxch);
+      csoundAuxAlloc(csound, (size_t)nsections*sizeof(WARPSECTION), &p->auxch);
       auxp = p->auxch.auxp;
       p->nsections = nsections;
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if (UNLIKELY((ftpSamp = csound->FTnp2Finde(csound, p->isampfun)) == NULL))
+    if (UNLIKELY((ftpSamp = csoundFTnp2Finde(csound, p->isampfun)) == NULL))
       return NOTOK;
     p->ftpSamp = ftpSamp;
     p->sampflen=ftpSamp->flen;
 
-    if (UNLIKELY((ftpWind = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftpWind = csoundFTnp2Finde(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
@@ -322,7 +325,7 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            csound->Warning(csound, Str("SNDWARP at last sample frame"));
+            csoundWarning(csound, Str("SNDWARP at last sample frame"));
           }
         }
         longphase = (int32)exp[i].ampphs;
@@ -368,7 +371,7 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("sndwarpst: not initialised"));
 }
 
@@ -384,7 +387,7 @@ static OENTRY localops[] =
 
 int32_t sndwarp_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

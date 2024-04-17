@@ -25,6 +25,10 @@
 #include "stdopcod.h"               /*                      UGENS7.C        */
 #include "ugens7.h"
 #include <math.h>
+#include "ugens4_public.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
@@ -33,8 +37,8 @@ static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT
 static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
 {
     int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-    if (LIKELY((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
-               (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL)) {
+    if (LIKELY((p->ftp1 = csoundFTFind(csound, p->ifna)) != NULL &&
+               (p->ftp2 = csoundFTFind(csound, p->ifnb)) != NULL)) {
       OVRLAP *ovp, *nxtovp;
       int32  olaps;
       p->durtogo = (int32)(*p->itotdur * CS_ESR);
@@ -43,10 +47,10 @@ static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
           p->fundphs = MAXLEN;                  /*   trigger new FOF */
         else p->fundphs = (int32)(*p->iphs * FMAXLEN) & PHMASK;
         if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
-          return csound->InitError(csound, Str("illegal value for iolaps"));
+          return csoundInitError(csound, Str("illegal value for iolaps"));
         }
         if (*p->iphs >= FL(0.0))
-          csound->AuxAlloc(csound, (size_t)olaps * sizeof(OVRLAP), &p->auxch);
+          csoundAuxAlloc(csound, (size_t)olaps * sizeof(OVRLAP), &p->auxch);
         ovp = &p->basovrlap;
         nxtovp = (OVRLAP *) p->auxch.auxp;
         do {
@@ -174,10 +178,10 @@ static int32_t fof(CSOUND *csound, FOFS *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("fof: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("FOF needs more overlaps"));
 }
 
@@ -224,7 +228,7 @@ static int32_t newpulse(CSOUND *csound,
     }
     if (newexp || rismps != p->prvsmps) {            /* if new params */
       if ((p->prvsmps = rismps))                     /*   redo preamp */
-        p->preamp = csound->intpow(p->expamp, -rismps);
+        p->preamp = intpow(p->expamp, -rismps);
       else p->preamp = FL(1.0);
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */
@@ -258,7 +262,7 @@ static int32_t harmset(CSOUND *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
     if (UNLIKELY(minfrq < FL(64.0))) {
-      return csound->InitError(csound, Str("Minimum frequency too low"));
+      return csoundInitError(csound, Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
       int32 nbufs = (int32)(CS_EKR * FL(3.0) / minfrq) + 1;
@@ -267,7 +271,7 @@ static int32_t harmset(CSOUND *csound, HARMON *p)
       int32 totalsiz = nbufsmps * 5 + maxprd; /* Surely 5! not 4 */
       /* printf("init: nbufs = %d; nbufsmps = %d; maxprd = %d; totalsiz = %d\n", */
       /*        nbufs, nbufsmps, maxprd, totalsiz);       */
-      csound->AuxAlloc(csound, (size_t)totalsiz * sizeof(MYFLT), &p->auxch);
+      csoundAuxAlloc(csound, (size_t)totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
       p->midp = p->bufp + nbufsmps;        /* each >= maxprd * 3 */
       p->bufq = p->midp + nbufsmps;
@@ -396,7 +400,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
           maxval = *autop;
           maxp = autop;
 #if 0
-          csound->Message(csound, "new maxval %f at %p\n", maxval, (int64_t)maxp);
+          csoundMessage(csound, "new maxval %f at %p\n", maxval, (int64_t)maxp);
 #endif
         }
         autop++;
@@ -405,7 +409,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
       period = p->mindist + maxp - p->autobuf;
       if (period != p->period) {
 #if 0
-        csound->Message(csound, "New period %d %d\n", period, p->period);
+        csoundMessage(csound, "New period %d %d\n", period, p->period);
 #endif
         p->period = period;
         if (!p->cpsmode)
@@ -432,7 +436,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
     }
     src1 = minqp - p->n2bufsmps;            /* get src equiv of 1st min  */
     if (period==0) {
-      csound->Warning(csound, Str("Period zero\n"));
+      csoundWarning(csound, Str("Period zero\n"));
       outp = p->ar;
       memset(outp, 0, sizeof(MYFLT)*CS_KSMPS);
       return OK;
@@ -533,7 +537,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
         }
 #if 0
         else if (UNLIKELY(++hrngflg > 200)) {
-          csound->Message(csound, Str("harmon out of range...\n"));
+          csoundMessage(csound, Str("harmon out of range...\n"));
           hrngflg = 0;
         }
 #endif
@@ -572,7 +576,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
         }
 #if 0
         else if (UNLIKELY(++hrngflg > 200)) {
-          csound->Message(csound, Str("harmon out of range\n"));
+          csoundMessage(csound, Str("harmon out of range\n"));
           hrngflg = 0;
         }
 #endif
@@ -623,7 +627,7 @@ static OENTRY localops[] =
 
 int32_t ugens7_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

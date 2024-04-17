@@ -82,7 +82,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       ignore_value(strerror_r(errno, buff, 128));
 #endif
 
-        csound->ErrorMsg(csound, Str("Error binding socket to interface: %s"),
+        csoundErrorMsg(csound, Str("Error binding socket to interface: %s"),
                           buff);
       //perror("Error binding socket to interface");
       return -1;
@@ -96,13 +96,13 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     if ( status < 0 ) {
 #ifdef _WIN32
         char *buff = strerror(errno);
-        csound->ErrorMsg(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
+        csoundErrorMsg(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
         return -1;
 #else
       char buff[128];
       ignore_value(strerror_r(errno, buff, 128));
 
-      csound->ErrorMsg(csound, Str("Error adding membership to interface: %s"),
+      csoundErrorMsg(csound, Str("Error adding membership to interface: %s"),
                        buff);
       return NOTOK;
       //perror("Error binding socket to interface");
@@ -161,10 +161,10 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
      OPARMS oparms;
-     csound->GetOParms(csound, &oparms);
+     csoundGetOParms(csound, &oparms);
     /* nothing to do, report success */
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, "%s",
+      csoundMessage(csound, "%s",
                       Str("ipMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
@@ -173,18 +173,18 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
     OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+    csoundGetOParms(csound, &oparms);
 
-    drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
+    drv = (char*) (csoundQueryGlobalVariable(csound, "_RTMIDI"));
     if (drv == NULL)
       return 0;
     if (strcmp(drv, "ipmidi") != 0)
       return 0;
     if (oparms.msglevel & 0x400)
-      csound->Message(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
-    csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
-    csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
-    csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);
+      csoundMessage(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
+    csoundSetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
+    csoundSetExternalMidiReadCallback(csound, ReadMidiData_);
+    csoundSetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);
     return 0;
 }
 

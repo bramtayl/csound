@@ -24,6 +24,9 @@
 #include "stdopcod.h"
 #include "wave-terrain.h"
 #include <math.h>
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /*  Wave-terrain synthesis opcode
  *
@@ -34,12 +37,12 @@
 static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
     /* DECLARE */
-    FUNC *ftpx = csound->FTnp2Find(csound, p->i_tabx);
-    FUNC *ftpy = csound->FTnp2Find(csound, p->i_taby);
+    FUNC *ftpx = csoundFTnp2Find(csound, p->i_tabx);
+    FUNC *ftpy = csoundFTnp2Find(csound, p->i_taby);
 
     /* CHECK */
     if (UNLIKELY((ftpx == NULL)||(ftpy == NULL))) {
-      return csound->InitError(csound, "%s", Str("wterrain: ftable not found"));
+      return csoundInitError(csound, "%s", Str("wterrain: ftable not found"));
     }
 
     /* POINT xarr AND yarr AT THE TABLES */
@@ -114,11 +117,11 @@ static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
   uint32_t srcpos = 0;
   uint32_t dstpos = (uint32_t)MYFLT2LONG(*p->ipos);
 
-  FUNC *fsrc = csound->FTnp2Find(csound, p->isrc); /* Source table */
-  FUNC *fdst = csound->FTnp2Find(csound, p->idst); /* Destination table */
+  FUNC *fsrc = csoundFTnp2Find(csound, p->isrc); /* Source table */
+  FUNC *fdst = csoundFTnp2Find(csound, p->idst); /* Destination table */
 
   if (UNLIKELY(fsrc->flen > fdst->flen)) {
-    return csound->InitError(csound,  "%s",  Str("Source table must be same size or "
+    return csoundInitError(csound,  "%s",  Str("Source table must be same size or "
                                          "smaller than dest table\n"));
   }
 
@@ -146,31 +149,31 @@ static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
 static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
 {
     /* DECLARE */
-    FUNC *fpoint = csound->FTnp2Find(csound, p->i_point);
-    FUNC *fmass  = csound->FTnp2Find(csound, p->i_mass);
-    FUNC *fstiff = csound->FTnp2Find(csound, p->i_stiff);
-    FUNC *fdamp  = csound->FTnp2Find(csound, p->i_damp);
-    FUNC *fvel   = csound->FTnp2Find(csound, p->i_vel);
+    FUNC *fpoint = csoundFTnp2Find(csound, p->i_point);
+    FUNC *fmass  = csoundFTnp2Find(csound, p->i_mass);
+    FUNC *fstiff = csoundFTnp2Find(csound, p->i_stiff);
+    FUNC *fdamp  = csoundFTnp2Find(csound, p->i_damp);
+    FUNC *fvel   = csoundFTnp2Find(csound, p->i_vel);
 
     /* CHECK */
     if (UNLIKELY(fpoint == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("Scantable: point table not found"));
     }
     if (UNLIKELY(fmass == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("Scantable: mass table not found"));
     }
     if (UNLIKELY(fstiff == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("Scantable: stiffness table not found"));
     }
     if (UNLIKELY(fdamp == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("Scantable: damping table not found"));
     }
     if (UNLIKELY(fvel == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("Scantable: velocity table not found"));
     }
 
@@ -179,7 +182,7 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
           (fdamp->flen==fstiff->flen)  &&
           (fvel->flen==fstiff->flen)   &&
                    (fpoint->flen==fdamp->flen)))) {
-      return csound->InitError(csound, "%s", Str("Table lengths do not agree!!"));
+      return csoundInitError(csound, "%s", Str("Table lengths do not agree!!"));
     }
 
     p->fpoint = fpoint;
@@ -191,8 +194,8 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
     p->size = (MYFLT)fpoint->flen;
 
     /* ALLOCATE SPACE FOR NEW POINTS AND VELOCITIES */
-    csound->AuxAlloc(csound, fpoint->flen * sizeof(MYFLT), &p->newloca);
-    csound->AuxAlloc(csound, fvel->flen * sizeof(MYFLT), &p->newvela);
+    csoundAuxAlloc(csound, fpoint->flen * sizeof(MYFLT), &p->newloca);
+    csoundAuxAlloc(csound, fvel->flen * sizeof(MYFLT), &p->newvela);
 
     /* POINT newloc AND newvel AT THE ALLOCATED SPACE */
     p->newloc = (MYFLT*)p->newloca.auxp;
@@ -300,7 +303,7 @@ static OENTRY localops[] = {
 
 int32_t wave_terrain_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

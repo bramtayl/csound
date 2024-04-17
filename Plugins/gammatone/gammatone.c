@@ -24,6 +24,8 @@
 
 #include "csdl.h"
 #include "interlocks.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 typedef struct {
         OPDS    h;
@@ -48,15 +50,15 @@ static int32_t gammatone_init(CSOUND *csound, GAMMA *p)
 {
     p->n = MYFLT2LRND(*p->order);
     if (p->n<0 || p->n>10)
-      return csound->InitError(csound, Str("Invalid order %d\n"), p->n);
+      return csoundInitError(csound, Str("Invalid order %d\n"), p->n);
     else if (p->n==0) p->n = 4;
-    p->expmbt = EXP(-2.0*PI_F* *p->decay/*/csound->GetSr(csound)*/);
+    p->expmbt = EXP(-2.0*PI_F* *p->decay/*/csoundGetSr(csound)*/);
     p->cosft = FL(1.0);
     p->sinft = FL(0.0);
     p->oldf = FL(0.0);
     memset(p->yr, '\0', 10*sizeof(MYFLT));
     memset(p->yi, '\0', 10*sizeof(MYFLT));
-    csound->AuxAlloc(csound, 2*CS_KSMPS*sizeof(MYFLT), &p->aux);
+    csoundAuxAlloc(csound, 2*CS_KSMPS*sizeof(MYFLT), &p->aux);
     p->xxr = (MYFLT*)p->aux.auxp;
     p->xxi  = & p->xxr[CS_KSMPS];
     return OK;
@@ -78,8 +80,8 @@ static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
     }
     if (*p->freq != freq) {
       freq = p->oldf = *p->freq;
-      p->cosft = COS(2.0*PI_F*freq/csound->GetSr(csound));
-      p->sinft = SIN(2.0*PI_F*freq/csound->GetSr(csound));
+      p->cosft = COS(2.0*PI_F*freq/csoundGetSr(csound));
+      p->sinft = SIN(2.0*PI_F*freq/csoundGetSr(csound));
       //printf("**** cos/sin = %f / %f\n", p->cosft, p->sinft);
       //printf("**** expmbt = %f\n", p->expmbt);
     }

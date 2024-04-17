@@ -28,6 +28,10 @@
 #include "OpcodeBase.hpp"
 #include <dirent.h>
 #include <sys/types.h>
+#include "linevent_public.h"
+#include "memalloc.h"
+#include "csound_orc_semantics_public.h"
+#include "insert_public.h"
 
 using namespace std;
 using namespace csound;
@@ -178,13 +182,13 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
         std::ostringstream statement;
         statement << "f" << index + y << " 0 0 1 \"" << fileNames[y] << "\" "
                   << skiptime << " " << format << " " << channel << "\n";
-        // csound->MessageS(csound, CSOUNDMSG_ORCH, statement.str().c_str());
-        csound->InputMessage(csound, statement.str().c_str());
+        // csoundMessageS(csound, CSOUNDMSG_ORCH, statement.str().c_str());
+        csoundInputMessageInternal(csound, statement.str().c_str());
       }
 
       closedir(dir);
     } else {
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("Cannot load file. Error opening directory: %s\n"),
                       directory);
     }
@@ -220,16 +224,16 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size) {
       }
       ss = p->arrayMemberSize*size;
       if (p->data==NULL) {
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->data = (MYFLT*)mcalloc(csound, ss);
         p->allocated = ss;
       }
       else if (ss > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->data = (MYFLT*) mrealloc(csound, p->data, ss);
         p->allocated = ss;
       }
       if (p->dimensions==0) {
         p->dimensions = 1;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+        p->sizes = (int32_t*)mmalloc(csound, sizeof(int32_t));
       }
     }
     p->sizes[0] = size;
@@ -242,7 +246,7 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
   std::vector<std::string> fileNames;
 
   if (inArgCount == 0)
-    return csound->InitError(
+    return csoundInitError(
         csound, "%s", Str("Error: you must pass a directory as a string."));
 
   if (inArgCount == 1) {
@@ -250,12 +254,12 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
   }
 
   else if (inArgCount == 2) {
-    CS_TYPE *argType = csound->GetTypeForArg(p->extension);
+    CS_TYPE *argType = csoundGetTypeForArg(p->extension);
     if (strcmp("S", argType->varTypeName) == 0) {
-      extension = csound->Strdup(csound, ((STRINGDAT *)p->extension)->data);
+      extension = cs_strdup(csound, ((STRINGDAT *)p->extension)->data);
       fileNames = searchDir(csound, p->directoryName->data, extension);
     } else
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                "%s", Str("Error: second parameter to directory"
                                    " must be a string"));
   }
@@ -267,7 +271,7 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
   for (int i = 0; i < numberOfFiles; i++) {
     file = &fileNames[i][0u];
     strings[i].size = strlen(file) + 1;
-    strings[i].data = csound->Strdup(csound, file);
+    strings[i].data = cs_strdup(csound, file);
   }
 
   fileNames.clear();
@@ -314,7 +318,7 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
       // Sort names
       std::sort(fileNames.begin(), fileNames.end());
     } else {
-      csound->Message(csound, Str("Cannot find directory. "
+      csoundMessage(csound, Str("Cannot find directory. "
                                   "Error opening directory: %s\n"),
                       directory);
     }
@@ -328,20 +332,20 @@ extern "C" {
 
 PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound) {
 
-  int status = csound->AppendOpcode(
+  int status = csoundAppendOpcode(
       csound, (char *)"ftsamplebank.k", sizeof(kftsamplebank), 0, 3,
       (char *)"k", (char *)"Skkkkk",
       (int (*)(CSOUND *, void *))kftsamplebank::init_,
       (int (*)(CSOUND *, void *))kftsamplebank::kontrol_,
       (int (*)(CSOUND *, void *))0);
 
-  status |= csound->AppendOpcode(
+  status |= csoundAppendOpcode(
       csound, (char *)"ftsamplebank.i", sizeof(iftsamplebank), 0, 1,
       (char *)"i", (char *)"Siiii",
       (int (*)(CSOUND *, void *))iftsamplebank::init_,
       (int (*)(CSOUND *, void *))0, (int (*)(CSOUND *, void *))0);
 
-  /*  status |= csound->AppendOpcode(csound,
+  /*  status |= csoundAppendOpcode(csound,
       (char*)"ftsamplebank",
       0xffff,
       0,
@@ -352,7 +356,7 @@ PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound) {
       0,
       0); */
 
-  status |= csound->AppendOpcode(
+  status |= csoundAppendOpcode(
       csound, (char *)"directory", sizeof(DIR_STRUCT), 0, 1, (char *)"S[]",
       (char *)"SN", (int (*)(CSOUND *, void *))directory,
       (int (*)(CSOUND *, void *))0, (int (*)(CSOUND *, void *))0);

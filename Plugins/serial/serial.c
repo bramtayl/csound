@@ -47,6 +47,7 @@
 
 #include "csdl.h"
 #include "interlocks.h"
+#include "insert_public.h"
 
 /* **************************************************
    As far as I can tell his should work on Windows
@@ -108,10 +109,10 @@ static HANDLE get_port(CSOUND *csound, int32_t port)
 {
     HANDLE hport;
     SERIAL_GLOBALS *q;
-    q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
+    q = (SERIAL_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                       "serialGlobals_");
     if (q == NULL) {
-      csound->ErrorMsg(csound, Str("No ports available"));
+      csoundErrorMsg(csound, Str("No ports available"));
       return NULL;
     }
     hport = (HANDLE)q->handles[port];
@@ -253,15 +254,15 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     int32_t i;
     /* NEED TO CREATE A GLOBAL FOR HANDLE */
     SERIAL_GLOBALS *q;
-    q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
+    q = (SERIAL_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                       "serialGlobals_");
     if (q == NULL) {
-      if (UNLIKELY(csound->CreateGlobalVariable(csound, "serialGlobals_",
+      if (UNLIKELY(csoundCreateGlobalVariable(csound, "serialGlobals_",
                                                sizeof(SERIAL_GLOBALS)) != 0)) {
-        csound->InitError(csound, Str("serial: failed to allocate globals"));
+        csoundInitError(csound, Str("serial: failed to allocate globals"));
         return -1;
       }
-      q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
+      q = (SERIAL_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                       "serialGlobals_");
       q->csound = csound;
       q->maxind = 0;
@@ -277,7 +278,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
  //Check if the connection was successfull
     if (UNLIKELY(hSerial==INVALID_HANDLE_VALUE)) {
       //If not success full display an Error
-      return csound->InitError(csound, Str("%s not available.\n"), serialport);
+      return csoundInitError(csound, Str("%s not available.\n"), serialport);
     }
     memset(&dcbSerialParams, 0, sizeof(dcbSerialParams));
     dcbSerialParams.DCBlength=sizeof(dcbSerialParams);
@@ -307,7 +308,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
       }
     }
     if (UNLIKELY(q->maxind>=10)) {
-      csound->InitError(csound, Str("Number of serial handles exhausted"));
+      csoundInitError(csound, Str("Number of serial handles exhausted"));
       return -1;
     }
     q->handles[q->maxind++] = hSerial;
@@ -350,10 +351,10 @@ int32_t serialEnd(CSOUND *csound, SERIALEND *p)
     IGN(csound);
 #ifdef _WIN32
     SERIAL_GLOBALS *q;
-    q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
+    q = (SERIAL_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                       "serialGlobals_");
     if (UNLIKELY(q = NULL))
-      return csound->PerfError(csound, &(p->h), Str("Nothing to close"));
+      return csoundPerfError(csound, &(p->h), Str("Nothing to close"));
     CloseHandle((HANDLE)q->handles[(int32_t)*p->port]);
     q->handles[(int32_t)*p->port] = NULL;
 #else
@@ -439,7 +440,7 @@ int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 #endif
     if (bytes > 0) {
       str[bytes] = '\0'; // terminate
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", str);
+      csoundMessageS(csound, CSOUNDMSG_ORCH, "%s", str);
     }
     return OK;
 }
@@ -572,9 +573,9 @@ uintptr_t arduino_listen(void *p)
     while (1) {
       unsigned int hi, low;
       // critical region
-      csound->LockMutex(q->lock);
+      csoundLockMutex(q->lock);
       memcpy(q->values, q->buffer, MAXSENSORS*sizeof(int32_t));
-      csound->UnlockMutex(q->lock);
+      csoundUnlockMutex(q->lock);
       // end critical region
       if (q->stop)
         //#ifndef _WIN32
@@ -600,8 +601,8 @@ uintptr_t arduino_listen(void *p)
 int32_t arduino_deinit(CSOUND *csound, ARD_START *p)
 {                               /* NOT FINISHED */
     p->q->stop = 1;
-    csound->JoinThread(p->q->thread);
-    csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
+    csoundJoinThread(p->q->thread);
+    csoundDestroyGlobalVariable(csound, "arduinoGlobals_");
       p->q = NULL;
     return OK;
 }
@@ -615,22 +616,22 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
                              (const char *)p->portName->data,
                              *p->baudRate);
     //printf("xx=%g\n", xx);
-    if (xx<0) return csound->InitError(csound, "%s",
+    if (xx<0) return csoundInitError(csound, "%s",
                                        Str("failed to open serial line\n"));
-    q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+    q = (ARDUINO_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                        "arduinoGlobals_");
-    if (q!=NULL) return csound->InitError(csound, "%s",
+    if (q!=NULL) return csoundInitError(csound, "%s",
                                     Str("arduinoStart already running\n"));
-    if (UNLIKELY(csound->CreateGlobalVariable(csound, "arduinoGlobals_",
+    if (UNLIKELY(csoundCreateGlobalVariable(csound, "arduinoGlobals_",
                                               sizeof(ARDUINO_GLOBALS)) != 0))
       return
-        csound->InitError(csound, "%s", Str("arduino: failed to allocate globals"));
-    q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+        csoundInitError(csound, "%s", Str("arduino: failed to allocate globals"));
+    q = (ARDUINO_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                        "arduinoGlobals_");
-    if (q==NULL) return csound->InitError(csound, "&%s", Str("Failed to allocate\n"));
+    if (q==NULL) return csoundInitError(csound, "&%s", Str("Failed to allocate\n"));
     p->q = q;
     q->csound = csound;
-    q->lock = csound->Create_Mutex(0);
+    q->lock = csoundCreateMutex(0);
 #ifdef _WIN32
     q->port = get_port(csound, xx);
 #else
@@ -639,8 +640,8 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     for (n=0; n<MAXSENSORS; n++) q->values[n] = 0;
     // Start listening thread
     q->stop = 0;
-    q->thread = csound->CreateThread(arduino_listen, (void *)q);
-    csound->RegisterDeinitCallback(csound, p,
+    q->thread = csoundCreateThread(arduino_listen, (void *)q);
+    csoundRegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) arduino_deinit);
     *p->returnedPort = xx;
  return OK;
@@ -648,10 +649,10 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
 
 int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
 {
-    p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+    p->q = (ARDUINO_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                       "arduinoGlobals_");
     if (p->q == NULL)
-      return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+      return csoundInitError(csound, "%s", Str("arduinoStart not running\n"));
     /* Initialise port filter */
     if (*p->ihtim != FL(0.0)) {
       p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
@@ -669,11 +670,11 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     MYFLT val;
     int ind = *p->index;
     if (ind <0 || ind>MAXSENSORS)
-      return csound->PerfError(csound, &p->h,
+      return csoundPerfError(csound, &p->h,
                                "%s", Str("out of range\n"));
-    csound->LockMutex(q->lock);
+    csoundLockMutex(q->lock);
     val = (MYFLT)q->values[ind];
-    csound->UnlockMutex(q->lock);
+    csoundUnlockMutex(q->lock);
     if (DEBUG) printf("ind %d val %d\n", ind, q->values[ind]);
     p->yt1 = p->c1 * val + p->c2 * p->yt1;
     *p->val = p->yt1;
@@ -682,10 +683,10 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
 
 int32_t arduinoReadFSetup(CSOUND* csound, ARD_READF* p)
 {
-    p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+    p->q = (ARDUINO_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                       "arduinoGlobals_");
     if (p->q == NULL)
-      return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+      return csoundInitError(csound, "%s", Str("arduinoStart not running\n"));
     return OK;
 }
 
@@ -705,13 +706,13 @@ int32_t arduinoReadF(CSOUND* csound, ARD_READF* p)
     if (ind1<0 || ind1>MAXSENSORS ||
         ind2<0 || ind2>MAXSENSORS ||
         ind3 <0 || ind3>MAXSENSORS)
-      return csound->PerfError(csound, &p->h,
+      return csoundPerfError(csound, &p->h,
                                "%s", Str("out of range\n"));
-    csound->LockMutex(q->lock);
+    csoundLockMutex(q->lock);
     c1 = q->values[ind1];
     c2 = q->values[ind2];
     c3 = q->values[ind3];
-    csound->UnlockMutex(q->lock);
+    csoundUnlockMutex(q->lock);
     //printf("ind %d val %d\n", ind, q->values[ind]);
     val.i = (c3<<22)|(c2<<12)|(c1<<2);
     *p->val = (MYFLT)val.f;
@@ -722,14 +723,14 @@ int32_t arduinoStop(CSOUND* csound, ARD_START* p)
 {
     (void)(p);
     ARDUINO_GLOBALS *q =
-      (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+      (ARDUINO_GLOBALS*) csoundQueryGlobalVariable(csound,
                                                      "arduinoGlobals_");
     if (q==NULL)
-      csound->Message(csound, "%s\n", Str("arduino not running"));
+      csoundMessage(csound, "%s\n", Str("arduino not running"));
     else {
       q->stop = 1;
-      csound->JoinThread(q->thread);
-      csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
+      csoundJoinThread(q->thread);
+      csoundDestroyGlobalVariable(csound, "arduinoGlobals_");
         //q->thread = NULL;
     }
     return OK;

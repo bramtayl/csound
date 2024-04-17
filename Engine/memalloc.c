@@ -23,6 +23,7 @@
 */
 
 #include "csoundCore_internal.h"                 /*              MEMALLOC.C      */
+#include "memalloc.h"
 
 #ifdef CUSTOM_MALLOC
 #ifndef MALLOC_BASE
@@ -99,9 +100,9 @@ typedef struct memAllocBlock_s {
 
 static void memdie(CSOUND *csound, size_t nbytes)
 {
-    csound->ErrorMsg(csound, Str("memory allocate failure for %zd"),
+    csoundErrorMsg(csound, Str("memory allocate failure for %zd"),
                              nbytes);
-    csound->LongJmp(csound, CSOUND_MEMORY);
+    csoundLongJmp(csound, CSOUND_MEMORY);
 }
 
 void *mmalloc(CSOUND *csound, size_t size)
@@ -110,7 +111,7 @@ void *mmalloc(CSOUND *csound, size_t size)
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
-      csound->DebugMsg(csound,
+      csoundDebugMsg(csound,
               " *** internal error: mmalloc() called with zero nbytes\n");
       return NULL;
     }
@@ -148,8 +149,8 @@ void *mcalloc(CSOUND *csound, size_t size)
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
-      csound->DebugMsg(csound,
-              " *** internal error: csound->Calloc() called with zero nbytes\n");
+      csoundDebugMsg(csound,
+              " *** internal error: mcalloc() called with zero nbytes\n");
       return NULL;
     }
 #endif
@@ -190,7 +191,7 @@ void mfree(CSOUND *csound, void *p)
     pp = HDR_PTR(p);
  #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
-      csound->Warning(csound, "csound->Free() called with invalid "
+      csoundWarning(csound, "mfree() called with invalid "
                       "pointer (%p) %x %p %x",
                       p, pp->magic, pp->ptr, MEMALLOC_MAGIC);
       /* exit() is ugly, but this is a fatal error that can only occur */
@@ -212,7 +213,7 @@ void mfree(CSOUND *csound, void *p)
       else
         MEMALLOC_DB = (void*)nxt;
     }
-    //csound->Message(csound, "free\n");
+    //csoundMessage(csound, "free\n");
     /* free memory */
     CS_FREE((void*) pp);
     CSOUND_MEM_SPINUNLOCK
@@ -238,7 +239,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     pp = HDR_PTR(oldp);
 #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp)) {
-      csound->DebugMsg(csound, " *** internal error: mrealloc() called with invalid "
+      csoundDebugMsg(csound, " *** internal error: mrealloc() called with invalid "
                       "pointer (%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */

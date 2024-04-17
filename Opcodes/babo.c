@@ -128,6 +128,8 @@ input  |    |------>|
 #include "babo.h"
 #include <math.h>
 #include "interlocks.h"
+#include "auxfd.h"
+#include "fgens_public.h"
 
 #if !defined(FLT_MAX)
 #define FLT_MAX         (1.0e38)
@@ -153,7 +155,7 @@ BaboMemory_create(CSOUND *csound, BaboMemory *this, size_t size_in_floats)
 {
     size_t size_in_bytes = size_in_floats * sizeof(MYFLT);
 
-    csound->AuxAlloc(csound, size_in_bytes, &this->memptr);
+    csoundAuxAlloc(csound, size_in_bytes, &this->memptr);
 
     //memset(this->memptr.auxp, 0, size_in_bytes);
 
@@ -736,7 +738,7 @@ set_expert_values(CSOUND *csound, BABO *p)
     int32_t      n      = 0;
 
     if (p->expert_values > 0)
-        ftp = csound->FTnp2Finde(csound, &(p->expert_values));
+        ftp = csoundFTnp2Finde(csound, &(p->expert_values));
 
     p->decay        = load_value_or_default(ftp, n++, BABO_DEFAULT_DECAY);
     p->hidecay      = load_value_or_default(ftp, n++, BABO_DEFAULT_HIDECAY);
@@ -755,7 +757,7 @@ verify_coherence(CSOUND *csound, BABO *p)
     if (UNLIKELY(*(p->lx) <= FL(0.0) ||
                  *(p->ly) <= FL(0.0) ||
                  *(p->lz) <= FL(0.0))) {
-      csound->Warning(csound, Str("Babo: resonator dimensions are incorrect "
+      csoundWarning(csound, Str("Babo: resonator dimensions are incorrect "
                               "(%.1f, %.1f, %.1f)"),
                   *(p->lx), *(p->ly), *(p->lz));
     }

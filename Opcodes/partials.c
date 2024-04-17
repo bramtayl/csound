@@ -39,6 +39,9 @@ imaxtracks - max number of tracks (<= number of analysis bins)
 
 #include "pvs_ops.h"
 #include "pstream.h"
+#include "envvar_public.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 typedef struct _parts {
     OPDS    h;
@@ -75,86 +78,86 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
     p->cur = maxtracks;
 
     if (p->mags.auxp == NULL || p->mags.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->mags);
+      csoundAuxAlloc(csound, sizeof(double) * numbins, &p->mags);
     else
       memset(p->mags.auxp, 0,sizeof(double) * numbins );
 
     if (p->lmags.auxp == NULL || p->lmags.size < sizeof(double) * numbins)
-      csound->AuxAlloc(csound, sizeof(double) * numbins, &p->lmags);
+      csoundAuxAlloc(csound, sizeof(double) * numbins, &p->lmags);
     else
       memset(p->lmags.auxp, 0,sizeof(double) * numbins );
 
      if (p->cflag.auxp == NULL || p->cflag.size < sizeof(int32_t) * maxtracks)
-      csound->AuxAlloc(csound, sizeof(int32_t) * maxtracks, &p->cflag);
+      csoundAuxAlloc(csound, sizeof(int32_t) * maxtracks, &p->cflag);
      else
        memset(p->cflag.auxp, 0, sizeof(int32_t) * maxtracks);
 
      if (p->trkid.auxp == NULL || p->trkid.size < sizeof(int32_t) * maxtracks * 2)
-      csound->AuxAlloc(csound, sizeof(int32_t) * maxtracks * 2, &p->trkid);
+      csoundAuxAlloc(csound, sizeof(int32_t) * maxtracks * 2, &p->trkid);
      else
        memset(p->trkid.auxp, 0, sizeof(int32_t) * maxtracks * 2);
 
      if (p->trndx.auxp == NULL || p->trndx.size < sizeof(int32_t) * maxtracks)
-      csound->AuxAlloc(csound, sizeof(int32_t) * maxtracks, &p->trndx);
+      csoundAuxAlloc(csound, sizeof(int32_t) * maxtracks, &p->trndx);
      else
        memset(p->trndx.auxp, 0, sizeof(int32_t) * maxtracks );
 
      if (p->index.auxp == NULL || p->index.size < sizeof(int32_t) * numbins)
-      csound->AuxAlloc(csound, sizeof(int32_t) * numbins, &p->index);
+      csoundAuxAlloc(csound, sizeof(int32_t) * numbins, &p->index);
      else
        memset(p->index.auxp, 0,sizeof(int32_t) * numbins );
 
      if (p->tstart.auxp == NULL || p->tstart.size < sizeof(uint32) * maxtracks * 2)
-      csound->AuxAlloc(csound, sizeof(uint32) * maxtracks * 2, &p->tstart);
+      csoundAuxAlloc(csound, sizeof(uint32) * maxtracks * 2, &p->tstart);
      else
        memset(p->tstart.auxp, 0, sizeof(uint32) * maxtracks * 2);
 
      if (p->lastpk.auxp == NULL ||
          p->lastpk.size < sizeof(uint32) * maxtracks * 2)
-       csound->AuxAlloc(csound, sizeof(uint32) * maxtracks * 2, &p->lastpk);
+       csoundAuxAlloc(csound, sizeof(uint32) * maxtracks * 2, &p->lastpk);
      else
        memset(p->lastpk.auxp, 0, sizeof(uint32) * maxtracks * 2);
 
      if (p->binex.auxp == NULL || p->binex.size < sizeof(double) * numbins)
-       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->binex);
+       csoundAuxAlloc(csound, sizeof(double) * numbins, &p->binex);
      else
        memset(p->binex.auxp, 0,sizeof(double) * numbins );
 
      if (p->magex.auxp == NULL || p->magex.size < sizeof(double) * numbins)
-       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->magex);
+       csoundAuxAlloc(csound, sizeof(double) * numbins, &p->magex);
      else
        memset(p->magex.auxp, 0,sizeof(double) * numbins );
 
      if (p->bins.auxp == NULL || p->bins.size < sizeof(double) * maxtracks)
-       csound->AuxAlloc(csound, sizeof(double) * maxtracks, &p->bins);
+       csoundAuxAlloc(csound, sizeof(double) * maxtracks, &p->bins);
      else
        memset(p->bins.auxp, 0, sizeof(double) * maxtracks );
 
      if (p->oldbins.auxp == NULL ||
          p->oldbins.size < sizeof(double) * maxtracks * 2)
-       csound->AuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->oldbins);
+       csoundAuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->oldbins);
      else
        memset(p->oldbins.auxp, 0, sizeof(double) * maxtracks * 2);
 
      if (p->diffs.auxp == NULL || p->diffs.size < sizeof(double) * numbins)
-       csound->AuxAlloc(csound, sizeof(double) * numbins, &p->diffs);
+       csoundAuxAlloc(csound, sizeof(double) * numbins, &p->diffs);
      else
        memset(p->diffs.auxp, 0, sizeof(double) * numbins );
 
      if (p->pmags.auxp == NULL || p->pmags.size < sizeof(double) * maxtracks * 2)
-       csound->AuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->pmags);
+       csoundAuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->pmags);
      else
        memset(p->pmags.auxp, 0, sizeof(double) * maxtracks * 2);
 
      if (p->adthresh.auxp == NULL ||
          p->adthresh.size < sizeof(double) * maxtracks * 2)
-       csound->AuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->adthresh);
+       csoundAuxAlloc(csound, sizeof(double) * maxtracks * 2, &p->adthresh);
      else
        memset(p->adthresh.auxp, 0, sizeof(double) * maxtracks * 2);
 
      if (p->fout->frame.auxp == NULL ||
          p->fout->frame.size < sizeof(float) * numbins * 4)
-       csound->AuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
+       csoundAuxAlloc(csound, sizeof(float) * numbins * 4, &p->fout->frame);
      else
        memset(p->fout->frame.auxp, 0,sizeof(float) * numbins * 4);
 
@@ -174,12 +177,12 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
 
     if (UNLIKELY(p->fin1->format != PVS_AMP_FREQ)) {
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("partials: first input not in AMP_FREQ format\n"));
     }
 
     if (UNLIKELY(p->fin2->format != PVS_AMP_PHASE)) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("partials: no phase input, tracks will contain "
                           "amp & freq only\n"));
       p->nophase = 1;
@@ -230,7 +233,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
         max = mags[i];
       }
     absthresh = (float)(*p->kthresh * max);
-    } else absthresh = (float)(-*p->kthresh * csound->Get0dBFS(csound));
+    } else absthresh = (float)(-*p->kthresh * csoundGet0dBFS(csound));
 
     logthresh = logf(absthresh / 5.0f);
 
@@ -503,10 +506,10 @@ int32_t part2txt_init(CSOUND *csound, PARTXT *p){
 
     if (p->fdch.fd != NULL)
       csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, p->fname->data,
+    p->fdch.fd = csoundFileOpenWithType(csound, &(p->f), CSFILE_STD, p->fname->data,
                                    "w", "", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), p->fname->data);
+      return csoundInitError(csound, Str("Cannot open %s"), p->fname->data);
 
     p->lastframe = 0;
     return OK;
@@ -538,7 +541,7 @@ static OENTRY localops[] =
 
 int32_t partials_init_(CSOUND *csound)
 {
-  return csound->AppendOpcodes(csound, &(localops[0]),
+  return csoundAppendOpcodes(csound, &(localops[0]),
                                (int32_t
                                 ) (sizeof(localops) / sizeof(OENTRY)));
 }

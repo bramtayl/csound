@@ -34,6 +34,9 @@
 #include <math.h>
 #include "biquad.h"
 #include "csound_standard_types.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /***************************************************************************/
 /* The biquadratic filter computes the digital filter two x components and */
@@ -284,7 +287,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             p0 = p1 = (-b1)/2.0;
             if (p0*p0+pi*pi>=1.0) {
               double theta = atan2(pi, p0);
-              if (warn) csound->Warning(csound, Str("rezzy instability corrected"));
+              if (warn) csoundWarning(csound, Str("rezzy instability corrected"));
               p0 = NEARONE * cos(theta);
               //pi = NEARONE * sin(theta);
               b1 = -2*p0; b2 = NEARONE*NEARONE; warn = 0;
@@ -295,7 +298,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             p0=(sqrt(disc)-b1)/2.0;
             p1=(-sqrt(disc)-b1)/2.0;
             if (p0*p0>=1.0 || p1*p1>=1) {
-              if (warn) csound->Warning(csound, Str("rezzy instability corrected"));
+              if (warn) csoundWarning(csound, Str("rezzy instability corrected"));
               if (p0*p0>=1) p0 = NEARONE*(p0>0.0?1:(-1));
               if (p1*p1>=1) p1 = NEARONE*(p1>0.0?1:(-1));
               b1 = -(p0+p1); b2 = p0*p1; warn = 0;
@@ -331,7 +334,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
               p0=p1=(-b1)/2.0;
               if (p0*p0+pi*pi>=1.0) {
                 double theta = atan2(pi, p0);
-                if (warn) csound->Warning(csound,
+                if (warn) csoundWarning(csound,
                                           Str("rezzy instability corrected"));
                 //printf("b1, b2 = %f, %f ->", b1,b2);
                 p0 = NEARONE * cos(theta);
@@ -345,7 +348,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
               p0=(sqrt(disc)-b1)/2.0;
               p1=(-sqrt(disc)-b1)/2.0;
               if (p0*p0>=1.0 || p1*p1>=1) {
-                if (warn) csound->Warning(csound,
+                if (warn) csoundWarning(csound,
                                           Str("rezzy instability corrected"));
                 //printf("b1, b2= %f, %f ", b1, b2);
                 if (p0*p0>=1) p0 = NEARONE*(p0>0.0?1:(-1));
@@ -396,7 +399,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             if (p0*p0+pi*pi>=1.0) {
               double theta = atan2(pi, p0);
               //printf("b1, b2= %f, %f ", b1, b2);
-              if (warn) csound->Warning(csound, Str("rezzy instability corrected"));
+              if (warn) csoundWarning(csound, Str("rezzy instability corrected"));
               b1 = -p0*cos(theta); b2 = NEARONE*NEARONE; warn = 0;
               //printf("-> b1, b2= %f, %f\n", b1, b2);
             }
@@ -407,7 +410,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             p1=(-sqrt(disc)-b1)/2.0;
             if (p0*p0>=1.0 || p1*p1>=1) {
               //printf("b1, b2= %f, %f ", b1, b2);
-              if (warn) csound->Warning(csound, Str("rezzy instability corrected"));
+              if (warn) csoundWarning(csound, Str("rezzy instability corrected"));
               if (p0*p0>=1.0) p0 = NEARONE*(p0>0?1:(-1));
               if (p1*p1>=1.0) p1 = NEARONE*(p1>0?1:(-1));
               b1 = -(p0+p1); b2 = p0*p1; warn = 0;
@@ -447,7 +450,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
               if (p0*p0+pi*pi >=1.0) {
                 double theta = atan2(pi,p0);
                 //printf("b1, b2= %f, %f ", b1, b2);
-                if (warn) csound->Warning(csound,
+                if (warn) csoundWarning(csound,
                                           Str("rezzy instability corrected"));
                 b1 = -p0*cos(theta); b2 = NEARONE*NEARONE; warn = 0;
                 //printf("-> b1, b2= %f, %f\n", b1, b2);
@@ -458,7 +461,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
               p0=(sqrt(disc)-b1)/2.0;
               p1=(-sqrt(disc)-b1)/2.0;
               if (p0*p0>=1.0 || p1*p1>=1) {
-                if (warn) csound->Warning(csound,
+                if (warn) csoundWarning(csound,
                                           Str("rezzy instability corrected"));
                 if (p0*p0>=1.0) p0 = NEARONE*(p0>0?1:(-1));
                 if (p1*p1>=1.0) p1 = NEARONE*(p1>0?1:(-1));
@@ -559,7 +562,7 @@ static int32_t vcoset(CSOUND *csound, VCO *p)
     //MYFLT ndsave;
 
     //ndsave = (MYFLT) ndel;
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->sine)) == NULL))
+    if (UNLIKELY((ftp = csoundFTFind(csound, p->sine)) == NULL))
       return NOTOK;
 
     p->ftp = ftp;
@@ -585,7 +588,7 @@ static int32_t vcoset(CSOUND *csound, VCO *p)
     if (p->aux.auxp == NULL ||
         (uint32_t)(ndel*sizeof(MYFLT)) > p->aux.size)
       /* allocate space for delay buffer */
-      csound->AuxAlloc(csound, ndel * sizeof(MYFLT), &p->aux);
+      csoundAuxAlloc(csound, ndel * sizeof(MYFLT), &p->aux);
     else if (*p->iskip==FL(0.0)) {
       memset(p->aux.auxp, 0, ndel*sizeof(MYFLT));
     }
@@ -642,7 +645,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     //rtfqc = SQRT(fqc);
     knh = (int32_t)(CS_ESR*p->nyq/fqc);
     if (UNLIKELY((n = (int32_t)knh) <= 0)) {
-      csound->Warning(csound, "knh=%x nyq=%f fqc=%f\n"
+      csoundWarning(csound, "knh=%x nyq=%f fqc=%f\n"
                       "vco knh (%d) <= 0; taken as 1\n", knh, p->nyq, fqc, n);
       n = 1;
     }
@@ -798,7 +801,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     p->lphs = phs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("vco: not initialised"));
+    return csoundPerfError(csound, &(p->h), Str("vco: not initialised"));
 }
 
 /***************************************************************************/
@@ -1014,25 +1017,25 @@ static int32_t nestedapset(CSOUND *csound, NESTEDAP *p)
     if (UNLIKELY(((int32)(*p->del1 * CS_ESR)) <=
                  ((int32)(*p->del2 * CS_ESR) +
                   (int32)(*p->del3 * CS_ESR)))) {
-      return csound->InitError(csound, Str("illegal delay time"));
+      return csoundInitError(csound, Str("illegal delay time"));
     }
     npts = npts1 + npts2 + npts3;
     /* new space if reqd */
     if ((auxp = p->auxch.auxp) == NULL || npts != p->npts) {
-      csound->AuxAlloc(csound, (size_t)npts*sizeof(MYFLT), &p->auxch);
+      csoundAuxAlloc(csound, (size_t)npts*sizeof(MYFLT), &p->auxch);
       //auxp = p->auxch.auxp;
       p->npts = npts;
 
       if (*p->mode == FL(1.0)) {
         if (UNLIKELY(npts1 <= 0)) {
-          return csound->InitError(csound, Str("illegal delay time"));
+          return csoundInitError(csound, Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *) p->auxch.auxp;
         p->end1p = (MYFLT *) p->auxch.endp;
       }
       else if (*p->mode == FL(2.0)) {
         if (UNLIKELY(npts1 <= 0 || npts2 <= 0)) {
-          return csound->InitError(csound, Str("illegal delay time"));
+          return csoundInitError(csound, Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *)  p->auxch.auxp;
         p->beg2p = p->beg1p + npts1;
@@ -1041,7 +1044,7 @@ static int32_t nestedapset(CSOUND *csound, NESTEDAP *p)
       }
       else if (*p->mode == FL(3.0)) {
         if (UNLIKELY(npts1 <= 0 || npts2 <= 0 || npts3 <= 0)) {
-          return csound->InitError(csound, Str("illegal delay time"));
+          return csoundInitError(csound, Str("illegal delay time"));
         }
         p->beg1p = (MYFLT *) p->auxch.auxp;
         p->beg2p = (MYFLT *) p->auxch.auxp + (int32)npts1;
@@ -1191,7 +1194,7 @@ static int32_t nestedap(CSOUND *csound, NESTEDAP *p)
     }
     return OK;
  err1:
- return csound->PerfError(csound, &(p->h),
+ return csoundPerfError(csound, &(p->h),
                              Str("delay: not initialised"));
 }
 
@@ -1524,7 +1527,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     }
     p->lfq = -FL(1.0); p->lq = -FL(1.0);
     /* set a limit below theoretical sr/pi */
-    p->limit = csound->GetSr(csound)*(FL(1.0)/PI_F-FL(1.0)/FL(100.0));
+    p->limit = csoundGetSr(csound)*(FL(1.0)/PI_F-FL(1.0)/FL(100.0));
     //printf("*** limit = %lf\n", p->limit);
     return OK;
 }
@@ -1603,7 +1606,7 @@ int mvmfilterset(CSOUND *csound, MVMFILT *p)
 int mvmfilter(CSOUND *csound, MVMFILT *p) {
   uint32_t      offset   = p->h.insdshead->ksmps_offset;
   uint32_t      early    = p->h.insdshead->ksmps_no_end;
-  MYFLT fs       = csound->GetSr(csound);
+  MYFLT fs       = csoundGetSr(csound);
   uint32_t      n, nsmps = CS_KSMPS;
   int32_t       asigtau, asigf0;
   asigtau = IS_ASIG_ARG(p->tau);
@@ -1618,7 +1621,7 @@ int mvmfilter(CSOUND *csound, MVMFILT *p) {
   MYFLT theta,r1,x1,y1,x,y,limit;
   x  = p->x;
   y  = p->y;
-  limit = csound->GetSr(csound) / FL(2.0);
+  limit = csoundGetSr(csound) / FL(2.0);
 
   MYFLT f0val=*p->f0;
   f0val = f0val > limit ? limit : f0val;
@@ -1701,7 +1704,7 @@ static OENTRY localops[] = {
 
 int32_t biquad_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

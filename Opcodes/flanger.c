@@ -25,13 +25,15 @@
                                    enhancements by JPff -- July 1998 */
 #include <math.h>
 #include "flanger.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {
     /*---------------- delay  -----------------------*/
     p->maxdelay = (uint32)(*p->maxd  * CS_ESR);
     if ((*p->iskip != 0) || (p->aux.auxp==NULL)) {
-      csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
+      csoundAuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
       p->left = 0;
       p->yt1 = FL(0.0);
       p->fmaxd = (MYFLT) p->maxdelay;
@@ -88,7 +90,7 @@ static int32_t wguide1set (CSOUND *csound, WGUIDE1 *p)
 {
         /*---------------- delay -----------------------*/
     p->maxd = (uint32) (MAXDELAY * CS_ESR);
-    csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux);
+    csoundAuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux);
     p->left = 0;
         /*---------------- filter -----------------------*/
     p->c1 = p->prvhp = FL(0.0);
@@ -182,10 +184,10 @@ static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
     p->maxd                  = (uint32) (MAXDELAY * CS_ESR);
-    csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux1);
+    csoundAuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux1);
     p->left1                 = 0;
         /*---------------- delay2 -----------------------*/
-    csound->AuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux2);
+    csoundAuxAlloc(csound, p->maxd * sizeof(MYFLT), &p->aux2);
     p->left2                 = 0;
         /*---------------- filter1 -----------------------*/
     p->c1_1                  = p->prvhp1 = FL(0.0);
@@ -201,7 +203,7 @@ static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
     p->xdel2cod              = IS_ASIG_ARG(p->xdel2) ? 1 : 0;
 
     if (UNLIKELY(p->xdel1cod != p->xdel2cod))
-      return csound->InitError(csound, Str(
+      return csoundInitError(csound, Str(
                     "wguide2 xfreq1 and xfreq2 arguments must"
                     " be both a-rate or k and i-rate"));
     return OK;
@@ -341,7 +343,7 @@ static OENTRY localops[] = {
 
 int32_t flanger_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

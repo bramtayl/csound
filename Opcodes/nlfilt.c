@@ -32,6 +32,12 @@
 
 #include "stdopcod.h"
 #include "nlfilt.h"
+#include "rdscor.h"
+#include "csound_orc_semantics_public.h"
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 typedef struct {
         OPDS    h;
@@ -66,7 +72,7 @@ static int32_t nlfiltset(CSOUND *csound, NLFILT *p)
 {
     if (p->delay.auxp == NULL ||
         p->delay.size<MAX_DELAY * sizeof(MYFLT)) {        /* get newspace    */
-      csound->AuxAlloc(csound, MAX_DELAY * sizeof(MYFLT), &p->delay);
+      csoundAuxAlloc(csound, MAX_DELAY * sizeof(MYFLT), &p->delay);
     }
     else {
       memset(p->delay.auxp, 0, MAX_DELAY * sizeof(MYFLT));
@@ -140,7 +146,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     p->point = point;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("nlfilt: not initialised"));
 } /* end nlfilt(p) */
 
@@ -216,7 +222,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     p->point = point;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
   
@@ -236,7 +242,7 @@ int32_t pvalue(CSOUND *csound, PFIELD *p)
 {
     int32_t n = (int32_t)(*p->index);
     if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
-      return csound->InitError(csound, Str("invalid p field index"));
+      return csoundInitError(csound, Str("invalid p field index"));
     }
     *p->ians = csound->init_event->p[n];
     return OK;
@@ -246,12 +252,12 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 {
     int32_t n = (int32_t)(*p->index);
     if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
-      return csound->InitError(csound, Str("invalid p field index"));
+      return csoundInitError(csound, Str("invalid p field index"));
     }
 
-    if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
+    if (p->ians->data!=NULL) mfree(csound, p->ians->data);
 
-    if (LIKELY(csound->ISSTRCOD(csound->init_event->p[n]))) {
+    if (LIKELY(isstrcod(csound->init_event->p[n]))) {
         p->ians->data = cs_strdup(csound,
                 get_arg_string(csound, csound->init_event->p[n]));
         p->ians->size = strlen(p->ians->data) + 1;
@@ -271,11 +277,11 @@ int32_t pinit(CSOUND *csound, PINIT *p)
       if (k<pargs) pargs = k;
     }
     if (UNLIKELY(nargs>pargs))
-      csound->Warning(csound, Str("More arguments than p fields"));
+      csoundWarning(csound, Str("More arguments than p fields"));
     pargs -= (int)*p->end;
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
       //printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
-      if (csound->ISSTRCOD(csound->init_event->p[n+start])) {
+      if (isstrcod(csound->init_event->p[n+start])) {
         ((STRINGDAT *)p->inits[n])->data =
           cs_strdup(csound, get_arg_string(csound, csound->init_event->p[n+start]));
         ((STRINGDAT *)p->inits[n])->size =
@@ -319,7 +325,7 @@ static OENTRY localops[] = {
 
 int32_t nlfilt_init_(CSOUND *csound)
 {
-    return csound->AppendOpcodes(csound, &(localops[0]),
+    return csoundAppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }

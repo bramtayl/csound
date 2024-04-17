@@ -24,6 +24,8 @@
 
 #include "csoundCore_internal.h"
 #include "remote.h"
+#include "memalloc.h"
+#include "insert_public.h"
 
 /* Somewhat revised from the original.  Pete G. Nov 2012
    More correct, I think, but I could be wrong... (:-/)
@@ -58,7 +60,7 @@ void remote_Cleanup(CSOUND *csound);
 void remoteRESET(CSOUND *csound)
 {
     /* Recover space */
-    if (csound->remoteGlobals) csound->Free(csound, csound->remoteGlobals);
+    if (csound->remoteGlobals) mfree(csound, csound->remoteGlobals);
     csound->remoteGlobals = NULL;
 }
 
@@ -153,63 +155,63 @@ char remoteID(CSOUND *csound)
 static int32_t callox(CSOUND *csound)
 {
     if (csound->remoteGlobals == NULL) {
-      csound->remoteGlobals = csound->Calloc(csound, sizeof(REMOTE_GLOBALS));
+      csound->remoteGlobals = mcalloc(csound, sizeof(REMOTE_GLOBALS));
       if (UNLIKELY(csound->remoteGlobals == NULL)) {
-        csound->Message(csound, Str("insufficient memory to initialise remote"
+        csoundMessage(csound, Str("insufficient memory to initialise remote"
                                     " globals."));
         goto error;
       }
       ST(remote_port) = REMOT_PORT;
     }
 
-    ST(socksout) = (SOCK*)csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(SOCK));
+    ST(socksout) = (SOCK*)mcalloc(csound,(size_t)MAXREMOTES * sizeof(SOCK));
     if (UNLIKELY(ST(socksout) == NULL)) {
-      csound->Message(csound, Str("insufficient memory to initialise outgoing "
+      csoundMessage(csound, Str("insufficient memory to initialise outgoing "
                                   "socket table."));
       goto error;
     }
 
-    ST(socksin) = (int32_t*) csound->Calloc(csound,
+    ST(socksin) = (int32_t*) mcalloc(csound,
                                             (size_t)MAXREMOTES * sizeof(int32_t));
     if (UNLIKELY(ST(socksin) == NULL)) {
-      csound->Message(csound, Str("insufficient memory to initialise incoming "
+      csoundMessage(csound, Str("insufficient memory to initialise incoming "
                                   "socket table."));
       goto error;
     }
 
     ST(insrfd_list) =
-      (int32_t*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int32_t));
+      (int32_t*) mcalloc(csound,(size_t)MAXREMOTES * sizeof(int32_t));
     if (UNLIKELY(ST(insrfd_list) == NULL)) {
-      csound->Message(csound, Str("insufficient memory to initialise "
+      csoundMessage(csound, Str("insufficient memory to initialise "
                                   "insrfd_list."));
       goto error;
     }
 
     ST(chnrfd_list) =
-      (int32_t*) csound->Calloc(csound,(size_t)MAXREMOTES * sizeof(int32_t));
+      (int32_t*) mcalloc(csound,(size_t)MAXREMOTES * sizeof(int32_t));
     if (UNLIKELY(ST(chnrfd_list) == NULL)) {
-      csound->Message(csound, Str("insufficient memory to initialise "
+      csoundMessage(csound, Str("insufficient memory to initialise "
                                   "chnrfd_list."));
       goto error;
     }
 
-    ST(insrfd) = (int32_t*) csound->Calloc(csound,(size_t)129 * sizeof(int32_t));
+    ST(insrfd) = (int32_t*) mcalloc(csound,(size_t)129 * sizeof(int32_t));
     if (UNLIKELY(ST(insrfd) == NULL)) {
-      csound->Message(csound, Str("insufficient memory to initialise "
+      csoundMessage(csound, Str("insufficient memory to initialise "
                                   "insrfd table."));
       goto error;
     }
 
-    ST(chnrfd) = (int32_t*) csound->Calloc(csound,(size_t)17 * sizeof(int32_t));
+    ST(chnrfd) = (int32_t*) mcalloc(csound,(size_t)17 * sizeof(int32_t));
     if (UNLIKELY(ST(chnrfd) == NULL)) {
-      csound->Message(csound, Str("insufficient memory to initialise "
+      csoundMessage(csound, Str("insufficient memory to initialise "
                                   "chnrfd table."));
       goto error;
     }
 
-    ST(ipadrs) = (char*) csound->Calloc(csound,(size_t)15 * sizeof(char));
+    ST(ipadrs) = (char*) mcalloc(csound,(size_t)15 * sizeof(char));
     if (UNLIKELY(ST(ipadrs) == NULL)) {
-      csound->Message(csound, Str("insufficient memory to initialise "
+      csoundMessage(csound, Str("insufficient memory to initialise "
                                   "local ip address."));
       goto error;
     }
@@ -217,7 +219,7 @@ static int32_t callox(CSOUND *csound)
     /* get IP adrs of this machine */
     /* FIXME: don't hardcode eth0 */
     if (UNLIKELY(getIpAddress(ST(ipadrs)) != 0)) {
-      csound->Message(csound, Str("unable to get local ip address."));
+      csoundMessage(csound, Str("unable to get local ip address."));
       goto error;
     }
 
@@ -239,7 +241,7 @@ void remote_Cleanup(CSOUND *csound)
       for ( ; sop < sop_end; sop++)
         if ((fd = sop->rfd) > 0)
           close(fd);
-      csound->Free(csound,(char *)ST(socksout));
+      mfree(csound,(char *)ST(socksout));
       ST(socksout) = NULL;
     }
     if (ST(socksin) != NULL) {
@@ -247,22 +249,22 @@ void remote_Cleanup(CSOUND *csound)
       for ( ; sop < sop_end; sop++)
         if ((fd = *sop) > 0)
           close(fd);
-      csound->Free(csound,(char *)ST(socksin));
+      mfree(csound,(char *)ST(socksin));
       ST(socksin) = NULL;
     }
     if (ST(insrfd_list) != NULL) {
-      csound->Free(csound, ST(insrfd_list));   ST(insrfd_list) = NULL;
+      mfree(csound, ST(insrfd_list));   ST(insrfd_list) = NULL;
     }
     if (ST(chnrfd_list) != NULL) {
-      csound->Free(csound, ST(chnrfd_list));   ST(chnrfd_list) = NULL; }
+      mfree(csound, ST(chnrfd_list));   ST(chnrfd_list) = NULL; }
     if (ST(insrfd) != NULL) {
-      csound->Free(csound, ST(insrfd)); ST(insrfd) = NULL; }
+      mfree(csound, ST(insrfd)); ST(insrfd) = NULL; }
     if (ST(chnrfd) != NULL) {
-      csound->Free(csound, ST(chnrfd)); ST(chnrfd) = NULL; }
+      mfree(csound, ST(chnrfd)); ST(chnrfd) = NULL; }
     if (ST(ipadrs) != NULL) {
-      csound->Free(csound, ST(ipadrs)); ST(ipadrs) = NULL; }
+      mfree(csound, ST(ipadrs)); ST(ipadrs) = NULL; }
     ST(insrfd_count) = ST(chnrfd_count) = 0;
-    csound->Free(csound, csound->remoteGlobals);
+    mfree(csound, csound->remoteGlobals);
     csound->remoteGlobals = NULL;
 }
 
@@ -277,7 +279,7 @@ static int32_t CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to sen
 
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     if (UNLIKELY(( rfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)) {
-      return csound->InitError(csound, Str("could not open remote port"));
+      return csoundInitError(csound, Str("could not open remote port"));
     }
     memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));    /* clear sock mem */
     ST(to_addr).sin_family = AF_INET;                  /* set as INET address */
@@ -293,15 +295,15 @@ static int32_t CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to sen
     for (i=0; i<10; i++){
       if (UNLIKELY(connect(rfd, (struct sockaddr *) &ST(to_addr),
                            sizeof(ST(to_addr))) < 0))
-        csound->Message(csound, Str("---> Could not connect\n"));
+        csoundMessage(csound, Str("---> Could not connect\n"));
       else goto conok;
     }
     close(rfd);
-    return csound->InitError(csound,
+    return csoundInitError(csound,
                              Str("---> Failed all attempts to connect.\n"));
 
  conok:
-    csound->Message(csound, Str("--->  Connected.\n"));
+    csoundMessage(csound, Str("--->  Connected.\n"));
     for (sop = ST(socksout); sop < sop_end; sop++)
       if (sop->adr == NULL) {
         sop->adr = ipadrs;                         /* record the new socket */
@@ -315,10 +317,10 @@ int32_t CLsend(CSOUND *csound, int32_t conn, void *data, int32_t length)
 {
     int32_t nbytes;
     if (UNLIKELY((nbytes = write(conn, data, length)) <= 0)) {
-      csound->ErrorMsg(csound, Str("write to socket failed"));
+      csoundErrorMsg(csound, Str("write to socket failed"));
       return NOTOK;
     }
-    /*    csound->Message(csound, "nbytes sent: %d\n", nbytes); */
+    /*    csoundMessage(csound, "nbytes sent: %d\n", nbytes); */
     return OK;
 }
 
@@ -336,9 +338,9 @@ static int32_t SVopen(CSOUND *csound)
     opt = 1;
 
     if (UNLIKELY((socklisten = socket(PF_INET, SOCK_STREAM, 0)) < 0)) {
-      return csound->InitError(csound, Str("creating socket\n"));
+      return csoundInitError(csound, Str("creating socket\n"));
     }
-    else csound->Message(csound, Str("created socket\n"));
+    else csoundMessage(csound, Str("created socket\n"));
     /* set the addresse to be reusable */
 #if defined(_WIN32) && !defined(__CYGWIN__)
     if (UNLIKELY( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR,
@@ -348,7 +350,7 @@ static int32_t SVopen(CSOUND *csound)
                              &opt, sizeof(opt)) < 0 ))
 #endif
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("setting socket option to reuse the address\n"));
 
     memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));    /* clear sock mem */
@@ -367,21 +369,21 @@ static int32_t SVopen(CSOUND *csound)
               (struct sockaddr *) &ST(local_addr),
                        sizeof(ST(local_addr))) < 0)) {
       shutdown(socklisten, SHUT_RD);
-      return csound->InitError(csound, Str("bind failed"));
+      return csoundInitError(csound, Str("bind failed"));
     }
     if (UNLIKELY(listen(socklisten, 5) < 0)) {    /* start the socket listening
                                                 for new connections -- may wait */
       shutdown(socklisten, SHUT_RD);
-      return csound->InitError(csound, Str("listen failed"));
+      return csoundInitError(csound, Str("listen failed"));
     }
     clilen = sizeof(ST(local_addr));  /* FIX THIS FOR MULTIPLE CLIENTS !!!!!!!*/
     conn = accept(socklisten, (struct sockaddr *) &ST(local_addr), &clilen);
     if (UNLIKELY(conn < 0)) {
       shutdown(socklisten, SHUT_RD);
-      return csound->InitError(csound, Str("accept failed"));
+      return csoundInitError(csound, Str("accept failed"));
     }
     else {
-      csound->Message(csound, Str("accepted, conn=%d\n"), conn);
+      csoundMessage(csound, Str("accepted, conn=%d\n"), conn);
       for (sop = ST(socksin); sop < sop_end; sop++)
         if (*sop == 0) {
           *sop = conn;                       /* record the new connection */
@@ -405,7 +407,7 @@ int32_t SVrecv(CSOUND *csound, int32_t conn, void *data, int32_t length)
     size_t n;
     IGN(csound);
     n = recvfrom(conn, data, length, MSG_DONTWAIT, &from, &clilen);
-    /*  if (n>0) csound->Message(csound, "nbytes received: %d\n", (int32_t)n); */
+    /*  if (n>0) csoundMessage(csound, "nbytes received: %d\n", (int32_t)n); */
     return (int32_t)n;
 }
 
@@ -416,7 +418,7 @@ int32_t remoteport(CSOUND *csound, REMOTEPORT *p)
     if (csound->remoteGlobals==NULL) {
       if (UNLIKELY(callox(csound) < 0)) {
         return
-          csound->InitError(csound, Str("failed to initialise remote globals."));
+          csoundInitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (ST(socksin) == NULL) {
@@ -437,13 +439,13 @@ int32_t insremot(CSOUND *csound, INSREMOT *p)
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (UNLIKELY(callox(csound) < 0)) {
         return
-          csound->InitError(csound, Str("failed to initialise remote globals."));
+          csoundInitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (UNLIKELY(nargs < 3)) {
-      return csound->InitError(csound, Str("missing instr nos"));
+      return csoundInitError(csound, Str("missing instr nos"));
     }
-/*     csound->Message(csound, Str("*** str1: %s own:%s\n"), */
+/*     csoundMessage(csound, Str("*** str1: %s own:%s\n"), */
 /*                     (char *)p->str1 , ST(ipadrs)); */
     if (strcmp(ST(ipadrs), (char *)p->str1->data) == 0) {
       /* if client is this adrs */
@@ -456,11 +458,11 @@ int32_t insremot(CSOUND *csound, INSREMOT *p)
         int16 insno = (int16)**argp++;     /* & for each insno */
         if (UNLIKELY(insno <= 0)) {
           close(rfd);
-          return csound->InitError(csound, Str("illegal instr no"));
+          return csoundInitError(csound, Str("illegal instr no"));
         }
         if (UNLIKELY(ST(insrfd)[insno])) {
           close(rfd);
-          return csound->InitError(csound, Str("insno already remote"));
+          return csoundInitError(csound, Str("insno already remote"));
         }
         ST(insrfd)[insno] = rfd;   /*  record file descriptor   */
       }
@@ -468,11 +470,11 @@ int32_t insremot(CSOUND *csound, INSREMOT *p)
     }
     else if (!strcmp(ST(ipadrs),(char *)p->str2->data)) {
       /* if server is this adrs*/
-/*       csound->Message(csound, Str("*** str2: %s own:%s\n"), */
+/*       csoundMessage(csound, Str("*** str2: %s own:%s\n"), */
 /*                       (char *)p->str2 , ST(ipadrs)); */
       /* open port to listen */
       if (UNLIKELY(SVopen(csound) == NOTOK)){
-        return csound->InitError(csound, Str("Failed to open port to listen"));
+        return csoundInitError(csound, Str("Failed to open port to listen"));
       }
     }
     return OK;
@@ -486,13 +488,13 @@ int32_t insglobal(CSOUND *csound, INSGLOBAL *p)
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (UNLIKELY(callox(csound) < 0)) {
         return
-          csound->InitError(csound, Str("failed to initialise remote globals."));
+          csoundInitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (UNLIKELY(nargs < 2)) {
-      return csound->InitError(csound, Str("missing instr nos"));
+      return csoundInitError(csound, Str("missing instr nos"));
     }
-    csound->Message(csound, Str("*** str1: %s own:%s\n"),
+    csoundMessage(csound, Str("*** str1: %s own:%s\n"),
                     (char *)p->str1->data , ST(ipadrs));
     if (strcmp(ST(ipadrs), (char *)p->str1->data) == 0) {
       /* if client is this adrs */
@@ -500,10 +502,10 @@ int32_t insglobal(CSOUND *csound, INSGLOBAL *p)
       for (nargs -= 1; nargs--; ) {
         int16 insno = (int16)**argp++;             /* for each insno */
         if (UNLIKELY(insno <= 0 || insno > 128)) {
-          return csound->InitError(csound, Str("illegal instr no"));
+          return csoundInitError(csound, Str("illegal instr no"));
         }
         if (UNLIKELY(ST(insrfd)[insno])) {
-          return csound->InitError(csound, Str("insno already specific remote"));
+          return csoundInitError(csound, Str("insno already specific remote"));
         }
         ST(insrfd)[insno] = GLOBAL_REMOT;             /*  mark as GLOBAL   */
       }
@@ -519,11 +521,11 @@ int32_t midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (UNLIKELY(callox(csound) < 0)) {
         return
-          csound->InitError(csound, Str("failed to initialise remote globals."));
+          csoundInitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (UNLIKELY(nargs < 3)) {
-      return csound->InitError(csound, Str("missing channel nos"));
+      return csoundInitError(csound, Str("missing channel nos"));
     }
     if (strcmp(ST(ipadrs), (char *)p->str1->data) == 0) {
       /* if client is this adrs */
@@ -536,11 +538,11 @@ int32_t midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
         int16 chnum = (int16)**argp++;               /* & for each channel   */
         if (UNLIKELY(chnum <= 0 || chnum > 16)) {    /* THESE ARE MIDCHANS+1 */
           close(rfd);
-          return csound->InitError(csound, Str("illegal channel no"));
+          return csoundInitError(csound, Str("illegal channel no"));
         }
         if (UNLIKELY(ST(chnrfd)[chnum])) {
           close(rfd);
-          return csound->InitError(csound, Str("channel already remote"));
+          return csoundInitError(csound, Str("channel already remote"));
         }
         ST(chnrfd)[chnum] = rfd;                      /* record file descriptor */
       }
@@ -550,7 +552,7 @@ int32_t midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
       /* if server is this adrs */
       /* open port to listen */
       if (UNLIKELY(SVopen(csound) == NOTOK)){
-        return csound->InitError(csound, Str("Failed to open port to listen"));
+        return csoundInitError(csound, Str("Failed to open port to listen"));
       }
       csound->oparms->RMidiin = 1;            /* & enable rtevents in */
     }
@@ -565,13 +567,13 @@ int32_t midglobal(CSOUND *csound, MIDGLOBAL *p)
     if (csound->remoteGlobals==NULL || ST(socksin) == NULL) {
       if (UNLIKELY(callox(csound) < 0)) {
         return
-          csound->InitError(csound, Str("failed to initialise remote globals."));
+          csoundInitError(csound, Str("failed to initialise remote globals."));
       }
     }
     if (UNLIKELY(nargs < 2)) {
-      return csound->InitError(csound, Str("missing channel nos"));
+      return csoundInitError(csound, Str("missing channel nos"));
     }
-/*     csound->Message(csound, Str("*** str1: %s own:%s\n"), */
+/*     csoundMessage(csound, Str("*** str1: %s own:%s\n"), */
 /*                     (char *)p->str1 , ST(ipadrs)); */
     if (strcmp(ST(ipadrs), (char *)p->str1->data) == 0) {
       /* if client is this adrs */
@@ -579,10 +581,10 @@ int32_t midglobal(CSOUND *csound, MIDGLOBAL *p)
       for (nargs -= 1; nargs--; ) {
         int16 chnum = (int16)**argp++;             /* for each channel */
         if (UNLIKELY(chnum <= 0 || chnum > 16)) {
-          return csound->InitError(csound, Str("illegal channel no"));
+          return csoundInitError(csound, Str("illegal channel no"));
         }
         if (UNLIKELY(ST(chnrfd)[chnum])) {
-          return csound->InitError(csound, Str("channel already specific remote"));
+          return csoundInitError(csound, Str("channel already specific remote"));
         }
         ST(chnrfd)[chnum] = GLOBAL_REMOT;              /*  mark as GLOBAL   */
       }
@@ -610,7 +612,7 @@ int32_t insSendevt(CSOUND *csound, EVTBLK *evt, int32_t rfd)
     bp->type = SCOR_EVT;                    /* insert type and len */
     bp->len = (char *)g - (char *)bp;
     if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (int32_t)bp->len) < 0)) {
-      csound->ErrorMsg(csound, Str("CLsend failed"));
+      csoundErrorMsg(csound, Str("CLsend failed"));
       return NOTOK;
     }
     else return OK;
@@ -635,7 +637,7 @@ int32_t MIDIsendevt(CSOUND *csound, MEVENT *evt, int32_t rfd)
     bp->len = sizeof(int32_t) * 2 + sizeof(MEVENT);
 
     if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (size_t)bp->len) < 0)) {
-      csound->ErrorMsg(csound, Str("CLsend failed"));
+      csoundErrorMsg(csound, Str("CLsend failed"));
       return NOTOK;
     }
     else return OK;
@@ -660,7 +662,7 @@ int32_t MIDIsend_msg(CSOUND *csound, MEVENT *evt, int32_t rfd)
     bp->len = sizeof(int32_t) * 2 + sizeof(MEVENT);
 
     if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (size_t)bp->len) < 0)) {
-      csound->ErrorMsg(csound, Str("CLsend failed"));
+      csoundErrorMsg(csound, Str("CLsend failed"));
       return NOTOK;
     }
     else return OK;
@@ -727,7 +729,7 @@ int32_t SVrecv(CSOUND *csound, int32_t conn, void *data, int32_t length)
 
 int32_t remoteport(CSOUND *csound, REMOTEPORT *p)
 {
-    csound->Warning(csound, Str("*** This version of Csound was not "
+    csoundWarning(csound, Str("*** This version of Csound was not "
             "compiled with remote event support ***\n"));
     return OK;
 }
@@ -735,7 +737,7 @@ int32_t remoteport(CSOUND *csound, REMOTEPORT *p)
 int32_t insremot(CSOUND *csound, INSREMOT *p)
 /* declare certain instrs for remote Csounds */
 {
-    csound->Warning(csound, Str("*** This version of Csound was not "
+    csoundWarning(csound, Str("*** This version of Csound was not "
             "compiled with remote event support ***\n"));
     return OK;
 }
@@ -743,7 +745,7 @@ int32_t insremot(CSOUND *csound, INSREMOT *p)
 int32_t insglobal(CSOUND *csound, INSGLOBAL *p)
 /* declare certain instrs global remote Csounds */
 {
-    csound->Warning(csound, Str("*** This version of Csound was not "
+    csoundWarning(csound, Str("*** This version of Csound was not "
             "compiled with remote event support ***\n"));
     return OK;
 }
@@ -751,7 +753,7 @@ int32_t insglobal(CSOUND *csound, INSGLOBAL *p)
 int32_t midremot(CSOUND *csound, MIDREMOT *p)
 /* declare certain channels for remote Csounds */
 {
-    csound->Warning(csound, Str("*** This version of Csound was not "
+    csoundWarning(csound, Str("*** This version of Csound was not "
             "compiled with remote event support ***\n"));
     return OK;
 }
@@ -759,7 +761,7 @@ int32_t midremot(CSOUND *csound, MIDREMOT *p)
 int32_t midglobal(CSOUND *csound, MIDGLOBAL *p)
 /* declare certain chnls global remote Csounds */
 {
-    csound->Warning(csound, Str("*** This version of Csound was not "
+    csoundWarning(csound, Str("*** This version of Csound was not "
             "compiled with remote event support ***\n"));
     return OK;
 }

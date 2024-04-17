@@ -31,6 +31,11 @@
 #include "brass.h"
 #include <math.h>
 #include "interlocks.h"
+#include "ugens4_public.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
+
 /* ************************************** */
 /*  Waveguide Clarinet model ala Smith    */
 /*  after McIntyre, Schumacher, Woodhouse */
@@ -107,7 +112,7 @@ void OneZero_setCoeff(OneZero* z, MYFLT aValue)
 
 /* void OneZero_print(CSOUND *csound, OneZero *p) */
 /* { */
-/*     csound->Message(csound, */
+/*     csoundMessage(csound, */
 /*                     "OneZero: gain=%f inputs=%f zeroCoeff=%f sgain=%f\n", */
 /*                     p->gain, p->inputs, p->zeroCoeff, p->sgain); */
 /* } */
@@ -117,9 +122,9 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Clarinet"));
+      return csoundInitError(csound, Str("No table for Clarinet"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq)
@@ -127,7 +132,7 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
       else if (LIKELY(*p->frequency))
         p->length = (int32_t) (CS_ESR / *p->frequency + FL(1.0));
       else {
-        csound->Warning(csound, Str("No base frequency for clarinet "
+        csoundWarning(csound, Str("No base frequency for clarinet "
                                     "-- assuming 50Hz\n"));
         p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       }
@@ -148,7 +153,7 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
       p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
                         - (int32_t) (CS_EKR * *p->attack));
 #ifdef BETA
-      csound->Message(csound, "offtim=%f  kloop=%d\n",
+      csoundMessage(csound, "offtim=%f  kloop=%d\n",
                               p->h.insdshead->offtim, p->kloop);
 #endif
       p->envelope.rate = FL(0.0);
@@ -185,7 +190,7 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
       p->envelope.rate = p->envelope.value / (*p->dettack * CS_ESR);
       p->envelope.target =  FL(0.0);
 #ifdef BETA
-      csound->Message(csound, "Set off phase time = %f Breath v,r = %f, %f\n",
+      csoundMessage(csound, "Set off phase time = %f Breath v,r = %f, %f\n",
                               (MYFLT) CS_KCNT * CS_ONEDKR,
                               p->envelope.value, p->envelope.rate);
 #endif
@@ -285,9 +290,9 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
     FUNC        *ftp;
     int32        length;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                   /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Flute"));
+      return csoundInitError(csound, Str("No table for Flute"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
       if (*p->lowestFreq!=FL(0.0)) {
@@ -299,7 +304,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
         p->limit = *p->frequency;
       }
       else {
-        csound->Warning(csound, Str("No base frequency for flute "
+        csoundWarning(csound, Str("No base frequency for flute "
                                     "-- assumed to be 50Hz\n"));
         length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
@@ -372,7 +377,7 @@ int32_t flute(CSOUND *csound, FLUTE *p)
       p->lastFreq = *p->frequency;
       if (p->limit>p->lastFreq) {
         p->lastFreq = p->limit;
-        csound->Warning(csound, Str("frequency too low, set to minimum"));
+        csoundWarning(csound, Str("frequency too low, set to minimum"));
       }
       p->lastJet = *p->jetRatio;
       /* freq = (2/3)*p->frequency as we're overblowing here */
@@ -487,7 +492,7 @@ MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
     input = sample /* + b->offSet*/ ;          /*  add bias to sample      */
     input *= b->slope;                         /*  scale it                */
     lastOutput = FABS(input) + FL(0.75); /*  below min delta, frict = 1 */
-    lastOutput = csound->intpow(lastOutput,-4L);
+    lastOutput = intpow(lastOutput,-4L);
 /* if (lastOutput < FL(0.0) ) lastOutput = FL(0.0); */ /* minimum frict is 0.0 */
     if (lastOutput > FL(1.0)) lastOutput = FL(1.0); /*  maximum friction is 1.0 */
     return lastOutput;
@@ -499,9 +504,9 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
     FUNC        *ftp;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for wgbow vibrato"));
+      return csoundInitError(csound, Str("No table for wgbow vibrato"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0)) {
@@ -513,7 +518,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
         p->limit = *p->frequency;
       }
       else {
-        csound->Warning(csound, Str("unknown lowest frequency for bowed string "
+        csoundWarning(csound, Str("unknown lowest frequency for bowed string "
                                     "-- assuming 50Hz\n"));
         length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
@@ -583,7 +588,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
         p->lastfreq = *p->frequency;
       else {
         p->lastfreq = p->limit;
-        csound->Warning(csound, Str("frequency too low, set to minimum"));
+        csoundWarning(csound, Str("frequency too low, set to minimum"));
       }
       p->baseDelay = CS_ESR / p->lastfreq - FL(4.0);
       freq_changed = 1;
@@ -700,7 +705,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
 void make_DLineA(CSOUND *csound, DLineA *p, int32 max_length)
 {
     p->length = max_length;
-    csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
+    csoundAuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
     p->lastIn = FL(0.0);
     p->lastOutput = FL(0.0);
     p->inPoint = 0;
@@ -726,7 +731,7 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     p->coeff = (FL(1.0)-p->alpha)/(FL(1.0)+p->alpha); /* coefficient for all pass*/
     return 0;
  err1:
-    csound->ErrorMsg(csound, Str("DlineA not initialised"));
+    csoundErrorMsg(csound, Str("DlineA not initialised"));
     return NOTOK;
 }
 
@@ -792,9 +797,9 @@ int32_t brassset(CSOUND *csound, BRASS *p)
     FUNC        *ftp;
     MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
+    if (LIKELY((ftp = csoundFTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Brass"));
+      return csoundInitError(csound, Str("No table for Brass"));
     }
     p->frq = *p->frequency;     /* Remember */
     if (*p->lowestFreq>=FL(0.0)) {
@@ -807,7 +812,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
         p->limit = p->frq;
       }
       else {
-        csound->Warning(csound, Str("No base frequency for brass "
+        csoundWarning(csound, Str("No base frequency for brass "
                                     "-- assumed to be 50Hz\n"));
         p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
@@ -874,7 +879,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
       p->frq = *p->frequency;
       if (p->limit > p->frq) {
         p->frq =p->limit;
-        csound->Warning(csound, Str("frequency too low, set to minimum"));
+        csoundWarning(csound, Str("frequency too low, set to minimum"));
       }
       p->slideTarget = (CS_ESR / p->frq * FL(2.0)) + FL(3.0);
                         /* fudge correction for filter delays */

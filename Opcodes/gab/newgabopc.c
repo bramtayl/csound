@@ -18,6 +18,8 @@
 
 #include "csoundCore_internal.h"
 #include "interlocks.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /* (Shouldn't there be global decl's for these?) */
 #define INCR (0.001f)
@@ -36,8 +38,8 @@ typedef struct {
 static int32_t  mtable1_set(CSOUND *csound, MTABLE1 *p) /* mtab by G.Maldonado */
 {
     FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
-      return csound->InitError(csound, Str("vtable1: incorrect table number"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->xfn)) == NULL))
+      return csoundInitError(csound, Str("vtable1: incorrect table number"));
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-1;
     p->pfn = (int64_t) *p->xfn;
@@ -51,8 +53,8 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
     MYFLT *table;
     if (p->pfn != (int64_t)*p->xfn) {
       FUNC *ftp;
-      if (UNLIKELY( (ftp = csound->FTFindP(csound, p->xfn) ) == NULL))
-        return csound->PerfError(csound, &(p->h),
+      if (UNLIKELY( (ftp = csoundFTFindP(csound, p->xfn) ) == NULL))
+        return csoundPerfError(csound, &(p->h),
                                  Str("vtable1: incorrect table number"));
       p->pfn = (int64_t)*p->xfn;
       p->ftable = ftp->ftable;
@@ -75,8 +77,8 @@ static int32_t inRange_i(CSOUND *csound, INRANGE *p)
 {
     p->narg = p->INOCOUNT-1;
     if (UNLIKELY(!csound->oparms->sfread))
-      return csound->InitError(csound, Str("inrg: audio input is not enabled"));
-    p->numChans = csound->GetNchnls(csound);
+      return csoundInitError(csound, Str("inrg: audio input is not enabled"));
+    p->numChans = csoundGetNchnls(csound);
     return OK;
 }
 
@@ -92,7 +94,7 @@ static int32_t inRange(CSOUND *csound, INRANGE *p)
     int32_t narg = p->narg, numchans = p->numChans;
 
     if (UNLIKELY(startChan < 0))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("inrg: channel number cannot be < 1 "
                                    "(1 is the first channel)"));
 
@@ -119,10 +121,10 @@ static int32_t lposc_set(CSOUND *csound, LPOSC *p)
 {
     FUNC *ftp;
     MYFLT  loop, end, looplength;
-    if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
-      return csound->InitError(csound, Str("invalid function"));
+    if ((ftp = csoundFTnp2Find(csound, p->ift)) == NULL)
+      return csoundInitError(csound, Str("invalid function"));
     if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))){
-       csound->Message(csound,
+       csoundMessage(csound,
                        Str("lposc: no sample rate stored in function;"
                            " assuming=sr\n"));
        p->fsr=CS_ESR;
@@ -193,10 +195,10 @@ static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 {
     FUNC *ftp;
     double  loop, end, looplength, fsr;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
-      return csound->InitError(csound, Str("invalid function"));
+    if (UNLIKELY((ftp = csoundFTnp2Find(csound, p->ift)) == NULL))
+      return csoundInitError(csound, Str("invalid function"));
     if (UNLIKELY(!(fsr = ftp->gen01args.sample_rate))) {
-      csound->Message(csound, Str("lposcil: no sample rate stored in function;"
+      csoundMessage(csound, Str("lposcil: no sample rate stored in function;"
                                   " assuming=sr\n"));
       p->fsr=CS_ESR;
     }
@@ -368,7 +370,7 @@ static OENTRY localops[] = {
 };
 
 int32_t newgabopc_init_(CSOUND *csound) {
-   return csound->AppendOpcodes(csound, &(localops[0]),
+   return csoundAppendOpcodes(csound, &(localops[0]),
                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

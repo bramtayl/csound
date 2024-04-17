@@ -30,6 +30,12 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "fgens_public.h"
+#include "auxfd.h"
+#include "memfiles.h"
+#include "insert_public.h"
 
 static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 
@@ -71,19 +77,19 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
     int32     memsize;
 
     //if (*p->ifn > FL(0.0))
-      if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csoundFTFind(csound, p->ifn)) == NULL))
         return NOTOK;
     p->ftp = ftp;
 
     if (*p->igatefun > FL(0.0))
-      if (UNLIKELY((AmpGateFunc = csound->FTnp2Finde(csound, p->igatefun)) == NULL))
+      if (UNLIKELY((AmpGateFunc = csoundFTnp2Finde(csound, p->igatefun)) == NULL))
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->ifilno))
+      if (isstrcod(*p->ifilno))
         strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
-      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      else strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
@@ -101,7 +107,7 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
 
     if (p->auxch.auxp == NULL || memsize != p->mems) {
       MYFLT *fltp;
-      csound->AuxAlloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
+      csoundAuxAlloc(csound, (memsize * sizeof(MYFLT)), &p->auxch);
       fltp = (MYFLT *) p->auxch.auxp;
       p->oscphase = fltp;
       fltp += MAXBINS;
@@ -158,7 +164,7 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
       frIndx = (MYFLT) p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVADD ktimpnt truncated to last frame"));
+        csoundWarning(csound, Str("PVADD ktimpnt truncated to last frame"));
       }
     }
     FetchInForAdd(p->frPtr, p->buf, size, frIndx,
@@ -197,9 +203,9 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("pvadd: not initialised"));
+    return csoundPerfError(csound, &(p->h), Str("pvadd: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h), Str("PVADD timpnt < 0"));
+    return csoundPerfError(csound, &(p->h), Str("PVADD timpnt < 0"));
 }
 
 int32_t pvaddset(CSOUND *csound, PVADD *p){
@@ -215,23 +221,23 @@ static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
 {
     PVOCEX_MEMFILE  pp;
 
-    if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
-      return csound->InitError(csound, Str("PVADD cannot load %s"), fname);
+    if (UNLIKELY(PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
+      return csoundInitError(csound, Str("PVADD cannot load %s"), fname);
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
     if (UNLIKELY(pp.fftsize > PVFRAMSIZE)) {
-      return csound->InitError(csound, Str("pvoc-ex file %s: "
+      return csoundInitError(csound, Str("pvoc-ex file %s: "
                                            "FFT size %d too large for Csound"),
                                fname, (int32_t
                                        ) pp.fftsize);
     }
     if (UNLIKELY(pp.fftsize < 128)) {
-      return csound->InitError(csound, Str("PV frame %d seems too small in %s"),
+      return csoundInitError(csound, Str("PV frame %d seems too small in %s"),
                                pp.fftsize, fname);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (UNLIKELY(pp.chans > 1)) {
-      return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+      return csoundInitError(csound, Str("pvoc-ex file %s is not mono"), fname);
     }
     /* ignore the window spec until we can use it! */
     p->frSiz    = pp.fftsize;

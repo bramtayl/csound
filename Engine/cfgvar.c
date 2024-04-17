@@ -30,6 +30,7 @@
 #include "csoundCore_internal.h"
 #include "cfgvar.h"
 #include "namedins.h"
+#include "memalloc.h"
 
 /* the global database */
 
@@ -159,7 +160,7 @@ static int cfg_alloc_structure(CSOUND* csound,
     ldBytes = (ldBytes + 15) & (~15);
     totBytes = structBytes + nameBytes + sdBytes + ldBytes;
     /* allocate memory */
-    pp = (void*) csound->Calloc(csound, (size_t) totBytes);
+    pp = (void*) mcalloc(csound, (size_t) totBytes);
     if (UNLIKELY(pp == NULL))
       return CSOUNDCFG_MEMORY;
     //memset(pp, 0, (size_t) totBytes);
@@ -444,7 +445,7 @@ static csCfgVariable_t **list_db_entries(CSOUND* csound, CS_HASH_TABLE *db)
 
 
     /* allocate memory for list */
-    lst = (csCfgVariable_t**) csound->Malloc(csound, sizeof(csCfgVariable_t*)
+    lst = (csCfgVariable_t**) mmalloc(csound, sizeof(csCfgVariable_t*)
                                              * (cnt + (size_t) 1));
     if (UNLIKELY(lst == NULL))
       return (csCfgVariable_t**) NULL;  /* not enough memory */
@@ -487,7 +488,7 @@ PUBLIC csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound)
 PUBLIC void csoundDeleteCfgVarList(CSOUND* csound, csCfgVariable_t **lst)
 {
     if (lst != NULL)
-      csound->Free(csound, lst);
+      mfree(csound, lst);
 }
 
 /* remove a configuration variable from 'db' */
@@ -499,7 +500,7 @@ static int remove_entry_from_db(CSOUND* csound, CS_HASH_TABLE *db, const char *n
     if (UNLIKELY(pp == NULL))
         return CSOUNDCFG_INVALID_NAME;
 
-    csound->Free(csound, pp);
+    mfree(csound, pp);
     cs_hash_table_remove(csound, db, (char*)name);
 
     return CSOUNDCFG_SUCCESS;
@@ -528,7 +529,7 @@ static int destroy_entire_db(CSOUND *csound, CS_HASH_TABLE *db)
 
     while (current != NULL) {
         if (current->value != NULL) {
-             csound->Free(csound, current->value);
+             mfree(csound, current->value);
         }
         current = current->next;
     }

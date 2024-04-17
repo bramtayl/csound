@@ -37,6 +37,8 @@
 //#include "typetabl.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "memalloc.h"
+#include "csound_orc_semantics_public.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
 void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
@@ -230,7 +232,7 @@ int argsRequired(char* argString)
 char** splitArgs(CSOUND* csound, char* argString)
 {
   int argCount = argsRequired(argString);
-  char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
+  char** args = mmalloc(csound, sizeof(char*) * (argCount + 1));
   // printf("alloc %p \n", args);
   char* start = argString;
   int i = 0;
@@ -263,7 +265,7 @@ char** splitArgs(CSOUND* csound, char* argString)
 
           if (*t != ']') {
             // FIXME: needs more precise error information
-            csound->Message(csound,
+            csoundMessage(csound,
                             Str("ERROR: Unmatched bracket found in array"
                                 "argument type specification\n"));
             return NULL;
@@ -272,7 +274,7 @@ char** splitArgs(CSOUND* csound, char* argString)
           t++;
           dimensions++;
         }
-        part = csound->Malloc(csound, sizeof(char) * (dimensions + len + 2));
+        part = mmalloc(csound, sizeof(char) * (dimensions + len + 2));
 
         memset(part, '[', dimensions);
         strNcpy((part + dimensions), start, len + 1);
@@ -288,7 +290,7 @@ char** splitArgs(CSOUND* csound, char* argString)
           len -= 2;
           start += 1;
         }
-        // part = csound->Malloc(csound, sizeof(char) * (len + 1));
+        // part = mmalloc(csound, sizeof(char) * (len + 1));
         //printf("alloc %p \n", part);
         args[i] = cs_strndup(csound, start, len);
 
@@ -351,7 +353,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
   OPTXT *optxt;
   char *arg;
   int n; // nreqd;
-  optxt = (OPTXT *)csound->Calloc(csound, (int32)sizeof(OPTXT));
+  optxt = (OPTXT *)mcalloc(csound, (int32)sizeof(OPTXT));
   tp = &(optxt->t);
   tp->linenum = root->line; tp->locn = root->locn;
   OENTRY *labelOpcode, *declareOpcode;
@@ -361,9 +363,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     declareOpcode = find_opcode(csound, "declare");
     tp->oentry = declareOpcode;
     tp->opcod = strsav_string(csound, engineState, root->value->lexeme);
-    tp->outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->outlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
     tp->outlist->count = 0;
-    tp->inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->inlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
     tp->inlist->count = 0;
     tp->pftype = '_';
 
@@ -375,9 +377,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     tp->oentry = labelOpcode;
     tp->opcod = strsav_string(csound, engineState, root->value->lexeme);
 
-    tp->outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->outlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
     tp->outlist->count = 0;
-    tp->inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->inlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
     tp->inlist->count = 0;
 
     // ip->mdepends |= labelOpcode->flags;
@@ -391,7 +393,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
   case T_OPCALL:
   case T_ASSIGNMENT:
     if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "create_opcode: Found node for opcode %s\n",
+      csoundMessage(csound, "create_opcode: Found node for opcode %s\n",
                       root->value->lexeme);
 
     // FIXME THIS RESULT IS NOT USED -- VL I don't think it's needed
@@ -411,11 +413,11 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       int outcount = tree_arg_list_count(root->left);
       int argcount = 0;
       size_t m = sizeof(ARGLST) + (incount - 1) * sizeof(char *);
-      tp->inlist = (ARGLST *)csound->ReAlloc(csound, tp->inlist, m);
+      tp->inlist = (ARGLST *)mrealloc(csound, tp->inlist, m);
       tp->inlist->count = incount;
 
       m = sizeof(ARGLST) + (outcount - 1) * sizeof(char *);
-      tp->outlist = (ARGLST *)csound->ReAlloc(csound, tp->outlist, m);
+      tp->outlist = (ARGLST *)mrealloc(csound, tp->outlist, m);
       tp->outlist->count = outcount;
 
       tp->inArgCount = 0;
@@ -470,7 +472,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
           if (n > ip->pmax)
             ip->pmax = n;
         } else {
-          csound->DebugMsg(csound, "Arg: %s\n", arg);
+          csoundDebugMsg(csound, "Arg: %s\n", arg);
           lgbuild(csound, ip, arg, 0, engineState);
         }
         tp->outArgCount++;
@@ -496,7 +498,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     }
     break;
   default:
-    csound->Message(csound, Str("create_opcode: No rule to handle statement of "
+    csoundMessage(csound, Str("create_opcode: No rule to handle statement of "
                                 "type %d\n"),
                     root->type);
     if (PARSER_DEBUG)
@@ -516,7 +518,7 @@ void addGlobalVariable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
   CS_VARIABLE *var =
     csoundCreateVariable(csound, csound->typePool, type, name, typeArg);
   size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
-  CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
+  CS_VAR_MEM *varMem = mmalloc(csound, memSize);
   csoundAddVariable(csound, engineState->varPool, var);
 
   varMem->varType = var->varType;
@@ -530,7 +532,7 @@ void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
                            const char *name, MYFLT value) {
   void *retVal = cs_hash_table_get(csound, constantsPool, (char *)name);
   if (retVal == NULL) {
-    CS_VAR_MEM *memValue = csound->Calloc(csound, sizeof(CS_VAR_MEM));
+    CS_VAR_MEM *memValue = mcalloc(csound, sizeof(CS_VAR_MEM));
     memValue->varType = (CS_TYPE *)&CS_VAR_TYPE_C;
     memValue->value = value;
     cs_hash_table_put(csound, constantsPool, (char *)name, memValue);
@@ -570,7 +572,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   find_or_add_constant(csound, engineState->constantsPool, "0", 0.0);
 
-  ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
+  ip = (INSTRTXT *)mcalloc(csound, sizeof(INSTRTXT));
   ip->varPool = varPool;
   op = (OPTXT *)ip;
 
@@ -593,9 +595,9 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
    * nulllist to point to for empty lists, while this is creating a new list
    * regardless
    */
-  ip->t.outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+  ip->t.outlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
   ip->t.outlist->count = 0;
-  ip->t.inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+  ip->t.inlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
   ip->t.inlist->count = 1;
 
   ip->t.inlist->arg[0] = strsav_string(csound, engineState, "0");
@@ -606,7 +608,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         current->type != STRUCT_TOKEN && current->type != T_DECLARE) {
       OENTRY *oentry = (OENTRY *)current->markup;
       if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
+        csoundMessage(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
       if (current->type == T_ASSIGNMENT
           && strcmp(oentry->opname, "=.r") == 0) {
@@ -688,11 +690,11 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     else if (UNLIKELY(ksmps < FL(0.75) ||
                       FLOAT_COMPARE(ksmps, MYFLT2LRND(ksmps)))) {
       /* VL 14/11/18: won't fail but correct values to make ksmps integral */
-      csound->Warning(p, Str("%s invalid ksmps value, needs to be integral."),
+      csoundWarning(p, Str("%s invalid ksmps value, needs to be integral."),
                       err_msg);
       ksmps = floor(ksmps);
       kr = sr/ksmps;
-      csound->Warning(p, "resetting orc parameters to: "
+      csoundWarning(p, "resetting orc parameters to: "
                       "sr = %.7g, kr = %.7g, ksmps = %.7g", sr, kr,
                       ksmps);
     }
@@ -724,7 +726,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound_aops_init_tables(csound);
   }
   /* if (UNLIKELY(csound->e0dbfs <= FL(0.0))) {
-    csound->Warning(csound, Str("bad value for 0dbfs: must be positive. "
+    csoundWarning(csound, Str("bad value for 0dbfs: must be positive. "
                                 "Setting default value."));
     csound->e0dbfs = DFLT_DBFS;
     }*/
@@ -748,19 +750,19 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     O->sr_override = csoundInitialiseIO(csound);
     if(O->sr_override > 0) {
       if(O->msglevel || O->odebug)
-        csound->Message(csound,
+        csoundMessage(csound,
                         Str("Using system sampling rate %.1f\n"), O->sr_override);
     }
     else {
       if(O->msglevel || O->odebug)
-        csound->Message(csound, Str("System sr not available\n"));
+        csoundMessage(csound, Str("System sr not available\n"));
       O->sr_override = FL(0.0);
     }
     csound->esr = tmp_sr;
   }
 
   if (UNLIKELY(O->odebug))
-    csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
+    csoundMessage(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
                     "0dbfs = %.1f\n",
                     csound->esr, csound->ekr, csound->ksmps, csound->nchnls,
                     csound->e0dbfs);
@@ -800,11 +802,11 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                  csound->esr, csound->ekr, ensmps);
       if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps))) {
         /* VL 14/11/18: won't fail but correct values to make ksmps integral */
-        csound->Warning(csound,
+        csoundWarning(csound,
                         Str("%s invalid ksmps value, needs to be integral."), s);
         ensmps = csound->ksmps = floor(ensmps);
         csound->ekr  = csound->esr/csound->ksmps;
-        csound->Warning(csound, Str("resetting orc parameters to: "
+        csoundWarning(csound, Str("resetting orc parameters to: "
                                     "sr = %.7g, kr = %.7g, ksmps = %u"),
                         csound->esr, csound->ekr, csound->ksmps);
       }
@@ -816,7 +818,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
     }
     if(O->odebug)
-    csound->Message(csound, Str("sample rate overrides: "
+    csoundMessage(csound, Str("sample rate overrides: "
                                 "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
                     csound->esr, csound->ekr, csound->ksmps);
   }
@@ -834,7 +836,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   if (csound->ksmps != DFLT_KSMPS) {
     reallocateVarPoolMemory(csound, engineState->varPool);
-    // csound->Message(csound, "recalculate varpool\n");
+    // csoundMessage(csound, "recalculate varpool\n");
   }
   close_instrument(csound, engineState, ip);
 
@@ -858,7 +860,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   //csound->inZero = 1;
   find_or_add_constant(csound, engineState->constantsPool, "0", 0);
 
-  ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
+  ip = (INSTRTXT *)mcalloc(csound, sizeof(INSTRTXT));
   ip->varPool = varPool;
   op = (OPTXT *)ip;
 
@@ -878,9 +880,9 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
    * nulllist to point to for empty lists, while this is creating a new list
    * regardless
    */
-  ip->t.outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+  ip->t.outlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
   ip->t.outlist->count = 0;
-  ip->t.inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+  ip->t.inlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
   ip->t.inlist->count = 1;
 
   ip->t.inlist->arg[0] = strsav_string(csound, engineState, "0");
@@ -889,10 +891,10 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
     if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN && current->type != STRUCT_TOKEN) {
       OENTRY *oentry = (OENTRY *)current->markup;
       if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "In INSTR GLOBAL: %s\n",
+        csoundMessage(csound, "In INSTR GLOBAL: %s\n",
                         current->value->lexeme);
       if (UNLIKELY(current->type == T_ASSIGNMENT && strcmp(oentry->opname, "=.r") == 0))
-        csound->Warning(csound, Str("system constants can only be set once\n"));
+        csoundWarning(csound, Str("system constants can only be set once\n"));
       else {
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
@@ -931,7 +933,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   char *c;
   TREE *statements, *current;
 
-  ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
+  ip = (INSTRTXT *)mcalloc(csound, sizeof(INSTRTXT));
   ip->varPool = (CS_VAR_POOL *)root->markup;
   op = (OPTXT *)ip;
   statements = root->right;
@@ -949,9 +951,9 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
    * nulllist to point to for empty lists, while this is creating a new list
    * regardless
    */
-  ip->t.outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+  ip->t.outlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
   ip->t.outlist->count = 0;
-  ip->t.inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+  ip->t.inlist = (ARGLST *)mmalloc(csound, sizeof(ARGLST));
   ip->t.inlist->count = 1;
 
   /* create local ksmps variable */
@@ -973,16 +975,16 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   if (root->left->type == INTEGER_TOKEN) {            /* numbered instrument */
     int32 instrNum = (int32)root->left->value->value; /* Not used! */
 
-    c = csound->Malloc(csound, 10); /* arbritrarily chosen number of digits */
+    c = mmalloc(csound, 10); /* arbritrarily chosen number of digits */
     snprintf(c, 10, "%" PRIi32, instrNum);
 
     if (PARSER_DEBUG)
-      csound->Message(csound, Str("create_instrument: instr num %" PRIi32 "\n"),
+      csoundMessage(csound, Str("create_instrument: instr num %" PRIi32 "\n"),
                       instrNum);
 
     ip->t.inlist->arg[0] = strsav_string(csound, engineState, c);
 
-    csound->Free(csound, c);
+    mfree(csound, c);
   } else if (root->left->type == T_IDENT &&
              !(root->left->left != NULL &&
                root->left->left->type ==
@@ -991,13 +993,13 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
     c = root->left->value->lexeme;
 
     if (PARSER_DEBUG)
-      csound->Message(csound, "create_instrument: instr name %s\n", c);
+      csoundMessage(csound, "create_instrument: instr name %s\n", c);
 
     /*if (UNLIKELY(root->left->rate == (int)'+')) {
       insno_priority--;
       }*/
 
-    ip->insname = csound->Malloc(csound, strlen(c) + 1);
+    ip->insname = mmalloc(csound, strlen(c) + 1);
     strcpy(ip->insname, c);
   }
   current = statements;
@@ -1014,7 +1016,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
 void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip) {
   OPTXT *bp, *current;
   int n;
-  bp = (OPTXT *)csound->Calloc(csound, (int32)sizeof(OPTXT));
+  bp = (OPTXT *)mcalloc(csound, (int32)sizeof(OPTXT));
 
   bp->t.oentry = find_opcode(csound, "endin"); /*  send an endin to */
   bp->t.opcod =
@@ -1051,8 +1053,8 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
       auxchfree(csound, active);
     free_instr_var_memory(csound, active);
     if (active->opcod_iobufs != NULL)
-      csound->Free(csound, active->opcod_iobufs);
-    csound->Free(csound, active);
+      mfree(csound, active->opcod_iobufs);
+    mfree(csound, active);
     active = nxt;
   }
   OPTXT *t = ip->nxtop;
@@ -1065,34 +1067,34 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
       ARG *tmp = current;
       // printf("delete %p\n", tmp);
       current = current->next;
-      csound->Free(csound, tmp);
+      mfree(csound, tmp);
     }
-    csound->Free(csound, t->t.outlist);
+    mfree(csound, t->t.outlist);
     current = ttp->inArgs;
     while (current != NULL) {
       ARG *tmp = current;
       // printf("delete %p\n", tmp);
       current = current->next;
-      csound->Free(csound, tmp);
+      mfree(csound, tmp);
     }
-    csound->Free(csound, t->t.inlist);
-    csound->Free(csound, t);
+    mfree(csound, t->t.inlist);
+    mfree(csound, t);
     t = s;
   }
 
-  csound->Free(csound, ip->t.outlist);
-  csound->Free(csound, ip->t.inlist);
+  mfree(csound, ip->t.outlist);
+  mfree(csound, ip->t.inlist);
   CS_VARIABLE *var = ip->varPool->head;
   while (var != NULL) {
     CS_VARIABLE *tmp = var;
     var = var->next;
-    csound->Free(csound, tmp->varName);
+    mfree(csound, tmp->varName);
   }
 
   csoundFreeVarPool(csound, ip->varPool);
-  csound->Free(csound, ip);
+  mfree(csound, ip);
   if (UNLIKELY(csound->oparms->odebug))
-    csound->Message(csound, Str("-- deleted instr from deadpool\n"));
+    csoundMessage(csound, Str("-- deleted instr from deadpool\n"));
 }
 
 /**
@@ -1117,7 +1119,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
       /* no active instances */
       if (active == NULL) {
         if (UNLIKELY(csound->oparms->odebug))
-          csound->Message(csound, Str(" -- free instr def %p %p\n"),
+          csoundMessage(csound, Str(" -- free instr def %p %p\n"),
                           csound->dead_instr_pool[i]->instance,
                           csound->dead_instr_pool[i]);
         free_instrtxt(csound, csound->dead_instr_pool[i]);
@@ -1131,16 +1133,16 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
     if (csound->dead_instr_pool[i] == NULL) {
       csound->dead_instr_pool[i] = instrtxt;
       if (UNLIKELY(csound->oparms->odebug))
-        csound->Message(csound, Str(" -- added to deadpool slot %d\n"), i);
+        csoundMessage(csound, Str(" -- added to deadpool slot %d\n"), i);
       return;
     }
   }
   /* no free slots, expand pool */
-  csound->dead_instr_pool = (INSTRTXT **)csound->ReAlloc(csound, csound->dead_instr_pool,
+  csound->dead_instr_pool = (INSTRTXT **)mrealloc(csound, csound->dead_instr_pool,
                                                          ++csound->dead_instr_no * sizeof(INSTRTXT *));
   csound->dead_instr_pool[csound->dead_instr_no - 1] = instrtxt;
   if (UNLIKELY(csound->oparms->odebug))
-    csound->Message(csound, Str(" -- added to deadpool slot %d\n"),
+    csoundMessage(csound, Str(" -- added to deadpool slot %d\n"),
                     csound->dead_instr_no - 1);
 }
 
@@ -1170,7 +1172,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
     inm->ip->isNew = 1;
     /* redefinition does not raise an error now, just a warning */
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Warning(csound, Str("named instr %" PRIi32 " redefined, "
+      csoundWarning(csound, Str("named instr %" PRIi32 " redefined, "
                                   "replacing previous definition"),
                       inm->instno);
     // VL 26.05.2018 get the existing instr allocated number
@@ -1183,7 +1185,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
       /* check for duplicate numbers and do nothing */
       if (i != inm->instno &&
           engineState->instrtxtp[i] == engineState->instrtxtp[inm->instno]) {
-        // csound->Message(csound, "duplicate %d %d\n", i, inm->instno);
+        // csoundMessage(csound, "duplicate %d %d\n", i, inm->instno);
         // so fill this with the new instrument pointer
         engineState->instrtxtp[i] = ip;
         goto cont;
@@ -1204,7 +1206,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
     /* no active instances */
     if (active == NULL) {
       if (UNLIKELY(csound->oparms->odebug))
-        csound->Message(csound, Str("no active instances\n"));
+        csoundMessage(csound, Str("no active instances\n"));
       free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
       engineState->instrtxtp[inm->instno] = NULL;
     }
@@ -1213,7 +1215,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
 cont:
 
   /* allocate entry, */
-  inm = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
+  inm = (INSTRNAME *)mcalloc(csound, sizeof(INSTRNAME));
 
   /* and store parameters */
   inm->name = cs_strdup(csound, s);
@@ -1230,7 +1232,7 @@ cont:
     /* temporary chain for use by named_instr_assign_numbers()
        this is not needed at merge stage
     */
-    inm2 = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
+    inm2 = (INSTRNAME *)mcalloc(csound, sizeof(INSTRNAME));
     inm2->instno = insno;
     inm2->name = (char *) inm; /* hack */
     inm_head = cs_hash_table_get(csound, engineState->instrumentNames,
@@ -1248,7 +1250,7 @@ cont:
   }
 
   if (UNLIKELY(csound->oparms->odebug) && engineState == &csound->engineState)
-    csound->Message(csound, "named instr name = \"%s\", txtp = %p,\n", s,
+    csoundMessage(csound, "named instr name = \"%s\", txtp = %p,\n", s,
                     (void *)ip);
   return ret;
 }
@@ -1309,7 +1311,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
         if (num > engineState->maxinsno) {
           int m = engineState->maxinsno;
           engineState->maxinsno += MAXINSNO; /* Expand */
-          engineState->instrtxtp = (INSTRTXT **)csound->ReAlloc(csound, engineState->instrtxtp,
+          engineState->instrtxtp = (INSTRTXT **)mrealloc(csound, engineState->instrtxtp,
                                                                 (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
           /* Array expected to be nulled so.... */
           while (++m <= engineState->maxinsno)
@@ -1326,7 +1328,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
       if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
-        csound->Message(csound, Str("instr %s uses instrument number %d\n"),
+        csoundMessage(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
     }
   }
@@ -1335,7 +1337,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
   inm = inm_first;
   while (inm) {
     INSTRNAME *nxtinm = inm->next;
-    csound->Free(csound, inm);
+    mfree(csound, inm);
     inm = nxtinm;
   }
   cs_hash_table_remove(csound, engineState->instrumentNames,
@@ -1359,7 +1361,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum,
       engineState->maxinsno += MAXINSNO;
     }
 
-    engineState->instrtxtp = (INSTRTXT **)csound->ReAlloc(
+    engineState->instrtxtp = (INSTRTXT **)mrealloc(
                                                           csound, engineState->instrtxtp,
                                                           (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
 
@@ -1377,7 +1379,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum,
     if (!merge)
       synterr(csound, Str("instr %d redefined\n"), instrNum);
     if (UNLIKELY(instrNum && csound->oparms->odebug))
-      csound->Warning(csound, Str("instr %" PRIi32 " redefined, "
+      csoundWarning(csound, Str("instr %" PRIi32 " redefined, "
                                   "replacing previous definition"),
                       instrNum);
     /* inherit active & maxalloc flags */
@@ -1392,7 +1394,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum,
       /* check for duplicate numbers and do nothing */
       if (i != instrNum &&
           engineState->instrtxtp[i] == engineState->instrtxtp[instrNum]) {
-        csound->Message(csound, "duplicate %d %d\n", i, instrNum);
+        csoundMessage(csound, "duplicate %d %d\n", i, instrNum);
         // VL 26.05.2018
         // so fill this with the new instrument pointer
         engineState->instrtxtp[i] = instrtxt;
@@ -1412,7 +1414,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum,
     /* instr0 is freed elsewhere */
     if (active == NULL && instrNum != 0) {
       if (UNLIKELY(csound->oparms->odebug))
-        csound->Message(csound, Str("no active instances of instr %d\n"),
+        csoundMessage(csound, Str("no active instances of instr %d\n"),
                         instrNum);
       free_instrtxt(csound, engineState->instrtxtp[instrNum]);
     }
@@ -1423,7 +1425,7 @@ end:
 
   instrtxt->instance = instrtxt->act_instance = instrtxt->lst_instance = NULL;
   engineState->instrtxtp[instrNum] = instrtxt;
-  //csound->Message(csound, "instrument %d of %d: %p \n",
+  //csoundMessage(csound, "instrument %d of %d: %p \n",
   //                instrNum, engineState->maxinsno, instrtxt);
 }
 
@@ -1439,7 +1441,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
         i = (engineState->maxopcno > 0 ? engineState->maxopcno
              : engineState->maxinsno);
         engineState->maxopcno = i + MAXINSNO;
-        engineState->instrtxtp = (INSTRTXT **)csound->ReAlloc(
+        engineState->instrtxtp = (INSTRTXT **)mrealloc(
                                                               csound, engineState->instrtxtp,
                                                               (1 + engineState->maxopcno) * sizeof(INSTRTXT *));
         /* Array expected to be nulled so.... */
@@ -1447,7 +1449,7 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
           engineState->instrtxtp[i] = NULL;
       }
       inm->instno = num;
-      // csound->Message(csound, Str("UDO INSTR NUM: %d\n"), num);
+      // csoundMessage(csound, Str("UDO INSTR NUM: %d\n"), num);
       engineState->instrtxtp[num] = inm->ip;
       inm = inm->prv;
     }
@@ -1458,7 +1460,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char *outargs,
                             char *inargs) {
   OPCODINFO *opinfo = csound->opcodeInfo;
   if (UNLIKELY(opinfo == NULL)) {
-    csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
+    csoundMessage(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
     return NULL;
   }
 
@@ -1496,7 +1498,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
   /* for (count = 0; count < engineState->constantsPool->count; count++) {
      if (UNLIKELY(csound->oparms->odebug))
-     csound->Message(csound, Str(" merging constants %d) %f\n"),
+     csoundMessage(csound, Str(" merging constants %d) %f\n"),
      count, engineState->constantsPool->values[count].value);
      myflt_pool_find_or_add(csound, current_state->constantsPool,
      engineState->constantsPool->values[count].value);
@@ -1506,7 +1508,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   while (gVar != NULL) {
     CS_VARIABLE *var;
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, Str(" merging %p %d) %s:%s\n"), gVar, count,
+      csoundMessage(csound, Str(" merging %p %d) %s:%s\n"), gVar, count,
                       gVar->varName, gVar->varType->varTypeName);
     var = csoundFindVariableWithName(csound, current_state->varPool,
                                      gVar->varName);
@@ -1522,7 +1524,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
          delete the memBlock */
       var->memBlock = gVar->memBlock;
       if (UNLIKELY(csound->oparms->odebug))
-        csound->Message(csound, Str(" adding %p %d) %s:%s\n"), var, count,
+        csoundMessage(csound, Str(" adding %p %d) %s:%s\n"), var, count,
                         gVar->varName, gVar->varType->varTypeName);
       gVar = gVar->next;
     } else {
@@ -1530,8 +1532,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
       // free variable mem block
       // printf("free %p\n", gVar->memBlock);
       // the CS_VARIABLE itself will be freed on engine_free()
-      csound->Free(csound, gVar->memBlock);
-      csound->Free(csound, gVar->varName);
+      mfree(csound, gVar->memBlock);
+      mfree(csound, gVar->varName);
       gVar = gVar->next;
     }
   }
@@ -1550,17 +1552,17 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     current = engineState->instrtxtp[i];
 
     if (current != NULL) {
-      // csound->Message(csound, "INSTR %d \n", i);
+      // csoundMessage(csound, "INSTR %d \n", i);
       if (current->insname == NULL) {
         if (csound->oparms->odebug)
-          csound->Message(csound, Str("merging instr %d\n"), i);
+          csoundMessage(csound, Str("merging instr %d\n"), i);
         /* a first attempt at this merge is to make it use
            insert_instrtxt again */
         /* insert instrument in current engine */
         insert_instrtxt(csound, current, i, current_state, 1);
       } else {
         if (UNLIKELY(csound->oparms->odebug))
-          csound->Message(csound, Str("merging named instr %s\n"),
+          csoundMessage(csound, Str("merging named instr %s\n"),
                           current->insname);
         /* allocate a named_instr string in the current engine */
         /* find the assigned number in the engineState and use it for
@@ -1577,7 +1579,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   /* VL 30.6.2018 commented this out so all the assignment
      occurs earlier on before merge
   */
-  // csound->Message(csound, "assign numbers; %p\n", current_state);
+  // csoundMessage(csound, "assign numbers; %p\n", current_state);
   //named_instr_assign_numbers(csound, current_state);
 
   /* VL MOVED here after all instruments are merged so
@@ -1588,7 +1590,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   current = (&(engineState->instxtanchor)); //->nxtinstxt;
   while ((current = current->nxtinstxt) != NULL) {
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "insprep %p\n", current);
+      csoundMessage(csound, "insprep %p\n", current);
     insprep(csound, current, current_state); /* run insprep() to connect ARGS */
     recalculateVarPoolMemory(csound,
                              current->varPool); /* recalculate var pool */
@@ -1601,7 +1603,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     current = current_state->instrtxtp[i];
     if (current != NULL) {
       if (UNLIKELY(csound->oparms->odebug))
-        csound->Message(csound, "instr %d:%p\n", i, current);
+        csoundMessage(csound, "instr %d:%p\n", i, current);
       current->nxtinstxt = NULL;
       j = i;
       while (++j < end - 1) {
@@ -1625,18 +1627,18 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
 int engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
 
-  // csound->Free(csound, engineState->instrumentNames);
+  // mfree(csound, engineState->instrumentNames);
   cs_hash_table_free(csound, engineState->constantsPool);
   // cs_hash_table_free(csound, engineState->stringPool);
   csoundFreeVarPool(csound, engineState->varPool);
-  csound->Free(csound, engineState->instrtxtp);
-  csound->Free(csound, engineState);
+  mfree(csound, engineState->instrtxtp);
+  mfree(csound, engineState);
   return 0;
 }
 
 void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable) {
   cs_cons_free_complete(csound, typeTable->labelList);
-  csound->Free(csound, typeTable);
+  mfree(csound, typeTable);
 }
 
 static char *node2string(int type) {
@@ -1714,13 +1716,13 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
     cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
     prvinstxt = &(engineState->instxtanchor);
     engineState->instrtxtp =
-      (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno)
+      (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno)
                                    * sizeof(INSTRTXT*));
     prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
     insert_instrtxt(csound, csound->instr0, 0, engineState,0);
   }
   else {
-    engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
+    engineState = (ENGINE_STATE *) mcalloc(csound, sizeof(ENGINE_STATE));
     engineState->stringPool = csound->engineState.stringPool;
     //cs_hash_table_create(csound);
     engineState->constantsPool = cs_hash_table_create(csound);
@@ -1728,7 +1730,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
     engineState->varPool = typeTable->globalPool;
     prvinstxt = &(engineState->instxtanchor);
     engineState->instrtxtp =
-      (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno) *
+      (INSTRTXT **) mcalloc(csound, (1 + engineState->maxinsno) *
                                    sizeof(INSTRTXT*));
     /* VL: allowing global code to be evaluated in
        subsequent compilations */
@@ -1750,7 +1752,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
   var = typeTable->globalPool->head;
   while(var != NULL) {
     size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
-    CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
+    CS_VAR_MEM* varMem = (CS_VAR_MEM*) mcalloc(csound, memSize);
     //printf("alloc %p -- %s\n", varMem, var->varName);
     varMem->varType = var->varType;
     var->memBlock = varMem;
@@ -1765,7 +1767,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
 
     switch (current->type) {
     case T_ASSIGNMENT:
-      /* csound->Message(csound, "Assignment found\n"); */
+      /* csoundMessage(csound, "Assignment found\n"); */
       break;
     case INSTR_TOKEN:
       //print_tree(csound, "Instrument found\n", current);
@@ -1806,7 +1808,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
             /*                                 engineState,0))) { */
             /*   synterr(csound, Str("instr %s redefined"), c); */
             /* } */
-          instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
+          instrtxt->insname = mmalloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
         }
       } else {
@@ -1837,7 +1839,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
           /*                                 engineState,0))) { */
           /*   synterr(csound, Str("instr %s redefined"), c); */
           /* } */
-          instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
+          instrtxt->insname = mmalloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
         }
       }
@@ -1845,7 +1847,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
     }
     break;
   case UDO_TOKEN:
-    /* csound->Message(csound, "UDO found\n"); */
+    /* csoundMessage(csound, "UDO found\n"); */
     instrtxt = create_instrument(csound, current, engineState);
     prvinstxt = prvinstxt->nxtinstxt = instrtxt;
     opname = current->left->value->lexeme;
@@ -1854,7 +1856,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
                        current->left->right->markup);
 
     if (UNLIKELY(opinfo == NULL)) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("ERROR: Could not find OPCODINFO for opname: %s\n"),
                       opname);
     } else {
@@ -1875,7 +1877,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
     break;
 
   default:
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("Unknown TREE node of type %d (%s) found in root.\n"),
                     current->type, node2string(current->type));
     if (PARSER_DEBUG)
@@ -1887,7 +1889,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
 
 if (UNLIKELY(csound->synterrcnt)) {
   print_opcodedir_warning(csound);
-  csound->Warning(csound, Str("%d syntax errors in orchestra.  "
+  csoundWarning(csound, Str("%d syntax errors in orchestra.  "
                               "compilation invalid\n"),
                   csound->synterrcnt);
   free_typetable(csound, typeTable);
@@ -1931,15 +1933,15 @@ if (engineState != &csound->engineState) {
     if (strcmp(oentry->opname, "$label") == 0)
       continue;
     if (PARSER_DEBUG)
-      csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
+      csoundDebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
     if (UNLIKELY((thread = oentry->thread) & 06 ||
                  (!thread && bp->t.pftype != 'b'))) {
-      csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
+      csoundDebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                        bp->t.opcod, thread, bp->t.pftype);
       /* synterr(csound,
          Str("perf-pass statements illegal in header blk (%s)\n"),
          oentry->opname);*/
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("%s: perf-time code in global space, ignored"),
                       oentry->opname);
     }
@@ -2046,7 +2048,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     }
 
     if (UNLIKELY(O->odebug))
-      csound->Message(csound, "%s args:", ep->opname);
+      csoundMessage(csound, "%s args:", ep->opname);
     if ((outlist = ttp->outlist) == NULL || !outlist->count)
       ttp->outArgs = NULL;
     else {
@@ -2075,12 +2077,12 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       for (n = 0; n < inlist->count; n++, argp++) {
         ARG *arg = NULL;
         if (n < inreqd && *argStringParts[n] == 'l') {
-          arg = csound->Calloc(csound, sizeof(ARG));
+          arg = mcalloc(csound, sizeof(ARG));
           arg->type = ARG_LABEL;
-          arg->argPtr = csound->Malloc(csound, strlen(*argp) + 1);
+          arg->argPtr = mmalloc(csound, strlen(*argp) + 1);
           strcpy(arg->argPtr, *argp);
           if (UNLIKELY(O->odebug))
-            csound->Message(csound, "\t%s:", *argp); /* if arg is label,  */
+            csoundMessage(csound, "\t%s:", *argp); /* if arg is label,  */
         } else {
           char *s = *argp;
           arg = createArg(csound, tp, s, engineState);
@@ -2110,19 +2112,19 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
         if (tp->insname) {
           if(csound->oparms_.msglevel || csound->oparms_.odebug)
-              csound->Message(csound, "PSET: isname=\"%s\", pmax=%d\n", tp->insname,
+              csoundMessage(csound, "PSET: isname=\"%s\", pmax=%d\n", tp->insname,
                               tp->pmax);
         } else {
           if(csound->oparms_.msglevel || csound->oparms_.odebug)
-            csound->Message(csound, "PSET: isno=??, pmax=%d\n", tp->pmax);
+            csoundMessage(csound, "PSET: isno=??, pmax=%d\n", tp->pmax);
         }
         if (UNLIKELY((n = ttp->inArgCount) != tp->pmax)) {
-          // csound->Warning(csound, Str("i%d pset args != pmax"), (int) insno);
-          csound->Warning(csound, Str("i[fixme] pset args != pmax"));
+          // csoundWarning(csound, Str("i%d pset args != pmax"), (int) insno);
+          csoundWarning(csound, Str("i[fixme] pset args != pmax"));
           if (n < tp->pmax)
             n = tp->pmax; /* cf pset, pmax    */
         }
-        tp->psetdata = (MYFLT *)csound->Calloc(csound, n * sizeof(MYFLT));
+        tp->psetdata = (MYFLT *)mcalloc(csound, n * sizeof(MYFLT));
 
         for (n = 0, fp1 = tp->psetdata; n < (int)ttp->inArgCount;
              n++, inArgs = inArgs->next) {
@@ -2153,21 +2155,21 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             break;
           }
 
-          //            csound->Message(csound, "..%f..", *(fp1-1));
+          //            csoundMessage(csound, "..%f..", *(fp1-1));
         }
 
-        csound->Message(csound, "\n");
+        csoundMessage(csound, "\n");
       }
       // printf("delete %p\n", argStringParts);
       for (n = 0; argStringParts[n] != NULL; n++) {
         // printf("delete %p\n", argStringParts[n]);
-        csound->Free(csound, argStringParts[n]);
+        mfree(csound, argStringParts[n]);
       }
-      csound->Free(csound, argStringParts);
+      mfree(csound, argStringParts);
     }
 
     if (UNLIKELY(O->odebug))
-      csound->Message(csound, "\n");
+      csoundMessage(csound, "\n");
   }
 }
 
@@ -2191,11 +2193,11 @@ static void lgbuild(CSOUND *csound, INSTRTXT *ip, char *s, int inarg,
                            cs_strtod(s, NULL));
     }
   } else if (c == '"') {
-    temp = csound->Calloc(csound, strlen(s) + 1);
-    // csound->Message(csound, "%c\n", s[1]);
+    temp = mcalloc(csound, strlen(s) + 1);
+    // csoundMessage(csound, "%c\n", s[1]);
     unquote_string(temp, s);
     cs_hash_table_put_key(csound, engineState->stringPool, temp);
-    csound->Free(csound, temp);
+    mfree(csound, temp);
   }
 }
 
@@ -2226,10 +2228,10 @@ static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
 
   c = *s;
 
-  ARG *arg = csound->Calloc(csound, sizeof(ARG));
+  ARG *arg = mcalloc(csound, sizeof(ARG));
 
   if (UNLIKELY(csound->oparms->odebug))
-    csound->Message(csound, "\t%s", s); /* if arg is label,  */
+    csoundMessage(csound, "\t%s", s); /* if arg is label,  */
 
   /* must trap 0dbfs as name starts with a digit! */
   if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
@@ -2243,17 +2245,17 @@ static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
     }
   } else if (c == '"') {
     size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
-    CS_VAR_MEM *varMem = csound->Calloc(csound, memSize);
+    CS_VAR_MEM *varMem = mcalloc(csound, memSize);
     STRINGDAT *str = (STRINGDAT *)&varMem->value;
     // printf("create string %p: %s\n", arg, str->data);
     varMem->varType = (CS_TYPE *)&CS_VAR_TYPE_S;
     arg->type = ARG_STRING;
-    temp = csound->Calloc(csound, strlen(s) + 1);
+    temp = mcalloc(csound, strlen(s) + 1);
     unquote_string(temp, s);
     str->data =
       cs_hash_table_get_key(csound, csound->engineState.stringPool, temp);
     str->size = strlen(temp) + 1;
-    csound->Free(csound, temp);
+    mfree(csound, temp);
     arg->argPtr = str;
     if (str->data == NULL) {
       str->data = cs_hash_table_put_key(csound, engineState->stringPool, temp);
@@ -2282,10 +2284,10 @@ static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
     setupArgForVarName(csound, arg, ip->varPool, s);
     // printf("create local %p: %s\n", arg, s);
     if (arg->argPtr == NULL) {
-      csound->Message(csound, Str("Missing local arg: %s\n"), s);
+      csoundMessage(csound, Str("Missing local arg: %s\n"), s);
     }
   }
-  /*    csound->Message(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
+  /*    csoundMessage(csound, " [%s -> %d (%x)]\n", s, indx, indx); */
 
   return arg;
 }
@@ -2356,26 +2358,26 @@ void debugPrintCsound(CSOUND *csound) {
   CONS_CELL *const_val =
     cs_hash_table_values(csound, csound->engineState.constantsPool);
   int count = 0;
-  csound->Message(csound, "Compile State:\n");
-  csound->Message(csound, "String Pool:\n");
+  csoundMessage(csound, "Compile State:\n");
+  csoundMessage(csound, "String Pool:\n");
 
   while (val != NULL) {
-    csound->Message(csound, "    %d) %s\n", count++, (char *)val->value);
+    csoundMessage(csound, "    %d) %s\n", count++, (char *)val->value);
     val = val->next;
   }
 
-  csound->Message(csound, "Constants Pool:\n");
+  csoundMessage(csound, "Constants Pool:\n");
   while (const_val != NULL) {
     CS_VAR_MEM *mem = (CS_VAR_MEM *)const_val->value;
-    csound->Message(csound, "  %d) %f\n", count++, mem->value);
+    csoundMessage(csound, "  %d) %f\n", count++, mem->value);
     const_val = const_val->next;
   }
 
-  csound->Message(csound, "Global Variables:\n");
+  csoundMessage(csound, "Global Variables:\n");
   CS_VARIABLE *gVar = csound->engineState.varPool->head;
   count = 0;
   while (gVar != NULL) {
-    csound->Message(csound, "  %d) %s:%s\n", count++, gVar->varName,
+    csoundMessage(csound, "  %d) %s:%s\n", count++, gVar->varName,
                     gVar->varType->varTypeName);
     gVar = gVar->next;
   }
@@ -2385,19 +2387,19 @@ void debugPrintCsound(CSOUND *csound) {
   current = current->nxtinstxt;
   count = 0;
   while (current != NULL) {
-    csound->Message(csound, "Instrument %d %p %p\n", count, current,
+    csoundMessage(csound, "Instrument %d %p %p\n", count, current,
                     current->nxtinstxt);
-    csound->Message(csound, "Variables\n");
+    csoundMessage(csound, "Variables\n");
 
     if (current->varPool != NULL) {
       CS_VARIABLE *var = current->varPool->head;
       int index = 0;
       while (var != NULL) {
         if (var->varType == &CS_VAR_TYPE_ARRAY) {
-          csound->Message(csound, "  %d) %s:[%s]\n", index++, var->varName,
+          csoundMessage(csound, "  %d) %s:[%s]\n", index++, var->varName,
                           var->subType->varTypeName);
         } else {
-          csound->Message(csound, "  %d) %s:%s\n", index++, var->varName,
+          csoundMessage(csound, "  %d) %s:%s\n", index++, var->varName,
                           var->varType->varTypeName);
         }
 
@@ -2414,7 +2416,7 @@ void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o) {
   char *name = o->lexeme;
   OENTRY *ep = find_opcode(csound, name);
   if (UNLIKELY((ep->flags &_QQ) && !(csound->oparms_.msglevel&CS_NOQQ)))
-    csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
+    csoundWarning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
 }
 
 int query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o) {

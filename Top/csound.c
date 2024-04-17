@@ -64,6 +64,8 @@
 #include "namedins.h"
 //#include "cs_par_dispatch.h"
 #include "find_opcode.h"
+#include "csound_orc_semantics_public.h"
+#include "musmon.h"
 
 #if defined(linux)||defined(__HAIKU__)|| defined(__EMSCRIPTEN__)||defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -74,12 +76,14 @@
 #include "csdebug.h"
 #include "csdebug_internal.h"
 #include <time.h>
-#include "cwindow_internal.h"
+#include "cwindow.h"
 #include "csoundCore_internal.h"
 #include "threadsafe.h"
+#include "linevent_public.h"
+#include "memalloc.h"
 
 extern void allocate_message_queue(CSOUND *csound);
-static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
+void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -91,25 +95,14 @@ static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void reset(CSOUND *);
-static int  csoundPerformKsmpsInternal(CSOUND *csound);
-void csoundTableSetInternal(CSOUND *csound, int table, int index,
-                                   MYFLT value);
-static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
-uint64_t csoundGetKcounter(CSOUND *csound);
-static void set_util_sr(CSOUND *csound, MYFLT sr);
-static void set_util_nchnls(CSOUND *csound, int nchnls);
+int  csoundPerformKsmpsInternal(CSOUND *csound);
+INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 
 extern void cscoreRESET(CSOUND *);
 extern void memRESET(CSOUND *);
-extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
 extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
-extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
-extern int isstrcod(MYFLT );
-extern int fterror(const FGDATA *ff, const char *s, ...);
-PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
-INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name);
 
 extern OENTRY opcodlst_1[];
 
@@ -203,7 +196,7 @@ static void create_opcode_table(CSOUND *csound)
 
 #define MAX_MODULES 64
 
-static void module_list_add(CSOUND *csound, char *drv, char *type){
+void module_list_add(CSOUND *csound, char *drv, char *type){
     MODULE_INFO **modules =
       (MODULE_INFO **) csoundQueryGlobalVariable(csound, "_MODULES");
     if (modules != NULL){
@@ -212,38 +205,38 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
        if (!strcmp(modules[i]->module, drv)) return;
        i++;
      }
-     modules[i] = (MODULE_INFO *) csound->Malloc(csound, sizeof(MODULE_INFO));
+     modules[i] = (MODULE_INFO *) mmalloc(csound, sizeof(MODULE_INFO));
      strNcpy(modules[i]->module, drv, 11);
      strNcpy(modules[i]->type, type, 11);
     }
 }
 
-static int csoundGetRandSeed(CSOUND *csound, int which){
+int csoundGetRandSeed(CSOUND *csound, int which) {
     if (which > 1) return csound->randSeed1;
     else return csound->randSeed2;
 }
 
-static char *csoundGetStrsets(CSOUND *csound, long p){
+char *csoundGetStrsets(CSOUND *csound, long p) {
     if (csound->strsets == NULL) return NULL;
     else return csound->strsets[p];
 }
 
-static int csoundGetStrsmax(CSOUND *csound){
+int csoundGetStrsmax(CSOUND *csound){
     return csound->strsmax;
 }
 
-static void csoundGetOParms(CSOUND *csound, OPARMS *p){
+void csoundGetOParms(CSOUND *csound, OPARMS *p) {
     memcpy(p, csound->oparms, sizeof(OPARMS));
 }
 
-static int csoundGetDitherMode(CSOUND *csound){
+int csoundGetDitherMode(CSOUND *csound) {
     return  csound->dither_output;
 }
 
 #include "Opcodes/zak.h"
-static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
+int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     ZAK_GLOBALS *zz;
-    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    zz = (ZAK_GLOBALS*) csoundQueryGlobalVariable(csound, "_zak_globals");
     if (zz==NULL) {
       *zkstart = NULL;
       return -1;
@@ -252,9 +245,9 @@ static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     return zz->zklast;
 }
 
-static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
+int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
     ZAK_GLOBALS *zz;
-    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    zz = (ZAK_GLOBALS*) csoundQueryGlobalVariable(csound, "_zak_globals");
     if (zz==NULL) {
       *zastart = NULL;
       return -1;
@@ -263,11 +256,11 @@ static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
     return zz->zalast;
 }
 
-static int csoundGetReinitFlag(CSOUND *csound){
+int csoundGetReinitFlag(CSOUND *csound){
     return csound->reinitflag;
 }
 
-static int csoundGetTieFlag(CSOUND *csound){
+int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
@@ -277,284 +270,6 @@ MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
 }
 
 static const CSOUND cenviron_ = {
-    /* attributes  */
-    csoundGetSr,
-    csoundGetKr,
-    csoundGetKsmps,
-    csoundGetNchnls,
-    csoundGetNchnlsInput,
-    csoundGet0dBFS,
-    csoundGetKcounter,
-    csoundGetCurrentTimeSamples,
-    csoundGetInputBufferSize,
-    csoundGetOutputBufferSize,
-    csoundGetInputBuffer,
-    csoundGetOutputBuffer,
-    csoundSetDebug,
-    csoundGetDebug,
-    csoundGetSizeOfMYFLT,
-    csoundGetOParms,
-    csoundGetEnv,
-    /* message printout */
-    csoundMessage,
-    csoundMessageS,
-    csoundMessageV,
-    csoundGetMessageLevel,
-    csoundSetMessageLevel,
-    csoundSetMessageCallback,
-    /* Event and MIDI functionality for opcodes */
-    csoundSetReleaseLength,
-    csoundSetReleaseLengthSeconds,
-    csoundGetMidiChannelNumber,
-    csoundGetMidiChannel,
-    csoundGetMidiNoteNumber,
-    csoundGetMidiVelocity,
-    csoundGetReleaseFlag,
-    csoundGetOffTime,
-    csoundGetPFields,
-    csoundGetInstrumentNumber,
-    csoundGetZakBounds,
-    csoundGetTieFlag,
-    csoundGetReinitFlag,
-    csoundGetStrsmax,
-    csoundGetStrsets,
-    csoundPow2,
-    intpow,
-    type2string,
-    /* arguments to opcodes */
-    csoundGetTypeForArg,
-    csoundGetInputArgCnt,
-    csoundGetInputArgName,
-    csoundGetOutputArgCnt,
-    csoundGetOutputArgName,
-    get_arg_string,
-    strarg2insno,
-    strarg2name,
-    /* memory allocation */
-    csoundAuxAlloc,
-    mmalloc,
-    mcalloc,
-    mrealloc,
-    cs_strdup,
-    mfree,
-    /* function tables */
-    hfgens,
-    csoundFTAlloc,
-    csoundFTDelete,
-    csoundFTFind,
-    csoundFTFindP,
-    csoundFTnp2Find,
-    csoundGetTable,
-    csoundTableLength,
-    csoundTableGet,
-    csoundTableSetInternal,
-    csoundGetNamedGens,
-    /* global and config variable manipulation */
-    csoundCreateGlobalVariable,
-    csoundQueryGlobalVariable,
-    csoundQueryGlobalVariableNoCheck,
-    csoundDestroyGlobalVariable,
-    csoundCreateConfigurationVariable,
-    csoundSetConfigurationVariable,
-    csoundParseConfigurationVariable,
-    csoundQueryConfigurationVariable,
-    csoundListConfigurationVariables,
-    csoundDeleteConfigurationVariable,
-    csoundCfgErrorCodeToString,
-    /* FFT support */
-    csoundGetInverseComplexFFTScale,
-    csoundGetInverseRealFFTScale,
-    csoundComplexFFT,
-    csoundInverseComplexFFT,
-    csoundRealFFT,
-    csoundInverseRealFFT,
-    csoundRealFFTMult,
-    csoundRealFFTnp2,
-    csoundInverseRealFFTnp2,
-    /* PVOC-EX system */
-    pvoc_createfile,
-    pvoc_openfile,
-    pvoc_closefile,
-    pvoc_putframes,
-    pvoc_getframes,
-    pvoc_framecount,
-    pvoc_fseek,
-    pvoc_errorstr,
-    PVOCEX_LoadFile,
-    /* error messages */
-    csoundDie,
-    csoundInitError,
-    csoundPerfError,
-    csoundWarning,
-    csoundDebugMsg,
-    csoundLongJmp,
-    csoundErrorMsg,
-    csoundErrMsgV,
-    /* random numbers */
-    csoundGetRandomSeedFromTime,
-    csoundSeedRandMT,
-    csoundRandMT,
-    csoundRand31,
-    csoundGetRandSeed,
-    /* threads and locks */
-    csoundCreateThread,
-    csoundJoinThread,
-    csoundCreateThreadLock,
-    csoundDestroyThreadLock,
-    csoundWaitThreadLock,
-    csoundNotifyThreadLock,
-    csoundWaitThreadLockNoTimeout,
-    csoundCreateMutex,
-    csoundLockMutexNoWait,
-    csoundLockMutex,
-    csoundUnlockMutex,
-    csoundDestroyMutex,
-    csoundCreateBarrier,
-    csoundDestroyBarrier,
-    csoundWaitBarrier,
-    csoundGetCurrentThreadId,
-    csoundSleep,
-    csoundInitTimerStruct,
-    csoundGetRealTime,
-    csoundGetCPUTime,
-    /* circular buffer */
-    csoundCreateCircularBuffer,
-    csoundReadCircularBuffer,
-    csoundWriteCircularBuffer,
-    csoundFlushCircularBuffer,
-    csoundDestroyCircularBuffer,
-    /* File access */
-    csoundFindInputFile,
-    csoundFindOutputFile,
-    SAsndgetset,
-    sndgetset,
-    getsndin,
-    rewriteheader,
-    csoundLoadSoundFile,
-    fdrecord,
-    csound_fd_close,
-    csoundCreateFileHandle,
-    csoundGetFileName,
-    csoundFileClose,
-    csoundFileOpenWithType,
-    type2csfiletype,
-    csoundNotifyFileOpened,
-    sftype2csfiletype,
-    ldmemfile2withCB,
-    csoundFileOpenWithType_Async,
-    csoundReadAsync,
-    csoundWriteAsync,
-    csoundFSeekAsync,
-    getstrformat,
-    sfsampsize,
-    /* RT audio IO and callbacks */
-    csoundSetPlayopenCallback,
-    csoundSetRtplayCallback,
-    csoundSetRecopenCallback,
-    csoundSetRtrecordCallback,
-    csoundSetRtcloseCallback,
-    csoundSetAudioDeviceListCallback,
-    csoundGetRtRecordUserData,
-    csoundGetRtPlayUserData,
-    csoundGetDitherMode,
-    /* MIDI and callbacks */
-    csoundSetExternalMidiInOpenCallback,
-    csoundSetExternalMidiReadCallback,
-    csoundSetExternalMidiInCloseCallback,
-    csoundSetExternalMidiOutOpenCallback,
-    csoundSetExternalMidiWriteCallback,
-    csoundSetExternalMidiOutCloseCallback,
-    csoundSetExternalMidiErrorStringCallback,
-    csoundSetMIDIDeviceListCallback,
-    module_list_add,
-    /* displays & graphs */
-    dispset,
-    display,
-    dispexit,
-    dispinit,
-    csoundSetIsGraphable,
-    csoundSetMakeGraphCallback,
-    csoundSetDrawGraphCallback,
-    csoundSetKillGraphCallback,
-    csoundSetExitGraphCallback,
-    /* generic callbacks */
-    csoundSetYieldCallback,
-    csoundRegisterKeyboardCallback,
-    csoundRemoveKeyboardCallback,
-    csoundRegisterSenseEventCallback,
-    csoundRegisterDeinitCallback,
-    csoundRegisterResetCallback,
-    SetInternalYieldCallback,
-    /* opcodes and instruments  */
-    csoundAppendOpcode,
-    csoundAppendOpcodes,
-    csoundGetOpcodeName,
-    csoundGetInstrumentList,
-    /* events and performance */
-    csoundYield,
-    insert_score_event,
-    insert_score_event_at_sample,
-    csoundPerformKsmpsInternal,
-    /* utilities */
-    csoundAddUtility,
-    csoundRunUtility,
-    csoundListUtilities,
-    csoundSetUtilityDescription,
-    csoundGetUtilityDescription,
-    set_util_sr,
-    set_util_nchnls,
-    /* miscellaneous */
-    csoundRunCommand,
-    csoundOpenLibrary,
-    csoundCloseLibrary,
-    csoundGetLibrarySymbol,
-    csoundLocalizeString,
-    cs_strtok_r,
-    cs_strtod,
-    cs_sprintf,
-    cs_sscanf,
-    csoundSystemSr,
-    csoundGetScoreOffsetSeconds,
-    csoundSetScoreOffsetSeconds,
-    csoundRewindScore,
-    csoundInputMessageInternal,
-    isstrcod,
-    csoundRealFFT2Setup,
-    csoundRealFFT2,
-    fterror,
-    csoundGetA4,
-    csoundAuxAllocAsync,
-    csoundGetHostData,
-    strNcpy,
-    csoundGetZaBounds,
-    find_opcode_new,
-    find_opcode_exact,
-    csoundGetChannelPtr,
-    csoundListChannels,
-    csoundErrCnt,
-    csoundFTnp2Finde,
-    csoundGetInstrument,
-    csoundAutoCorrelation,
-    csoundLPsetup,
-    csoundLPfree,
-    csoundLPred,
-    csoundLPCeps,
-    csoundCepsLP,
-    csoundLPrms,
-    csoundCreateThread2,
-    cs_hash_table_create,
-    cs_hash_table_get,
-    cs_hash_table_put,
-    cs_hash_table_remove,
-    cs_hash_table_free,
-    cs_hash_table_get_key,
-    cs_hash_table_keys,
-    cs_hash_table_values,
-    csoundPeekCircularBuffer,
-    {
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL
-    },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
@@ -1554,27 +1269,27 @@ unsigned long kperfThread(void * cs)
     int numThreads;
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
-    csound->WaitBarrier(csound->barrier2);
+    csoundWaitBarrier(csound->barrier2);
 
-    threadId = csound->GetCurrentThreadID();
+    threadId = csoundGetCurrentThreadId();
     index = getThreadIndex(csound, threadId);
     numThreads = csound->oparms->numThreads;
     //start = NULL;
-    csound->Message(csound,
+    csoundMessage(csound,
                     Str("Multithread performance:thread %d of "
                         "%d starting.\n"),
                     /* start ? start->insno : */
                     index+1,
                     numThreads);
     if (UNLIKELY(index < 0)) {
-      csound->Die(csound, Str("Bad ThreadId"));
+      csoundDie(csound, Str("Bad ThreadId"));
       return ULONG_MAX;
     }
     index++;
 
     while (1) {
 
-      csound->WaitBarrier(csound->barrier1);
+      csoundWaitBarrier(csound->barrier1);
 
       // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so,
       // use some other kind of locking mechanism as it isn't clear why a
@@ -1589,7 +1304,7 @@ unsigned long kperfThread(void * cs)
 
       nodePerf(csound, index, numThreads);
 
-      csound->WaitBarrier(csound->barrier2);
+      csoundWaitBarrier(csound->barrier2);
     }
 }
 #endif
@@ -1621,7 +1336,7 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
       char *sc = scsortstr(csound, csound->scorestr);
       //printf("%s\n", sc);
       csoundInputMessageInternal(csound, (const char *) sc);
-      csound->Free(csound, sc);
+      mfree(csound, sc);
       corfile_rm(csound, &(csound->scorestr));
     }
     return CSOUND_SUCCESS;
@@ -1633,7 +1348,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     int done;
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("Csound not ready for performance: csoundStart() "
                           "has not been called\n"));
       return CSOUND_ERROR;
@@ -1663,14 +1378,14 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     return 0;
 }
 
-static int csoundPerformKsmpsInternal(CSOUND *csound)
+int csoundPerformKsmpsInternal(CSOUND *csound)
 {
     int done;
     int returnValue;
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("Csound not ready for performance: csoundStart() "
                           "has not been called\n"));
       return CSOUND_ERROR;
@@ -1699,7 +1414,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     int done;
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("Csound not ready for performance: csoundStart() "
                           "has not been called\n"));
       return CSOUND_ERROR;
@@ -1740,7 +1455,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
 
    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("Csound not ready for performance: csoundStart() "
                           "has not been called\n"));
       return CSOUND_ERROR;
@@ -1764,7 +1479,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
             csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
             csound->multiThreadedComplete = 1;
-            csound->WaitBarrier(csound->barrier1);
+            csoundWaitBarrier(csound->barrier1);
           }
           return done;
         }
@@ -2036,7 +1751,7 @@ PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
 
   if (csoundMessageStrCallback) {
     if(csound->message_string == NULL)
-      csound->message_string = (char *) csound->Calloc(csound, MAX_MESSAGE_STR);
+      csound->message_string = (char *) mcalloc(csound, MAX_MESSAGE_STR);
   csound->csoundMessageStringCallback = csoundMessageStrCallback;
   csound->csoundMessageCallback_ = NULL;
   }
@@ -2070,7 +1785,7 @@ PUBLIC void csoundMessageV(CSOUND *csound,
   }
 }
 
-PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
+void csoundMessage(CSOUND *csound, const char *format, ...)
 {
   if(!(csound->oparms->msglevel & CS_NOMSG)) {
     va_list args;
@@ -2103,10 +1818,10 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
 void csoundDie(CSOUND *csound, const char *msg, ...){
     va_list args;
     va_start(args, msg);
-    csound->ErrMsgV(csound, (char*) 0, msg, args);
+    csoundErrMsgV(csound, (char*) 0, msg, args);
     va_end(args);
     csound->perferrcnt++;
-    csound->LongJmp(csound, 1);
+    csoundLongJmp(csound, 1);
 }
 
 void csoundWarning(CSOUND *csound, const char *msg, ...)
@@ -2144,9 +1859,9 @@ void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
     if (hdr != NULL)
-      csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
+      csoundMessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+    csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
 
 }
 
@@ -2259,13 +1974,13 @@ static double *get_dummy_rtaudio_globals(CSOUND *csound)
 {
     double  *p;
 
-    p = (double*) csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
+    p = (double*) csoundQueryGlobalVariable(csound, "__rtaudio_null_state");
     if (p == NULL) {
-      if (UNLIKELY(csound->CreateGlobalVariable(csound, "__rtaudio_null_state",
+      if (UNLIKELY(csoundCreateGlobalVariable(csound, "__rtaudio_null_state",
                                                 sizeof(double) * 4) != 0))
-        csound->Die(csound, Str("rtdummy: failed to allocate globals"));
-      csound->Message(csound, Str("rtaudio: dummy module enabled\n"));
-      p = (double*) csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
+        csoundDie(csound, Str("rtdummy: failed to allocate globals"));
+      csoundMessage(csound, Str("rtaudio: dummy module enabled\n"));
+      p = (double*) csoundQueryGlobalVariable(csound, "__rtaudio_null_state");
     }
     return p;
 }
@@ -2304,7 +2019,7 @@ int playopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
     }
     p = get_dummy_rtaudio_globals(csound);
     csound->rtPlay_userdata = (void*) p;
-    p[0] = csound->GetRealTime(csound->csRtClock);
+    p[0] = csoundGetRealTime(csound->csRtClock);
     p[1] = 1.0 / ((double) ((int) sizeof(MYFLT) * parm->nChannels)
                   * (double) parm->sampleRate);
     return CSOUND_SUCCESS;
@@ -2341,7 +2056,7 @@ int recopen_dummy(CSOUND *csound, const csRtAudioParams *parm)
     }
     p = (double*) get_dummy_rtaudio_globals(csound) + 2;
     csound->rtRecord_userdata = (void*) p;
-    p[0] = csound->GetRealTime(csound->csRtClock);
+    p[0] = csoundGetRealTime(csound->csRtClock);
     p[1] = 1.0 / ((double) ((int) sizeof(MYFLT) * parm->nChannels)
                   * (double) parm->sampleRate);
     return CSOUND_SUCCESS;
@@ -2631,7 +2346,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     shortName = get_opcode_short_name(csound, ep->opname);
 
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
-    entryCopy = csound->Malloc(csound, sizeof(OENTRY));
+    entryCopy = mmalloc(csound, sizeof(OENTRY));
     //printf("%p\n", entryCopy);
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
@@ -2644,7 +2359,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     }
 
     if (shortName != ep->opname) {
-        csound->Free(csound, shortName);
+        mfree(csound, shortName);
     }
 
     return 0;
@@ -2731,7 +2446,7 @@ void SetInternalYieldCallback(CSOUND *csound,
 int csoundYield(CSOUND *csound)
 {
     if (exitNow_)
-      csound->LongJmp(csound, CSOUND_SIGNAL);
+      csoundLongJmp(csound, CSOUND_SIGNAL);
     csound->csoundInternalYieldCallback_(csound);
     return csound->csoundYieldCallback_(csound);
 }
@@ -2788,7 +2503,7 @@ static void reset(CSOUND *csound)
     rlsmemfiles(csound);
 
      while (csound->filedir[n])        /* Clear source directory */
-       csound->Free(csound,csound->filedir[n++]);
+       mfree(csound,csound->filedir[n++]);
 
      memRESET(csound);
 
@@ -2839,17 +2554,17 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
     if (UNLIKELY(s==NULL)) return;        /* Should not happen */
     if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
         strcmp(s, "NULL") == 0) {
-      csound->Message(csound, Str("setting dummy interface\n"));
-      csound->SetPlayopenCallback(csound, playopen_dummy);
-      csound->SetRecopenCallback(csound, recopen_dummy);
-      csound->SetRtplayCallback(csound, rtplay_dummy);
-      csound->SetRtrecordCallback(csound, rtrecord_dummy);
-      csound->SetRtcloseCallback(csound, rtclose_dummy);
-      csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
+      csoundMessage(csound, Str("setting dummy interface\n"));
+      csoundSetPlayopenCallback(csound, playopen_dummy);
+      csoundSetRecopenCallback(csound, recopen_dummy);
+      csoundSetRtplayCallback(csound, rtplay_dummy);
+      csoundSetRtrecordCallback(csound, rtrecord_dummy);
+      csoundSetRtcloseCallback(csound, rtclose_dummy);
+      csoundSetAudioDeviceListCallback(csound, audio_dev_list_dummy);
       return;
     }
     if (csoundInitModules(csound) != 0)
-      csound->LongJmp(csound, 1);
+      csoundLongJmp(csound, 1);
 }
 
 
@@ -2861,18 +2576,18 @@ PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module){
     if (UNLIKELY(s==NULL)) return;        /* Should not happen */
     if (strcmp(s, "null") == 0 || strcmp(s, "Null") == 0 ||
        strcmp(s, "NULL") == 0) {
-      csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
-      csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
-      csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
-      csound->SetExternalMidiInCloseCallback(csound, NULL);
-      csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
-      csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
-      csound->SetExternalMidiOutCloseCallback(csound, NULL);
+      csoundSetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
+      csoundSetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
+      csoundSetExternalMidiReadCallback(csound,  DummyMidiRead);
+      csoundSetExternalMidiInCloseCallback(csound, NULL);
+      csoundSetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
+      csoundSetExternalMidiWriteCallback(csound, DummyMidiWrite);
+      csoundSetExternalMidiOutCloseCallback(csound, NULL);
 
       return;
     }
     if (csoundInitModules(csound) != 0)
-      csound->LongJmp(csound, 1);
+      csoundLongJmp(csound, 1);
 }
 
 
@@ -2887,7 +2602,7 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
 
 PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
   if (dir != NULL) {
-   csound->Message(csound, "loading plugins from %s\n", dir);
+   csoundMessage(csound, "loading plugins from %s\n", dir);
    int err = csoundLoadAndInitModules(csound, dir);
   if(!err) {
      return CSOUND_SUCCESS;
@@ -2907,7 +2622,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
-      csound->Message(csound, "resetting Csound instance\n");
+      csoundMessage(csound, "resetting Csound instance\n");
       reset(csound);
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
@@ -2917,7 +2632,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundSpinLockInit(&csound->memlock);
       csoundSpinLockInit(&csound->spinlock1);
       if (UNLIKELY(O->odebug))
-        csound->Message(csound,"init spinlocks\n");
+        csoundMessage(csound,"init spinlocks\n");
     }
 
     if (msgcallback_ != NULL) {
@@ -2930,7 +2645,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     i = csoundInitEnv(csound);
     if (UNLIKELY(i != CSOUND_SUCCESS)) {
       csound->engineStatus |= CS_STATE_JMP;
-      csound->Die(csound, Str("Failed during csoundInitEnv"));
+      csoundDie(csound, Str("Failed during csoundInitEnv"));
     }
     csound_init_rand(csound);
 
@@ -2947,12 +2662,12 @@ PUBLIC void csoundReset(CSOUND *csound)
 
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
-        csound->Warning(csound, "%s",csound->delayederrormessages);
-        csound->Free(csound, csound->delayederrormessages);
+        csoundWarning(csound, "%s",csound->delayederrormessages);
+        mfree(csound, csound->delayederrormessages);
         csound->delayederrormessages = NULL;
       }
       if (UNLIKELY(err==CSOUND_ERROR))
-        csound->Die(csound, Str("Failed during csoundInitStaticModules"));
+        csoundDie(csound, Str("Failed during csoundInitStaticModules"));
 
  #ifndef BARE_METAL
      csoundCreateGlobalVariable(csound, "_MODULES",
@@ -2969,21 +2684,21 @@ PUBLIC void csoundReset(CSOUND *csound)
      err = csoundLoadModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
-        csound->Warning(csound, "%s", csound->delayederrormessages);
-        csound->Free(csound, csound->delayederrormessages);
+        csoundWarning(csound, "%s", csound->delayederrormessages);
+        mfree(csound, csound->delayederrormessages);
         csound->delayederrormessages = NULL;
       }
       if (UNLIKELY(err != CSOUND_SUCCESS))
-        csound->Die(csound, Str("Failed during csoundLoadModules"));
+        csoundDie(csound, Str("Failed during csoundLoadModules"));
 
       if (csoundInitModules(csound) != 0)
-            csound->LongJmp(csound, 1);
+            csoundLongJmp(csound, 1);
 
 #endif // BARE_METAL
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
       dbfs_init(csound, DFLT_DBFS);
-      csound->csRtClock = (RTCLOCK*) csound->Calloc(csound, sizeof(RTCLOCK));
+      csound->csRtClock = (RTCLOCK*) mcalloc(csound, sizeof(RTCLOCK));
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
@@ -2997,7 +2712,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       O->filetyp = -1;
       O->sfheader = 0;
       csound->peakchunks = 1;
-      csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
+      csound->typePool = mcalloc(csound, sizeof(TYPE_POOL));
       csound->engineState.varPool = csoundCreateVarPool(csound);
       csoundAddStandardTypes(csound, csound->typePool);
       /* csoundLoadExternals(csound); */
@@ -3021,16 +2736,16 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       Str("Real time audio module name"), NULL);
 #endif
     /* initialise real time MIDI */
-    csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
+    csound->midiGlobals = (MGLOBAL*) mcalloc(csound, sizeof(MGLOBAL));
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
 #ifndef BARE_METAL    
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
-    csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
-    csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
-    csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
-    csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
-    csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
+    csoundSetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
+    csoundSetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
+    csoundSetExternalMidiReadCallback(csound,  DummyMidiRead);
+    csoundSetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
+    csoundSetExternalMidiWriteCallback(csound, DummyMidiWrite);
   
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     strcpy(s, "null");
@@ -3065,7 +2780,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* sound file tag options */
     max_len = 201;
     i = (max_len + 7) & (~7);
-    csound->SF_id_title = (char*) csound->Calloc(csound, (size_t) i * (size_t) 6);
+    csound->SF_id_title = (char*) mcalloc(csound, (size_t) i * (size_t) 6);
     csoundCreateConfigurationVariable(csound, "id_title", csound->SF_id_title,
                                       CSOUNDCFG_STRING, 0, NULL, &max_len,
                                       Str("Title tag in output soundfile "
@@ -3298,8 +3013,8 @@ PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
 }
 
 /* csoundNotifyFileOpened() should be called by plugins via
-   csound->NotifyFileOpened() to let Csound know that they opened a file
-   without using one of the standard mechanisms (csound->FileOpen2() or
+   csoundNotifyFileOpened() to let Csound know that they opened a file
+   without using one of the standard mechanisms (csoundFileOpenWithType() or
    ldmemfile2withCB()).  The notification is passed on to the host if it
    has set the FileOpen callback. */
 void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
@@ -3901,7 +3616,7 @@ void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound)
 {
     csMsgBuffer *pp = (csMsgBuffer*) csound->message_buffer;
     if (!pp) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("csoundDestroyMessageBuffer: "
                           "Message buffer not allocated."));
         return;
@@ -3985,7 +3700,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int attr,
     csoundUnlockMutex(pp->mutex_);
 }
 
-static INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
+INSTRTXT **csoundGetInstrumentList(CSOUND *csound){
   return csound->engineState.instrtxtp;
 }
 
@@ -3993,8 +3708,8 @@ uint64_t csoundGetKcounter(CSOUND *csound){
   return csound->kcounter;
 }
 
-static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
-static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
+void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
+void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
 
 MYFLT csoundGetA4(CSOUND *csound) { return (MYFLT) csound->A4; }
 
@@ -4014,7 +3729,7 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
 
     /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
     if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("Csound not ready for performance: csoundStart() "
                           "has not been called\n"));
       return CSOUND_ERROR;

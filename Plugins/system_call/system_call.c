@@ -23,6 +23,7 @@
 
 
 #include "csdl.h"
+#include "csound_orc_semantics_public.h"
 
 typedef struct {
   OPDS  h;
@@ -37,19 +38,20 @@ typedef struct {
 
 #if defined(_WIN32)
 #include <process.h>
+#include "memalloc.h"
 
 static void threadroutine(void *p)
 {
     SYSTEM *pp = (SYSTEM *) p;
     system(pp->command);
-    pp->csound->Free(pp->csound,pp->command);
+    mfree(pp->csound,pp->command);
 }
 
 static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
     _flushall();
     if ( (int32_t)*p->nowait != 0 ) {
-       p->command = csound->Strdup(csound, p->commandLine->data);
+       p->command = cs_strdup(csound, p->commandLine->data);
        p->csound = csound;
       _beginthread( threadroutine, 0, p);
       *p->res = OK;

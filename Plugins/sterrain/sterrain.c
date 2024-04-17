@@ -22,6 +22,8 @@
 #include "csdl.h"
 #include "interlocks.h"
 #include <math.h>
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /*  Wave-terrain synthesis opcode
  *
@@ -141,16 +143,16 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
 
     if (*(p->ktabx) != p->oldfnx || p->xarr == NULL) {
       p->oldfnx = *(p->ktabx);
-      FUNC *ftp = csound->FTFindP(csound, p->ktabx);    /* new table parameters */
+      FUNC *ftp = csoundFTFindP(csound, p->ktabx);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->xarr = ftp->ftable) == NULL)))
-        return csound->PerfError(csound, &(p->h), Str("no table %g\n"), *p->ktabx);
+        return csoundPerfError(csound, &(p->h), Str("no table %g\n"), *p->ktabx);
       p->sizx = (MYFLT)ftp->flen;
     }
     if (*(p->ktaby) != p->oldfny || p->yarr == NULL) {
       p->oldfny = *(p->ktaby);
-      FUNC *ftp = csound->FTFindP(csound, p->ktaby);    /* new table parameters */
+      FUNC *ftp = csoundFTFindP(csound, p->ktaby);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->yarr = ftp->ftable) == NULL)))
-        return csound->PerfError(csound, &(p->h), Str("no table %g\n"), *p->ktaby);
+        return csoundPerfError(csound, &(p->h), Str("no table %g\n"), *p->ktaby);
       p->sizy = (MYFLT)ftp->flen;
     }
 
@@ -191,7 +193,7 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
       aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
 
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
-      theta += pch*((period*TWOPI_F) / csound->GetSr(csound));
+      theta += pch*((period*TWOPI_F) / csoundGetSr(csound));
     }
 
     p->theta = theta;

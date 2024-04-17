@@ -24,6 +24,9 @@
 //#include "csdl.h"
 #include "csoundCore_internal.h"
 #include <math.h>
+#include "auxfd.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
 
@@ -66,12 +69,12 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
       p->t0 = (-1.0+2.0*b*dt/(dx*dx)+sig*dt*0.5)/(1.0+sig*dt*0.5);
       p->t1 = (-b*dt)/(dx*dx*(1.0+sig*dt*0.5));
 
-/*     csound->Message(csound,"Scheme: %f %f %f ; %f %f\n",
+/*     csoundMessage(csound,"Scheme: %f %f %f ; %f %f\n",
                        p->s0, p->s1, p->s2, p->t0, p->t1); */
 
       /* %%%%%%%%%%%%%%%%%%%%% create grid functions */
 
-      csound->AuxAlloc(csound, (size_t)3*((N+5)*sizeof(double)), &(p->w_aux));
+      csoundAuxAlloc(csound, (size_t)3*((N+5)*sizeof(double)), &(p->w_aux));
       p->w = (double *) p->w_aux.auxp;
       p->w1 = &(p->w[N + 5]);
       p->w2 = &(p->w1[N + 5]);
@@ -81,7 +84,7 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
     /*
     else {
       if (UNLIKELY(p->w_aux.auxp == NULL))
-        return csound->InitError(csound, Str("No data to continue"));
+        return csoundInitError(csound, Str("No data to continue"));
     }
     */
     p->first = 0;
@@ -112,7 +115,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
     MYFLT *ar = p->ar;
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -184,7 +187,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
       xoint = (int32_t) (xo*N) + 2;
       xofrac = xo*N - (int32_t)(xo*N);
 
-/*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ",
+/*       csoundMessage(csound, "xo = %f (%d %f) w=(%f,%f) ",
                          xo, xoint, xofrac, w[xoint], w[xoint+1]); */
       ar[n] = (csound->e0dbfs)*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
@@ -275,17 +278,17 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       double *c, /*dx,*/ dxmin = 0.0; /* for stability */
       FUNC  *ftp;
 
-      csound->AuxAlloc(csound, NS*sizeof(double), &p->auxchc);
+      csoundAuxAlloc(csound, NS*sizeof(double), &p->auxchc);
       c = (double *)p->auxchc.auxp;
 
       if (*p->rattle_tab==FL(0.0) ||
-          (ftp=csound->FTnp2Finde(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
+          (ftp=csoundFTnp2Finde(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
       else {
         p->rattle_num = (uint32_t)(*ftp->ftable);
         p->rattle = (RATTLE*)(&((MYFLT*)ftp->ftable)[1]);
       }
       if (*p->rubber_tab==FL(0.0) ||
-          (ftp=csound->FTnp2Finde(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
+          (ftp=csoundFTnp2Finde(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
       else {
         p->rubber_num = (uint32_t)(*ftp->ftable);
         p->rubber = (RUBBER*)(&((MYFLT*)ftp->ftable)[1]);
@@ -304,7 +307,7 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       N = p->N = (uint32_t)(1.0/dxmin);
       //dx = 1.0/(double)N;
 
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        3*((1+(N+5))*NS+p->rattle_num+p->rubber_num)*sizeof(MYFLT),
                        &p->auxch);
       //c = (double *)p->auxch.auxp;

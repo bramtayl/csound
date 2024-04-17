@@ -24,9 +24,12 @@
 
 #include "csdl.h"
 #include <math.h>
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /* #undef CS_KSMPS */
-/* #define CS_KSMPS     (csound->GetKsmps(csound)) */
+/* #define CS_KSMPS     (csoundGetKsmps(csound)) */
 
 typedef struct {
     OPDS        h;
@@ -54,8 +57,8 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
 {
     FUNC *inp, *outp;
     double a = *p->asp;
-    double dt = (p->dt = 1.0/csound->GetSr(csound)); /* time step */
-    double sig = (csound->GetSr(csound)+csound->GetSr(csound))*
+    double dt = (p->dt = 1.0/csoundGetSr(csound)); /* time step */
+    double sig = (csoundGetSr(csound)+csoundGetSr(csound))*
                  (POWER(10.0, FL(3.0)*dt/(*p->decay))-FL(1.0)); /* loss constant */
     double b2 = *p->loss;
     double dxmin = 2.0*sqrt(dt*(b2+hypot(*p->loss, *p->stiff)));
@@ -72,20 +75,20 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
     uint32_t qq;
 
     p->nin = (int32_t) (p->INOCOUNT) - 7; p->nout = (int32_t) (p->OUTOCOUNT);
-    if (UNLIKELY((inp = csound->FTnp2Find(csound,p->tabins)) == NULL ||
+    if (UNLIKELY((inp = csoundFTnp2Find(csound,p->tabins)) == NULL ||
                  inp->flen < (uint32_t)3*p->nin)) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("Missing input table or too short"));
     }
-    if (UNLIKELY((outp = csound->FTnp2Find(csound,p->tabout)) == NULL ||
+    if (UNLIKELY((outp = csoundFTnp2Find(csound,p->tabout)) == NULL ||
                  outp->flen < (uint32_t)3*p->nout)) {
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("Missing output table or too short"));
     }
     p->in_param = inp->ftable;
     p->out_param = outp->ftable;
     p->L = (a<1.0 ? a : 1.0);
-    csound->AuxAlloc(csound, 3*Nx5*(Ny+5)*sizeof(double), &p->auxch);
+    csoundAuxAlloc(csound, 3*Nx5*(Ny+5)*sizeof(double), &p->auxch);
     p->u = (double*)p->auxch.auxp;
     p->u1 = p->u+Nx5*(Ny+5);
     p->u2 = p->u1+Nx5*(Ny+5);

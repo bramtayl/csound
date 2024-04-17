@@ -33,6 +33,7 @@
 
 #include "csdl.h"
 #include "dcblockr.h"
+#include "auxfd.h"
 
 static int32_t dcblockrset(CSOUND *csound, DCBlocker* p)
 {
@@ -99,27 +100,27 @@ static int32_t dcblock2set(CSOUND *csound, DCBlock2* p)
 
     if (p->delay1.auxp == NULL ||
         p->delay1.size < (order-1)*2*sizeof(double))
-      csound->AuxAlloc(csound, (order-1)*2*sizeof(double),
+      csoundAuxAlloc(csound, (order-1)*2*sizeof(double),
                        &p->delay1);
 
     if (p->iirdelay1.auxp == NULL ||
         p->iirdelay1.size < (order)*sizeof(double))
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (order)*sizeof(double), &p->iirdelay1);
 
     if (p->iirdelay2.auxp == NULL ||
         p->iirdelay2.size < (order)*sizeof(double))
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (order)*sizeof(double), &p->iirdelay2);
 
     if (p->iirdelay3.auxp == NULL ||
         p->iirdelay3.size < (order)*sizeof(double))
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (order)*sizeof(double), &p->iirdelay3);
 
     if (p->iirdelay4.auxp == NULL ||
         p->iirdelay4.size < (order)*sizeof(double))
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (order)*sizeof(double), &p->iirdelay4);
 
     p->scaler = 1.0/order;

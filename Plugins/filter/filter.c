@@ -135,6 +135,8 @@
 #include "csdl.h"
 #include "filter.h"
 #include <math.h>
+#include "auxfd.h"
+#include "insert_public.h"
 
 typedef struct FCOMPLEX {double r,i;} fcomplex;
 
@@ -184,13 +186,13 @@ static int32_t ifilter(CSOUND *csound, FILTER* p)
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
                  (p->numa<0) || (p->numa>MAXPOLES)))
-      return csound->InitError(csound, Str("Filter order out of bounds: "
+      return csoundInitError(csound, Str("Filter order out of bounds: "
                                            "(1 <= nb < 51, 0 <= na <= 50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
 
-    csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
+    csoundAuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
 
     /* Initialize the delay line for safety  ***NOT NEEDED AS AUXALLOC DOES THAT */
     /* for (i=0;i<p->ndelay;i++) */
@@ -222,13 +224,13 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
                  (p->numa<0) || (p->numa>MAXPOLES)))
-      return csound->InitError(csound, Str("Filter order out of bounds: "
+      return csoundInitError(csound, Str("Filter order out of bounds: "
                                            "(1 <= nb < 51, 0 <= na <= 50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(p->numb-1,p->numa);
 
-    csound->AuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
+    csoundAuxAlloc(csound, p->ndelay * sizeof(double), &p->delay);
 
     /* Set current position pointer to beginning of delay */
     p->currPos = (double*)p->delay.auxp;
@@ -237,7 +239,7 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
       p->dcoeffs[i] = (double)*p->coeffs[i];
 
     /* Add auxillary root memory */
-    csound->AuxAlloc(csound, p->numa * sizeof(fcomplex), &p->roots);
+    csoundAuxAlloc(csound, p->numa * sizeof(fcomplex), &p->roots);
     roots = (fcomplex*) p->roots.auxp;
     dim = p->numa;
 
@@ -690,7 +692,7 @@ static void laguer(CSOUND *csound, fcomplex a[], int32_t m,
       if (iter % MT) *x = x1;
       else *x = Csub(*x,RCmul(frac[iter/MT],dx));
     }
-    csound->Warning(csound, Str("too many iterations in laguer"));
+    csoundWarning(csound, Str("too many iterations in laguer"));
     return;
 }
 #undef EPSS

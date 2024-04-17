@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "score_param.h"
+#include "memalloc.h"
     extern void csound_scoerror(SCORE_PARM *, void *,
                             CSOUND *, ScoreTree *, const char*);
     extern int csound_scolex(ScoreTree**, CSOUND *, void *);
@@ -228,7 +229,6 @@ lyyerror(YYLTYPE t, char *s, ...)
 
 #endif
 
-extern void do_baktrace(CSOUND *csound, uint64_t files);
 extern char *csound_scoget_text ( void *scanner );
 extern char *csound_scoget_current_pointer(void *yyscanner);
 
@@ -241,17 +241,17 @@ csound_scoerror(SCORE_PARM *parm, void *yyscanner, CSOUND *cs, ScoreTree *t,
     int line = csound_scoget_lineno(yyscanner);
     uint64_t files = csound_scoget_locn(yyscanner);
     if (*p=='\0') line--;
-    cs->Message(cs, Str("\nerror: %s  (token \"%s\")"),
+    csoundMessage(cs, Str("\nerror: %s  (token \"%s\")"),
                     str, csound_scoget_text(yyscanner));
     do_baktrace(cs, files);
-    cs->Message(cs, Str(" line %d:\n>>>"), line);
+    csoundMessage(cs, Str(" line %d:\n>>>"), line);
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
       if (ch == '\n') break;
-      cs->Message(cs, "%c", ch);
+      csoundMessage(cs, "%c", ch);
     } while (ch != '\n' && ch != '\0');
-    cs->Message(cs, " <<<\n");
+    csoundMessage(cs, " <<<\n");
 }
 
 int csound_scowrap()
@@ -265,7 +265,7 @@ int csound_scowrap()
 static ScoreTree* makesco(CSOUND *csound, int op, ListItem* car, ScoreTree* cdr,
                           int line, int locn)
 {
-    ScoreTree* a = (ScoreTree*)csound->Malloc(csound, sizeof(ScoreTree));
+    ScoreTree* a = (ScoreTree*)mmalloc(csound, sizeof(ScoreTree));
     a->op = op;
     a->args = car;
     a->next = cdr;
@@ -282,7 +282,7 @@ static ScoreTree* makesco1(CSOUND *csound, ScoreTree* car, ScoreTree* cdr)
 
 static ListItem* makelist(CSOUND *csound, double car, ListItem* cdr)
 {
-    ListItem* a = (ListItem*)csound->Malloc(csound, sizeof(ListItem));
+    ListItem* a = (ListItem*)mmalloc(csound, sizeof(ListItem));
     a->val = car;
     a->args = cdr;
     return a;

@@ -39,8 +39,6 @@
 extern int set_rt_priority(int argc, const char **argv);
 #endif
 
-extern int csoundErrCnt(CSOUND*);
-
 static FILE *logFile = NULL;
 
 static void msg_callback(CSOUND *csound,

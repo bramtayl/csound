@@ -22,6 +22,7 @@
 */
 
 #include "csoundCore_internal.h"
+#include "memalloc.h"
 
 typedef struct _circular_buffer {
   char *buffer;
@@ -34,14 +35,14 @@ typedef struct _circular_buffer {
 void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize){
     circular_buffer *p;
     if ((p = (circular_buffer *)
-         csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
+         mmalloc(csound, sizeof(circular_buffer))) == NULL) {
       return NULL;
     }
     p->numelem = numelem;
     p->wp = p->rp = 0;
     p->elemsize = elemsize;
 
-    if ((p->buffer = (char *) csound->Malloc(csound, numelem*elemsize)) == NULL) {
+    if ((p->buffer = (char *) mmalloc(csound, numelem*elemsize)) == NULL) {
       return NULL;
     }
     memset(p->buffer, 0, numelem*elemsize);
@@ -173,6 +174,6 @@ int csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int items
 
 void csoundDestroyCircularBuffer(CSOUND *csound, void *p){
     if(p == NULL) return;
-    csound->Free(csound, ((circular_buffer *)p)->buffer);
-    csound->Free(csound, p);
+    mfree(csound, ((circular_buffer *)p)->buffer);
+    mfree(csound, p);
 }

@@ -28,6 +28,9 @@
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
 #include "Engine/score_param.h"
+#include "memalloc.h"
+#include "csound_orc_semantics_public.h"
+#include "fgens_public.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */
@@ -64,7 +67,7 @@ static intptr_t expand_nxp(CSOUND *csound)
 
     if (UNLIKELY((csound->sread.nxp) >=
                  ((csound->sread.memend) + MARGIN))) {
-      csound->Die(csound, Str("sread:  text space overrun, increase MARGIN"));
+      csoundDie(csound, Str("sread:  text space overrun, increase MARGIN"));
       return 0;     /* not reached */
     }
     /* calculate the number of bytes to allocate */
@@ -75,7 +78,7 @@ static intptr_t expand_nxp(CSOUND *csound)
     /* extend allocated memory */
     oldp = (csound->sread.curmem);
     (csound->sread.curmem) =
-      (char*) csound->ReAlloc(csound, (csound->sread.curmem),
+      (char*) mrealloc(csound, (csound->sread.curmem),
                               nbytes + (size_t) MARGIN);
     (csound->sread.memend) =
       (char*) (csound->sread.curmem) + (int32) nbytes;
@@ -131,10 +134,10 @@ static void scorerr(CSOUND *csound, const char *s, ...)
     va_list   args;
 
     va_start(args, s);
-    csound->ErrMsgV(csound, Str("score error:  "), s, args);
+    csoundErrMsgV(csound, Str("score error:  "), s, args);
     va_end(args);
     print_input_backtrace(csound, 0, csoundErrorMsg);
-    csound->LongJmp(csound, 1);
+    csoundLongJmp(csound, 1);
 }
 
 static void print_input_backtrace(CSOUND *csound, int needLFs,
@@ -151,7 +154,7 @@ static void print_input_backtrace(CSOUND *csound, int needLFs,
     do {
       if (curr == (csound->sread.inputs)) lastinput = 1;
       if (UNLIKELY(!curr->mac || !curr->mac->name)){
-        csound->Warning(csound, Str("Internal error in print_input_backtrace()"));
+        csoundWarning(csound, Str("Internal error in print_input_backtrace()"));
         return;
       }
       switch(lastsource) {
@@ -228,7 +231,7 @@ static int getscochar(CSOUND *csound, int expand)
       }
     }
 #ifdef MACDEBUG
-    csound->DebugMsg(csound,"%s(%d): character = %c(%.2d)\n",
+    csoundDebugMsg(csound,"%s(%d): character = %c(%.2d)\n",
                      __FILE__, __LINE__, c, c);
 #endif
     if (c == '\n') {
@@ -243,7 +246,7 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     /* sread_alloc_globals(csound); */
     IGN(sco);
     (csound->sread.inputs) =
-      (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
+      (IN_STACK*) mmalloc(csound, 20 * sizeof(IN_STACK));
     (csound->sread.input_size) = 20;
     (csound->sread.input_cnt) = 0;
     (csound->sread.str) = (csound->sread.inputs);
@@ -260,7 +263,7 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
       /* printf("Input:\n%s<<<\n", */
       /*        corfile_body(csound->sread.str->cf)); */
       csound_prslex(csound, qq.yyscanner);
-      csound->DebugMsg(csound, "yielding >>%s<<\n",
+      csoundDebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
       csound_prslex_destroy(qq.yyscanner);
       corfile_rm(csound, &csound->scorestr);
@@ -324,7 +327,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             printf("seed from score %d\n", csound->randSeed1);
           }
           else {
-            uint32_t tmp = (uint32_t) csound->GetRandomSeedFromTime();
+            uint32_t tmp = (uint32_t) csoundGetRandomSeedFromTime();
             while (tmp >= (uint32_t) 0x7FFFFFFE)
               tmp -= (uint32_t) 0x7FFFFFFE;
             csound->randSeed1 = tmp+1;
@@ -363,7 +366,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
               stof(csound, (csound->sread.sp));
 
           if (csound->oparms->msglevel & CS_TIMEMSG)
-            csound->Message(csound,Str("Clockbase = %f\n"),
+            csoundMessage(csound,Str("Clockbase = %f\n"),
                             csound->sread.clock_base);
           flushlin(csound);
           (csound->sread.op) = getop(csound);
@@ -454,7 +457,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           buff[i] = '\0';
           if (c != EOF && c != '\n') flushlin(csound);
           if (csound->oparms->msglevel & CS_TIMEMSG)
-            csound->Message(csound,Str("m Named section >>>%s<<<\n"), buff);
+            csoundMessage(csound,Str("m Named section >>>%s<<<\n"), buff);
             //printf("*** last_name = %d\n", (csound->sread.last_name));
           for (j=0; j<(csound->sread.last_name); j++) {
             //printf("m: %s %s(%d)\n",
@@ -471,7 +474,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           (csound->sread.names)[j].line = (csound->sread.str)->line;
           //printf("line-%d\n",(csound->sread.names)[j].line);
           if (csound->oparms->msglevel & CS_TIMEMSG)
-            csound->Message(csound,Str("%d: %s position %"PRIi32"\n"),
+            csoundMessage(csound,Str("%d: %s position %"PRIi32"\n"),
                             j, (csound->sread.names)[j].name,
                             (csound->sread.names)[j].posit);
           (csound->sread.op) = getop(csound);
@@ -505,14 +508,14 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           if (UNLIKELY(i > (csound->sread.last_name)))
             sreaderr(csound, Str("Name %s not found"), buff);
           else {
-            //csound->Message(csound, Str("%d: %s (%ld)\n"),
+            //csoundMessage(csound, Str("%d: %s (%ld)\n"),
             //                i, buff, (csound->sread.names)[i].posit);
             (csound->sread.input_cnt)++;
             if (csound->sread.input_cnt>=csound->sread.input_size) {
               int old = (csound->sread.str)-(csound->sread.inputs);
               (csound->sread.input_size) += 20;
               (csound->sread.inputs) =
-                csound->ReAlloc(csound, (csound->sread.inputs),
+                mrealloc(csound, (csound->sread.inputs),
                                 csound->sread.input_size * sizeof(IN_STACK));
               (csound->sread.str) =
                 &(csound->sread.inputs)[old];     /* In case it moves */
@@ -541,7 +544,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           (csound->sread.warp_factor) =
             stof(csound, (csound->sread.sp));
           if (csound->oparms->msglevel & CS_TIMEMSG)
-            csound->Message(csound, Str("Warp_factor = %f\n"),
+            csoundMessage(csound, Str("Warp_factor = %f\n"),
                             (csound->sread.warp_factor));
           flushlin(csound);
           (csound->sread.op) = getop(csound);
@@ -574,7 +577,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
       case -1:
         break;
       default:
-        csound->Message(csound,
+        csoundMessage(csound,
                         Str("sread is confused on legal opcodes %c(%.2x)\n"),
                         (csound->sread.op), (csound->sread.op));
         break;
@@ -631,7 +634,7 @@ static void ifa(CSOUND *csound)
       ++(csound->sread.bp)->pcnt;
       /* if (UNLIKELY(++(csound->sread.bp)->pcnt == PMAX)) { */
       /*   sreaderr(csound, Str("instr pcount exceeds PMAX")); */
-      /*   csound->Message(csound, Str("      remainder of line flushed\n")); */
+      /*   csoundMessage(csound, Str("      remainder of line flushed\n")); */
       /*   flushlin(csound); */
       /*   continue; */
       /* } */
@@ -696,13 +699,13 @@ static void ifa(CSOUND *csound)
         }
         else if (UNLIKELY((csound->sread.bp)->pcnt < 4)) {
           sreaderr(csound, Str("! invalid in p1, p2, or p3"));
-          csound->Message(csound, Str("      remainder of line flushed\n"));
+          csoundMessage(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
         }
         else if (UNLIKELY(csound->sread.nxp-csound->sread.sp != 2)) {
           sreaderr(csound, Str("illegal character after !: '%c'"),
                    *((csound->sread.sp)+1));
-          csound->Message(csound, Str("      remainder of line flushed\n"));
+          csoundMessage(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
         }
         else {
@@ -722,7 +725,7 @@ static void ifa(CSOUND *csound)
                (csound->sread.op) == 'd' ||
                (csound->sread.op) == 'q') &&
               *(csound->sread.sp) == '"') {
-            /* csound->DebugMsg(csound,"***Entering second dubious code scnt=%d\n",
+            /* csoundDebugMsg(csound,"***Entering second dubious code scnt=%d\n",
                csound->scnt0); */
             (csound->sread.bp)->p1val = SSTRCOD;      /* allow string name */
           }
@@ -803,7 +806,7 @@ static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
     SRTBLK *p = (csound->sread.bp);
     int16 n;
 
-    if (csound->ISSTRCOD((csound->sread.bp)->p1val) &&
+    if (isstrcod((csound->sread.bp)->p1val) &&
         *(csound->sread.sp) == '"') {
       /* IV - Oct 31 2002 */
       int sign = 0;
@@ -815,7 +818,7 @@ static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
         printf("negative name %s\n", name); }
       /* find corresponding insno */
       if (UNLIKELY(!(n = (int16) named_instr_find(csound, name+sign)))) {
-        csound->Message(csound, Str("WARNING: instr %s not found, "
+        csoundMessage(csound, Str("WARNING: instr %s not found, "
                                     "assuming insno = -1\n"), name);
         n = -1;
       }
@@ -836,13 +839,13 @@ static void carryerror(CSOUND *csound)      /* print offending text line  */
 {                                           /*      (partial)             */
     char *p;
 
-    csound->Message(csound, Str("sread: illegal use of carry, "
+    csoundMessage(csound, Str("sread: illegal use of carry, "
                                 "  0 substituted\n"));
     *((csound->sread.nxp) - 3) = SP;
     p = (csound->sread.bp)->text;
     while (p <= (csound->sread.nxp) - 2)
-      csound->Message(csound, "%c", *p++);
-    csound->Message(csound, "<=\n");
+      csoundMessage(csound, "%c", *p++);
+    csoundMessage(csound, "<=\n");
     print_input_backtrace(csound, 1, csoundMessage);
     *((csound->sread.nxp) - 2) = '0';
 }
@@ -899,7 +902,7 @@ static void salcinit(CSOUND *csound)
     if (csound->sread.curmem == NULL) { /*  alloc 1st memblk if nec;
                                             init *nxp to this */
       (csound->sread.curmem) =
-        (char*) csound->Calloc(csound, (size_t) (MEMSIZ + MARGIN));
+        (char*) mcalloc(csound, (size_t) (MEMSIZ + MARGIN));
       (csound->sread.memend) = (char*) (csound->sread.curmem) + MEMSIZ;
     }
     (csound->sread.nxp) = (char*) (csound->sread.curmem);
@@ -934,7 +937,7 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
 {                                /*    called at completion of sort */
     /* sread_alloc_globals(csound); */
     if ((csound->sread.curmem) != NULL) {
-      csound->Free(csound, (csound->sread.curmem));
+      mfree(csound, (csound->sread.curmem));
       (csound->sread.curmem) = NULL;
     }
     while ((csound->sread.str) != &(csound->sread.inputs)[0]) {
@@ -1018,7 +1021,7 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
       break;            /* if ok, go with it    */
     default:            /*   else complain      */
       sreaderr(csound, Str("illegal opcode %c"), c);
-      csound->Message(csound,Str("      remainder of line flushed\n"));
+      csoundMessage(csound,Str("      remainder of line flushed\n"));
       flushlin(csound);
       goto nextc;
     }
@@ -1075,7 +1078,7 @@ static MYFLT read_expression(CSOUND *csound)
             scorerr(csound, Str("illegal placement of operator ~ in [] "
                                 "expression"));
           }
-          *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1)
+          *++pv = (MYFLT) (csoundRand31(&(csound->randSeed1)) - 1)
                   / FL(2147483645);
           type = 1;
           c = getscochar(csound, 1);
@@ -1224,7 +1227,7 @@ static int getpfld(CSOUND *csound, int type) /* get pfield val from SCOREIN file
       ungetscochar(csound, c);                /* then no more pfields    */
       if (UNLIKELY((csound->sread.linpos))) {
         sreaderr(csound, Str("unexpected char %c"), c);
-        csound->Message(csound, Str("      remainder of line flushed\n"));
+        csoundMessage(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
       }
       return(0);                              /*    so return            */
@@ -1239,7 +1242,7 @@ static int getpfld(CSOUND *csound, int type) /* get pfield val from SCOREIN file
              (csound->sread.op) == 'd' || (csound->sread.op) == 'q') &&
             !(csound->sread.bp)->pcnt))) {
         sreaderr(csound, Str("illegally placed string"));
-        csound->Message(csound, Str("      remainder of line flushed\n"));
+        csoundMessage(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
         return(0);
       }
@@ -1292,13 +1295,13 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
     MYFLT   x = (MYFLT) cs_strtod(s, &p);
     if (*p=='z') return FL(800000000000.0); /* 25367 years */
     if (UNLIKELY(s == p || !(*p == '\0' || isspace(*p)))) {
-      csound->Message(csound, Str("sread: illegal number format:  "));
+      csoundMessage(csound, Str("sread: illegal number format:  "));
       p = s;
       while (!(*p == '\0' || isspace(*p))) {
-        csound->Message(csound, "%c", *p);
+        csoundMessage(csound, "%c", *p);
         *p++ = '0';
       }
-      csound->Message(csound,Str("   zero substituted.\n"));
+      csoundMessage(csound,Str("   zero substituted.\n"));
       print_input_backtrace(csound, 1, csoundMessage);
       return FL(0.0);
     }

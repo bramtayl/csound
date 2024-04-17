@@ -30,6 +30,13 @@
 #include "sndinfUG.h"
 #include "pvfileio.h"
 #include "convolve.h"
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "memalloc.h"
+#include "envvar_public.h"
+#include "libsnd_u.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t strin)
 {
@@ -42,17 +49,17 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     /* leap thru std hoops to get the name */
     if (strin)
       strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
-    else if (csound->ISSTRCOD(*p->ifilno)){
+    else if (isstrcod(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-    else csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",0);
+    else strarg2name(csound, soundiname, p->ifilno, "soundin.",0);
 
 
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
       if (UNLIKELY(!csound->oparms->infilename)) {  /* commandline inputfile */
         return
-          csound->InitError(csound, Str("no infile specified in the commandline"));
+          csoundInitError(csound, Str("no infile specified in the commandline"));
       }
       sfname = csound->oparms->infilename;
     }
@@ -61,7 +68,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       s = csoundFindInputFile(csound, sfname, "SADIR");
       if (UNLIKELY(s == NULL)) {
         /* RWD 5:2001 better to exit in this situation ! */
-        return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
+        return csoundInitError(csound, Str("diskinfo cannot open %s"), sfname);
       }
     }
     sfname = s;                         /* & record fullpath filnam */
@@ -71,7 +78,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     if (sf == NULL) {
       /* open failed: maybe analysis or raw file ? */
       if (*(p->irawfiles) == FL(0.0)) {
-        csound->Free(csound, sfname);
+        mfree(csound, sfname);
         return 0;
       }
       /* check for analysis files */
@@ -103,14 +110,14 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
         WAVEFORMATEX fmt;
 
         /* RWD: my prerogative: try pvocex file first! */
-        fd = csound->PVOC_OpenFile(csound, sfname, &pvdata, &fmt);
+        fd = pvoc_openfile(csound, sfname, &pvdata, &fmt);
         if (fd >= 0) {
           hdr->frames =
-            (sf_count_t) (((int32_t)csound->PVOC_FrameCount(csound, fd)
+            (sf_count_t) (((int32_t)pvoc_framecount(csound, fd)
                            / (int32_t)fmt.nChannels)*(sf_count_t)pvdata.dwOverlap);
           hdr->samplerate = (int32_t)fmt.nSamplesPerSec;
           hdr->channels = (int32_t)fmt.nChannels;
-          csound->PVOC_CloseFile(csound, fd);
+          pvoc_closefile(csound, fd);
           csFileType = CSFTYPE_PVCEX;
         }
       }
@@ -125,7 +132,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       }
     }
     if (UNLIKELY(sf == NULL && csFileType == CSFTYPE_UNKNOWN)) {
-      return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
+      return csoundInitError(csound, Str("diskinfo cannot open %s"), sfname);
     }
     if (sf != NULL) {
       csFileType = sftype2csfiletype(sfinfo.format);
@@ -136,7 +143,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
        FileOpen2(), even if the file was not a PVOC file. */
     if (csFileType != CSFTYPE_PVCEX)
       csoundNotifyFileOpened(csound, sfname, csFileType, 0, 0);
-    csound->Free(csound, sfname);
+    mfree(csound, sfname);
     return 1;
 }
 
@@ -263,21 +270,21 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
     if (strcmp(sfname, "-i") == 0) {        /* get info on the -i    */
       sfname = csound->oparms->infilename;  /* commandline inputfile */
       if (UNLIKELY(sfname == NULL))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                     Str("no infile specified in the commandline"));
     }
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));    /* open with full dir paths */
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
+    fd = csoundFileOpenWithType(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */
-      return csound->InitError(csound, Str("diskinfo cannot open %s: %s"),
+      return csoundInitError(csound, Str("diskinfo cannot open %s: %s"),
                                sfname, Str(sflib_strerror(NULL)));
     }
     if (channel <= 0) {
       if (sflib_command(sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
           == SFLIB_FALSE) {
-        csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
+        csoundWarning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
         if (sflib_command(sf, SFC_CALC_NORM_SIGNAL_MAX,
                        &peakVal, sizeof(double)) != 0)
@@ -288,21 +295,21 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
       double  *peaks;
       size_t  nBytes;
       if (UNLIKELY(channel > sfinfo.channels))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("Input channel for peak exceeds number "
                                 "of channels in file"));
       nBytes = sizeof(double)* sfinfo.channels;
-      peaks = (double*)csound->Malloc(csound, nBytes);
+      peaks = (double*)mmalloc(csound, nBytes);
       if (sflib_command(sf, SFC_GET_MAX_ALL_CHANNELS, peaks, nBytes) == SFLIB_FALSE) {
-        csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
+        csoundWarning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
         if (sflib_command(sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, nBytes) == 0)
           peakVal = peaks[channel - 1];
       }
-      csound->Free(csound, peaks);
+      mfree(csound, peaks);
     }
     if (UNLIKELY(peakVal < 0.0))
-      return csound->InitError(csound, Str("filepeak: error getting peak value"));
+      return csoundInitError(csound, Str("filepeak: error getting peak value"));
     /* scale output consistently with soundin opcode (see diskin2.c) */
     fmt = TYPE2ENC(sfinfo.format);
     typ = SF2TYPE(sfinfo.format);
@@ -311,7 +318,7 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
       *p->r1 = (MYFLT)(peakVal * (double)csound->e0dbfs);
     else
       *p->r1 = (MYFLT)peakVal;
-    csound->FileClose(csound, fd);
+    csoundFileClose(csound, fd);
 
     return OK;
 }
@@ -320,10 +327,10 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
 int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
- if (csound->ISSTRCOD(*p->ifilno)){
+ if (isstrcod(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-  else csound->strarg2name(csound, soundiname, p->ifilno,
+  else strarg2name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
 
  return filepeak_(csound, p, soundiname);
@@ -342,10 +349,10 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];       /* There is no check on this length */
     *p->r1 = 0;
-    if (csound->ISSTRCOD(*p->ifilno)){
+    if (isstrcod(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-    else csound->strarg2name(csound, soundiname, p->ifilno,
+    else strarg2name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
 
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
@@ -353,7 +360,7 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
         *p->r1 = 1;
       return OK;
     }
-    if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
+    if (LIKELY(csoundFindInputFile(csound, soundiname, "SFDIR;SSDIR")))
       *p->r1 = 1;
     return OK;
 }
@@ -369,7 +376,7 @@ int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
         *p->r1 = 1;
       return OK;
     }
-    if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
+    if (LIKELY(csoundFindInputFile(csound, soundiname, "SFDIR;SSDIR")))
       *p->r1 = 1;
     return OK;
 }

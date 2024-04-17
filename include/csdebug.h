@@ -49,11 +49,7 @@
 *
 */
 
-#ifdef __BUILDING_LIBCSOUND
-#include "csoundCore_internal.h"
-#else
 #include "csoundCore.h"
-#endif
 #include "csound_type_system.h"
 
 

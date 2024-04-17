@@ -23,9 +23,14 @@
 #include "dssi4cs.h"
 #include <dlfcn.h>
 #include <dirent.h>
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 #undef CS_KSMPS
-#define CS_KSMPS     (csound->GetKsmps(csound))
+#define CS_KSMPS     (csoundGetKsmps(csound))
 
 //#define DEBUG 1
 
@@ -102,7 +107,7 @@ strNcpy(char *dst, const char *src, size_t siz)
 *****************************************************************************/
 void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
 {
-    int32_t     Ksmps = csound->GetKsmps(csound);
+    int32_t     Ksmps = csoundGetKsmps(csound);
     uint64_t PortCount = 0;
     LADSPA_Descriptor *Descriptor;
     uint32 i;
@@ -114,63 +119,63 @@ void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
           (LADSPA_Descriptor *) DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
     PortCount = Descriptor->PortCount;
 
-    csound->Message(csound, "============Plugin %i"
+    csoundMessage(csound, "============Plugin %i"
                             "========================================\n",
                             DSSIPlugin_->PluginNumber);
-    csound->Message(csound, "Plugin Type: %s\n",
+    csoundMessage(csound, "Plugin Type: %s\n",
                     ((DSSIPlugin_->Type == LADSPA) ? "LADSPA" : "DSSI"));
-    csound->Message(csound, "Plugin UniqueID: %lu\n",
+    csoundMessage(csound, "Plugin UniqueID: %lu\n",
                     (unsigned long) Descriptor->UniqueID);
-    csound->Message(csound, "Label: %s\n", Descriptor->Label);
-    csound->Message(csound, "Name: %s\n", Descriptor->Name);
-    csound->Message(csound, "Maker: %s\n", Descriptor->Maker);
-    csound->Message(csound, "Copyright: %s\n", Descriptor->Copyright);
-    csound->Message(csound, "Number of Ports: %lu\n",(unsigned long) PortCount);
+    csoundMessage(csound, "Label: %s\n", Descriptor->Label);
+    csoundMessage(csound, "Name: %s\n", Descriptor->Name);
+    csoundMessage(csound, "Maker: %s\n", Descriptor->Maker);
+    csoundMessage(csound, "Copyright: %s\n", Descriptor->Copyright);
+    csoundMessage(csound, "Number of Ports: %lu\n",(unsigned long) PortCount);
     for (i = 0; i < PortCount; i++) {
-      csound->Message(csound, "  Port #%u: %s %s: %s - Range: ", i,
+      csoundMessage(csound, "  Port #%u: %s %s: %s - Range: ", i,
                       (LADSPA_IS_PORT_CONTROL(Descriptor->PortDescriptors[i]) ?
                        "Control" : "Audio"),
                       (LADSPA_IS_PORT_INPUT(Descriptor->PortDescriptors[i]) ?
                        "Input" : "Output"), Descriptor->PortNames[i]);
       if (LADSPA_IS_HINT_TOGGLED(Descriptor->PortRangeHints[i].HintDescriptor))
-        csound->Message(csound, "Toggle.\n");
+        csoundMessage(csound, "Toggle.\n");
       else {
         if (LADSPA_IS_HINT_BOUNDED_BELOW
             (Descriptor->PortRangeHints[i].HintDescriptor))
-          csound->Message(csound, "%f",
+          csoundMessage(csound, "%f",
                           (Descriptor->PortRangeHints[i].LowerBound) *
                           (LADSPA_IS_HINT_SAMPLE_RATE
                            (Descriptor->PortRangeHints[i].
                             HintDescriptor) ? Ksmps : 1));
         else
-          csound->Message(csound, "-Inf");
+          csoundMessage(csound, "-Inf");
         if (LADSPA_IS_HINT_BOUNDED_ABOVE
             (Descriptor->PortRangeHints[i].HintDescriptor))
-          csound->Message(csound, " -> %f\n",
+          csoundMessage(csound, " -> %f\n",
                           Descriptor->PortRangeHints[i].UpperBound *
                           (LADSPA_IS_HINT_SAMPLE_RATE
                            (Descriptor->PortRangeHints[i].
                             HintDescriptor) ? Ksmps : 1));
         else
-          csound->Message(csound, " -> +Inf\n");
+          csoundMessage(csound, " -> +Inf\n");
         if (DSSIPlugin_->Type == DSSI)
           if ((LADSPA_IS_PORT_CONTROL(Descriptor->PortDescriptors[i])) &&
               (LADSPA_IS_PORT_INPUT(Descriptor->PortDescriptors[i])))
-            csound->Message(csound, "        MIDI cc: %i\n",
+            csoundMessage(csound, "        MIDI cc: %i\n",
                             DSSIPlugin_->DSSIDescriptor->
                             get_midi_controller_for_port(DSSIPlugin_->Handle,
                                                          i));
       }
     }
-    csound->Message(csound, "Must run in realtime: %s\n",
+    csoundMessage(csound, "Must run in realtime: %s\n",
                     (LADSPA_IS_REALTIME(Descriptor->Properties) ? "YES" :
                      "NO"));
-    csound->Message(csound, "Is hard realtime capable: %s\n",
+    csoundMessage(csound, "Is hard realtime capable: %s\n",
                     (LADSPA_IS_HARD_RT_CAPABLE(Descriptor->Properties) ? "YES" :
                      "NO"));
-    csound->Message(csound, "Has activate() function: %s\n",
+    csoundMessage(csound, "Has activate() function: %s\n",
                     ((Descriptor->activate) ? "YES" : "NO"));
-    csound->Message(csound, "=============================="
+    csoundMessage(csound, "=============================="
                             "===============================\n");
 }
 
@@ -178,14 +183,14 @@ DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, CSOUND * csound)
 {
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
-        (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
+        (DSSI4CS_PLUGIN *) csoundQueryGlobalVariable(csound, "$DSSI4CS");
 
     if (!DSSIPlugin)
       return NULL;
     DSSIPlugin_ = DSSIPlugin;
     if (UNLIKELY(PluginNumber > *DSSIPlugin->PluginCount)) {
 #ifdef DEBUG
-      csound->Message(csound,
+      csoundMessage(csound,
                       "DSSI4CS: PluginNumber > *DSSIPlugin->PluginCount.\n");
 #endif
 
@@ -193,7 +198,7 @@ DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, CSOUND * csound)
     }
     while (DSSIPlugin_->PluginNumber != PluginNumber) {
 #ifdef DEBUG
-      csound->Message(csound, "DSSI4CS: Scanning plugin: %i.\n",
+      csoundMessage(csound, "DSSI4CS: Scanning plugin: %i.\n",
                       DSSIPlugin_->PluginNumber);
 #endif
 
@@ -203,7 +208,7 @@ DSSI4CS_PLUGIN *LocatePlugin(int PluginNumber, CSOUND * csound)
       DSSIPlugin_ = DSSIPlugin_->NextPlugin;
     }
 #ifdef DEBUG
-    csound->Message(csound, "DSSI4CS: Plugin %i Located.\n",
+    csoundMessage(csound, "DSSI4CS: Plugin %i Located.\n",
                     DSSIPlugin_->PluginNumber);
 #endif
 
@@ -231,14 +236,14 @@ static int32_t dssideinit(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin)
             DSSIPlugin->DSSIDescriptor->LADSPA_Plugin->cleanup(DSSIPlugin->Handle);
         }
       }
-      else csound->Message(csound, "missing descriptor\n");
+      else csoundMessage(csound, "missing descriptor\n");
       if (i != 0)
-        csound->Free(csound, DSSIPlugin);
+        mfree(csound, DSSIPlugin);
       DSSIPlugin = nxt;
     }
-    csound->DestroyGlobalVariable(csound, "$DSSI4CS");
+    csoundDestroyGlobalVariable(csound, "$DSSI4CS");
 #ifdef DEBUG
-    csound->Message(csound, "DSSI4CS: Deinit OK.\n");
+    csoundMessage(csound, "DSSI4CS: Deinit OK.\n");
 #endif
 
     return OK;
@@ -248,8 +253,8 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
 {
     /* TODO check if plugin has already been loaded and use same function */
     csound = p->h.insdshead->csound;
-    int32_t     SampleRate = (int32_t) MYFLT2LRND(csound->GetSr(csound));
-    int32_t     Ksmps = csound->GetKsmps(csound);
+    int32_t     SampleRate = (int32_t) MYFLT2LRND(csoundGetSr(csound));
+    int32_t     Ksmps = csoundGetKsmps(csound);
     uint64_t     i;
     int32_t     verbose = (int32_t)*p->iverbose;
     LADSPA_Descriptor_Function pfDescriptorFunction;
@@ -264,45 +269,45 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     LADSPA_PortDescriptor PortDescriptor;
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
-        (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
-    CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
+        (DSSI4CS_PLUGIN *) csoundQueryGlobalVariable(csound, "$DSSI4CS");
+    CS_TYPE* argType = csoundGetTypeForArg(p->iplugin);
 
     if (strcmp("S", argType->varTypeName) == 0)
       strNcpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME);
     else
-      csound->strarg2name(csound, dssiFilename, csound->ISSTRCOD(*p->iplugin) ?
-                          csound->GetString(csound, *p->iplugin) :
+      strarg2name(csound, dssiFilename, isstrcod(*p->iplugin) ?
+                          get_arg_string(csound, *p->iplugin) :
                           (char *) p->iplugin, "dssiinit.",
-                          (int32_t) csound->ISSTRCOD(*p->iplugin));
+                          (int32_t) isstrcod(*p->iplugin));
     PluginIndex = (uint64_t) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
     if (UNLIKELY(!PluginLibrary))
-      return csound->InitError(csound, Str("DSSI4CS: Failed to load %s."),
+      return csoundInitError(csound, Str("DSSI4CS: Failed to load %s."),
                                        dssiFilename);
     if (!DSSIPlugin) {
-      if (UNLIKELY(csound->CreateGlobalVariable(csound, "$DSSI4CS",
+      if (UNLIKELY(csoundCreateGlobalVariable(csound, "$DSSI4CS",
                                                 sizeof(DSSI4CS_PLUGIN))) != 0)
-        csound->Die(csound, "%s", Str("Error creating global variable '$DSSI4CS'"));
-      DSSIPlugin = (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound,
+        csoundDie(csound, "%s", Str("Error creating global variable '$DSSI4CS'"));
+      DSSIPlugin = (DSSI4CS_PLUGIN *) csoundQueryGlobalVariable(csound,
                                                                   "$DSSI4CS");
-      csound->RegisterResetCallback(csound, DSSIPlugin,
+      csoundRegisterResetCallback(csound, DSSIPlugin,
                                     (int32_t (*)(CSOUND*, void*)) dssideinit);
       DSSIPlugin->PluginNumber = 0;
-      DSSIPlugin->PluginCount = (int32_t *) csound->Malloc(csound, sizeof(int32_t));
+      DSSIPlugin->PluginCount = (int32_t *) mmalloc(csound, sizeof(int32_t));
       *DSSIPlugin->PluginCount = 1;
       DSSIPlugin_ = DSSIPlugin;
       if (verbose != 0) {
-        csound->Message(csound, "%s", Str("DSSI4CS: Loading first instance.\n"));
+        csoundMessage(csound, "%s", Str("DSSI4CS: Loading first instance.\n"));
       }
     }
     else {
       DSSIPlugin_ = LocatePlugin(*DSSIPlugin->PluginCount - 1, csound);
       if (verbose != 0) {
-        csound->Message(csound, "DSSI4CS: Located plugin: %i.\n",
+        csoundMessage(csound, "DSSI4CS: Located plugin: %i.\n",
                         DSSIPlugin_->PluginNumber);
       }
       DSSIPlugin_->NextPlugin =
-          (DSSI4CS_PLUGIN *) csound->Malloc(csound, sizeof(DSSI4CS_PLUGIN));
+          (DSSI4CS_PLUGIN *) mmalloc(csound, sizeof(DSSI4CS_PLUGIN));
       DSSIPlugin_ = DSSIPlugin_->NextPlugin;
       DSSIPlugin_->PluginNumber = *DSSIPlugin->PluginCount;
       DSSIPlugin_->PluginCount = DSSIPlugin->PluginCount;
@@ -310,7 +315,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     }
     *p->iDSSIHandle = DSSIPlugin_->PluginNumber;
     if (verbose != 0) {
-      csound->Message(csound, "DSSI4CS: About to load descriptor function "
+      csoundMessage(csound, "DSSI4CS: About to load descriptor function "
                       "for plugin %i of %i.\n",
                       DSSIPlugin_->PluginNumber, *DSSIPlugin_->PluginCount);
     }
@@ -318,14 +323,14 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
         (DSSI_Descriptor_Function) dlsym(PluginLibrary, "dssi_descriptor");
     if (pfDSSIDescriptorFunction) {
       DSSIPlugin_->DSSIDescriptor =
-          (DSSI_Descriptor *) csound->Calloc(csound, sizeof(DSSI_Descriptor));
+          (DSSI_Descriptor *) mcalloc(csound, sizeof(DSSI_Descriptor));
       DSSIPlugin_->DSSIDescriptor =
           (DSSI_Descriptor *) pfDSSIDescriptorFunction(PluginIndex);
       LDescriptor =
           (LADSPA_Descriptor *) DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
       DSSIPlugin_->Type = DSSI;
       if (verbose != 0) {
-        csound->Message(csound, "DSSI4CS: DSSI Plugin detected.\n");
+        csoundMessage(csound, "DSSI4CS: DSSI Plugin detected.\n");
       }
     }
     else {
@@ -334,10 +339,10 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
                                              "ladspa_descriptor");
       if (pfDescriptorFunction==NULL) {
         dlclose(PluginLibrary);
-        return csound->InitError(csound, "%s", Str("No ladspa descriptor\n"));
+        return csoundInitError(csound, "%s", Str("No ladspa descriptor\n"));
       }
       DSSIPlugin_->Descriptor =
-          (LADSPA_Descriptor *) csound->Calloc(csound,
+          (LADSPA_Descriptor *) mcalloc(csound,
                                                sizeof(LADSPA_Descriptor));
       /* DSSIPlugin_->Descriptor = */
       /*     (LADSPA_Descriptor *) pfDescriptorFunction(PluginIndex); */
@@ -346,7 +351,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
              pfDescriptorFunction(PluginIndex), sizeof(LADSPA_Descriptor));
       DSSIPlugin_->Type = LADSPA;
       if (verbose != 0) {
-        csound->Message(csound, "DSSI4CS: LADSPA Plugin Detected\n");
+        csoundMessage(csound, "DSSI4CS: LADSPA Plugin Detected\n");
       }
     }
     if (UNLIKELY((!DSSIPlugin_->Descriptor) &&
@@ -354,9 +359,9 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
       const char *pcError = dlerror();
 
       /* TODO: cleanup if error */
-      /* csound->Free(csound, DSSIPlugin_->Descriptor); */
+      /* mfree(csound, DSSIPlugin_->Descriptor); */
       if (pcError)
-        csound->InitError(csound, Str("DSSI4CS: Unable to find "
+        csoundInitError(csound, Str("DSSI4CS: Unable to find "
                                       "ladspa_descriptor(%lu) function or\n"
                                       "dssi_descriptor(%lu) function in plugin "
                                       "file \"%s\": %s.\n"
@@ -365,7 +370,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
                           (unsigned long)PluginIndex, (unsigned long)PluginIndex,
                           dssiFilename, pcError);
       else
-        csound->InitError(csound, Str("DSSI4CS: Unable to find "
+        csoundInitError(csound, Str("DSSI4CS: Unable to find "
                                       "ladspa_descriptor(%lu) function or\n"
                                       "dssi_descriptor(%lu) function in plugin "
                                       "file \"%s\".\n"
@@ -377,13 +382,13 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
       return NOTOK;
     }
     if (UNLIKELY(!LDescriptor)) {
-      csound->InitError(csound, Str("DSSI4CS: No plugin index %lu in %s"),
+      csoundInitError(csound, Str("DSSI4CS: No plugin index %lu in %s"),
                               (unsigned long) PluginIndex, dssiFilename);
       dlclose(PluginLibrary);
       return NOTOK;
     }
     if (verbose != 0) {
-      csound->Message(csound, "DSSI4CS: About to instantiate plugin.\n");
+      csoundMessage(csound, "DSSI4CS: About to instantiate plugin.\n");
     }
 
     if (DSSIPlugin_->Type == LADSPA) {
@@ -392,7 +397,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
            (LADSPA_Handle) DSSIPlugin_->Descriptor->instantiate(DSSIPlugin_->
                                                                 Descriptor,
                                                                 SampleRate)))){
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("DSSI4CS: Could not instantiate plugin: %s"),
                           dssiFilename);
         dlclose(PluginLibrary);
@@ -400,7 +405,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
 
       }
       if (UNLIKELY(!DSSIPlugin_->Descriptor->run)) {
-        return csound->InitError(csound, Str("DSSI4CS: No run() function in: %s"),
+        return csoundInitError(csound, Str("DSSI4CS: No run() function in: %s"),
                                  LDescriptor->Name);
       }
       PortCount = DSSIPlugin_->Descriptor->PortCount;
@@ -413,26 +418,26 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
            (LADSPA_Handle) DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->
            instantiate(DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin, SampleRate)))) {
         unloadLADSPAPluginLibrary(csound, PluginLibrary);
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("DSSI4CS: Could not instantiate plugin: %s"),
                                  dssiFilename);
       }
       if (UNLIKELY(!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run)) {
         unloadLADSPAPluginLibrary(csound, PluginLibrary);
-        return csound->InitError(csound, Str("DSSI4CS: No run() function in: %s"),
+        return csoundInitError(csound, Str("DSSI4CS: No run() function in: %s"),
                                          LDescriptor->Name);
       }
       PortCount = DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->PortCount;
       DSSIPlugin_->Events =
-          (snd_seq_event_t *) csound->Calloc(csound,
+          (snd_seq_event_t *) mcalloc(csound,
                                              DSSI4CS_MAX_NUM_EVENTS
                                              * sizeof(snd_seq_event_t));
     }
     if (verbose != 0) {
       if (DSSIPlugin_->Handle)
-        csound->Message(csound, "DSSI4CS: Plugin instantiated.\n");
+        csoundMessage(csound, "DSSI4CS: Plugin instantiated.\n");
       else
-        csound->Message(csound, "DSSI4CS: Problem instantiating.\n");
+        csoundMessage(csound, "DSSI4CS: Problem instantiating.\n");
     }
 
     for (i = 0; i < PortCount; i++) {
@@ -447,20 +452,20 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
         ConnectedAudioPorts++;
     }
     if (verbose != 0) {
-      csound->Message(csound, "DSSI4CS: Found %lu control ports for: '%s'\n",
+      csoundMessage(csound, "DSSI4CS: Found %lu control ports for: '%s'\n",
                       (unsigned long)ConnectedControlPorts, LDescriptor->Name);
-      csound->Message(csound, "DSSI4CS: Found %lu audio ports for: '%s'\n",
+      csoundMessage(csound, "DSSI4CS: Found %lu audio ports for: '%s'\n",
                       (unsigned long)ConnectedAudioPorts, LDescriptor->Name);
     }
 
     DSSIPlugin_->control =
-        (LADSPA_Data **) csound->Calloc(csound, ConnectedControlPorts
+        (LADSPA_Data **) mcalloc(csound, ConnectedControlPorts
                                               * sizeof(LADSPA_Data *));
     DSSIPlugin_->audio =
-        (LADSPA_Data **) csound->Calloc(csound, ConnectedAudioPorts
+        (LADSPA_Data **) mcalloc(csound, ConnectedAudioPorts
                                                * sizeof(LADSPA_Data *));
     //    if (verbose != 0) {
-      csound->Message(csound, "DSSI4CS: Created port array.\n");
+      csoundMessage(csound, "DSSI4CS: Created port array.\n");
       //    }
 
     ConnectedControlPorts = 0;
@@ -471,12 +476,12 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
            LADSPA ? DSSIPlugin_->Descriptor->PortDescriptors[i]
            : DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->PortDescriptors[i]);
       if (verbose != 0) {
-        csound->Message(csound, "DSSI4CS: Queried port descriptor.\n");
+        csoundMessage(csound, "DSSI4CS: Queried port descriptor.\n");
       }
 
       if (LADSPA_IS_PORT_CONTROL(PortDescriptor)) {
         DSSIPlugin_->control[ConnectedControlPorts] =
-            (LADSPA_Data *) csound->Calloc(csound, sizeof(LADSPA_Data));
+            (LADSPA_Data *) mcalloc(csound, sizeof(LADSPA_Data));
         if (DSSIPlugin_->Type == LADSPA) {
           DSSIPlugin_->Descriptor->connect_port(DSSIPlugin_->Handle,
                                                 i,
@@ -489,7 +494,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
               (LADSPA_Data *) DSSIPlugin_->control[ConnectedControlPorts]);
         }
         if (verbose != 0) {
-          csound->Message(csound,
+          csoundMessage(csound,
                           "DSSI4CS: Created internal control port "
                           "%lu for Port %lu.\n",
                           (unsigned long)ConnectedControlPorts,(unsigned long) i);
@@ -499,7 +504,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
       }
       if (LADSPA_IS_PORT_AUDIO(PortDescriptor)) {
         DSSIPlugin_->audio[ConnectedAudioPorts] =
-            (LADSPA_Data *) csound->Calloc(csound, Ksmps * sizeof(LADSPA_Data));
+            (LADSPA_Data *) mcalloc(csound, Ksmps * sizeof(LADSPA_Data));
         if (DSSIPlugin_->Type == LADSPA)
           DSSIPlugin_->Descriptor->connect_port(DSSIPlugin_->Handle,
                                                 i,
@@ -510,7 +515,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
               DSSIPlugin_->Handle, i,
               (LADSPA_Data *) DSSIPlugin_->audio[ConnectedAudioPorts]);
         if (verbose != 0) {
-          csound->Message(csound,
+          csoundMessage(csound,
                           "DSSI4CS: Created internal audio port"
                           " %lu for Port %lu.\n",
                           (unsigned long)ConnectedAudioPorts,(unsigned long) i);
@@ -522,16 +527,16 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     }
     /* All ports must be connected before calling run() */
     if (verbose != 0) {
-      csound->Message(csound, "DSSI4CS: Created %lu control ports for: '%s'\n",
+      csoundMessage(csound, "DSSI4CS: Created %lu control ports for: '%s'\n",
                       (unsigned long)ConnectedControlPorts,LDescriptor->Name);
-      csound->Message(csound, "DSSI4CS: Created %lu audio ports for: '%s'\n",
+      csoundMessage(csound, "DSSI4CS: Created %lu audio ports for: '%s'\n",
                       (unsigned long)ConnectedAudioPorts,LDescriptor->Name);
     }
 
     DSSIPlugin_->Active = 0;
     DSSIPlugin_->EventCount = 0;
     if (verbose != 0) {
-      csound->Message(csound, "DSSI4CS: Init Done.\n");
+      csoundMessage(csound, "DSSI4CS: Init Done.\n");
       info(csound, DSSIPlugin_);
     }
     //dlclose(PluginLibrary);
@@ -593,18 +598,18 @@ int32_t dssiactivate_init(CSOUND * csound, DSSIACTIVATE * p)
     int32_t     Number = *p->iDSSIhandle;
 
 #ifdef DEBUG
-    csound->Message(csound, "DSSI4CS: activate-Locating plugin %i\n", Number);
+    csoundMessage(csound, "DSSI4CS: activate-Locating plugin %i\n", Number);
 #endif
 
     p->DSSIPlugin_ = LocatePlugin(Number, csound);
     p->printflag = -999;
     if (UNLIKELY((!p->DSSIPlugin_) || (Number > *p->DSSIPlugin_->PluginCount) ||
                  (!p->DSSIPlugin_->Handle)))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("DSSI4CS: Invalid plugin: %i (MAX= %i)."),
                                Number, *p->DSSIPlugin_->PluginCount);
 #ifdef DEBUG
-    csound->Message(csound, "DSSI4CS: activate-Finished locating plugin %i\n",
+    csoundMessage(csound, "DSSI4CS: activate-Finished locating plugin %i\n",
                     p->DSSIPlugin_->PluginNumber);
 #endif
 
@@ -626,7 +631,7 @@ int32_t dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
     case -1:
       {
         if (p->printflag != -1) {
-          csound->Message(csound,
+          csoundMessage(csound,
                           "DSSI4CS: '%s' activated (No activate function).\n",
                           Descriptor->Name);
           p->printflag = -1;
@@ -636,7 +641,7 @@ int32_t dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
     case 0:
       {
         if (p->printflag != 0) {
-          csound->Message(csound,
+          csoundMessage(csound,
                           "DSSI4CS: Deactivate function called for: %s\n",
                           Descriptor->Name);
           p->printflag = 0;
@@ -646,7 +651,7 @@ int32_t dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
     case 1:
       {
         if (p->printflag != 1) {
-          csound->Message(csound, "DSSI4CS: Activate function called for: %s\n",
+          csoundMessage(csound, "DSSI4CS: Activate function called for: %s\n",
                           Descriptor->Name);
           p->printflag = 1;
         }
@@ -655,7 +660,7 @@ int32_t dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
     case -2:
       {
         if (p->printflag != -2) {
-          csound->Message(csound, "DSSI4CS: '%s' deactivated "
+          csoundMessage(csound, "DSSI4CS: '%s' deactivated "
                                   "(No deactivate function).\n",
                                   Descriptor->Name);
           p->printflag = -2;
@@ -666,7 +671,7 @@ int32_t dssiactivate(CSOUND * csound, DSSIACTIVATE * p)
       {
         if (p->printflag != -100)
 
-          return csound->PerfError(csound, &(p->h),
+          return csoundPerfError(csound, &(p->h),
                                    "DSSI4CS: dssiactivate "
                                    "not properly initialised.");
         p->printflag = -100;
@@ -686,32 +691,32 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 {
     /* TODO not realtime safe, try to make it so. */
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     icnt = csound->GetInputArgCnt(p) - 1;
-    int32_t     ocnt = csound->GetOutputArgCnt(p);
+    int32_t     icnt = csoundGetInputArgCnt(p) - 1;
+    int32_t     ocnt = csoundGetOutputArgCnt(p);
 
     if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("DSSI4CS: number of audio input channels "
                       "is greater than %d"),
                   DSSI4CS_MAX_IN_CHANNELS);
 
     if (UNLIKELY(ocnt > DSSI4CS_MAX_OUT_CHANNELS))
-      csound->Die(csound,
+      csoundDie(csound,
                   Str("DSSI4CS: number of audio output channels "
                       "is greater than %d"),
                   DSSI4CS_MAX_OUT_CHANNELS);
 
 #ifdef DEBUG
-    csound->Message(csound,
+    csoundMessage(csound,
                     "DSSI4CS: dssiaudio- %i input args, %i output args.\n",
-                    csound->GetInputArgCnt(p), csound->GetOutputArgCnt(p));
-    csound->Message(csound, "DSSI4CS: dssiaudio LocatePlugin # %i\n", Number);
+                    csoundGetInputArgCnt(p), csoundGetOutputArgCnt(p));
+    csoundMessage(csound, "DSSI4CS: dssiaudio LocatePlugin # %i\n", Number);
 #endif
 
     p->DSSIPlugin_ = LocatePlugin(Number, csound);
 
     if (!p->DSSIPlugin_)
-      return csound->InitError(csound, "%s",
+      return csoundInitError(csound, "%s",
                                Str("DSSI4CS: dssiaudio: Invalid plugin handle."));
     const LADSPA_Descriptor *Descriptor;
 
@@ -737,9 +742,9 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
         ConnectedOutputPorts++;
     }
     p->InputPorts = (uint64_t *)
-        csound->Calloc(csound, ConnectedInputPorts * sizeof(uint64_t));
+        mcalloc(csound, ConnectedInputPorts * sizeof(uint64_t));
     p->OutputPorts = (uint64_t *)
-        csound->Calloc(csound, ConnectedOutputPorts * sizeof(uint64_t));
+        mcalloc(csound, ConnectedOutputPorts * sizeof(uint64_t));
     ConnectedInputPorts = 0;
     ConnectedOutputPorts = 0;
     ConnectedPorts = 0;
@@ -749,7 +754,7 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
           && LADSPA_IS_PORT_AUDIO(PortDescriptor)) {
         p->InputPorts[ConnectedInputPorts] = ConnectedPorts;
 #ifdef DEBUG
-        csound->Message(csound, "DSSI4CS: Connected Audio port: "
+        csoundMessage(csound, "DSSI4CS: Connected Audio port: "
                                 "%lu to Input port : %li\n",
                         (unsigned long)p->InputPorts[ConnectedInputPorts],
                         PortIndex);
@@ -762,7 +767,7 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
                && LADSPA_IS_PORT_AUDIO(PortDescriptor)) {
         p->OutputPorts[ConnectedOutputPorts] = ConnectedPorts;
 #ifdef DEBUG
-        csound->Message(csound, "DSSI4CS: Connected Audio Port: "
+        csoundMessage(csound, "DSSI4CS: Connected Audio Port: "
                                 "%lu to Output port: %li\n",
                         (unsigned long)p->OutputPorts[ConnectedOutputPorts],
                         PortIndex);
@@ -774,10 +779,10 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 
     }
 #ifdef DEBUG
-    csound->Message(csound,
+    csoundMessage(csound,
                     "DSSI4CS: Connected %i audio input ports for: '%s'\n",
                     ConnectedInputPorts, Descriptor->Name);
-    csound->Message(csound,
+    csoundMessage(csound,
                     "DSSI4CS: Connected %i audio output ports for: '%s'\n",
                     ConnectedOutputPorts, Descriptor->Name);
 #endif
@@ -786,16 +791,16 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
     p->NumOutputPorts = ConnectedOutputPorts;
     if ((p->NumInputPorts) < icnt) {
       if (p->NumInputPorts == 0)
-        csound->Message(csound, Str("DSSI4CS: Plugin '%s' has %i audio input ports "
+        csoundMessage(csound, Str("DSSI4CS: Plugin '%s' has %i audio input ports "
                                     "audio input discarded.\n"),
                                 Descriptor->Name, p->NumInputPorts);
       else
-        return csound->InitError(csound, Str("DSSI4CS: Plugin '%s' "
+        return csoundInitError(csound, Str("DSSI4CS: Plugin '%s' "
                                              "has %i audio input ports."),
                                          Descriptor->Name, p->NumOutputPorts);
     }
     if (p->NumOutputPorts < ocnt)
-      return csound->InitError(csound, Str("DSSI4CS: Plugin '%s' "
+      return csoundInitError(csound, Str("DSSI4CS: Plugin '%s' "
                                            "has %i audio output ports."),
                                        Descriptor->Name, p->NumOutputPorts);
     return OK;
@@ -811,22 +816,22 @@ int32_t dssiaudio(CSOUND * csound, DSSIAUDIO * p)
       Descriptor =
           (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
     uint32_t i, j;
-    uint32_t icnt = csound->GetInputArgCnt(p) - 1;
-    uint32_t ocnt = csound->GetOutputArgCnt(p);
-    uint64_t Ksmps = (uint64_t) csound->GetKsmps(csound);
+    uint32_t icnt = csoundGetInputArgCnt(p) - 1;
+    uint32_t ocnt = csoundGetOutputArgCnt(p);
+    uint64_t Ksmps = (uint64_t) csoundGetKsmps(csound);
 
     if (p->DSSIPlugin_->Active == 1) {
       for (j = 0; j < icnt; j++) {
         for (i = 0; i < Ksmps; i++) {
           p->DSSIPlugin_->audio[p->InputPorts[j]][i] =
-            p->ain[j][i] * (1.0/csound->Get0dBFS(csound));
+            p->ain[j][i] * (1.0/csoundGet0dBFS(csound));
         }
       }
       Descriptor->run(p->DSSIPlugin_->Handle, Ksmps);
       for (j = 0; j < ocnt; j++) {
         for (i = 0; i < Ksmps; i++)
           p->aout[j][i] =
-            p->DSSIPlugin_->audio[p->OutputPorts[j]][i] * csound->Get0dBFS(csound);
+            p->DSSIPlugin_->audio[p->OutputPorts[j]][i] * csoundGet0dBFS(csound);
       }
     }
     else {
@@ -845,7 +850,7 @@ int32_t dssictls_kk(CSOUND * csound, DSSICTLS * p)
 {
     LADSPA_Data Value = *p->val;
     if (!p->DSSIPlugin_) {
-      return csound->PerfError(csound, &(p->h),
+      return csoundPerfError(csound, &(p->h),
                                "%s", Str("DSSI4CS: Invalid plugin handle."));
     }
     if (*p->ktrig == 1) {
@@ -856,7 +861,7 @@ int32_t dssictls_kk(CSOUND * csound, DSSICTLS * p)
 
 int32_t dssictls_ak(CSOUND * csound, DSSICTLS * p)
 {
-    csound->PerfError(csound, &(p->h),
+    csoundPerfError(csound, &(p->h),
                       "%s", Str("DSSI4CS: Audio Rate control "
                           "ports not implemented yet."));
     return NOTOK;
@@ -868,7 +873,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
             Crash if audio port selected */
     const LADSPA_Descriptor *Descriptor;
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     Sr = (int32_t) MYFLT2LRND(csound->GetSr(csound));
+    int32_t     Sr = (int32_t) MYFLT2LRND(csoundGetSr(csound));
     uint64_t PortIndex = *p->iport;
     uint32_t  i;
     uint64_t ControlPort = 0;
@@ -877,7 +882,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
 
     p->DSSIPlugin_ = LocatePlugin(Number, csound);
     if (!p->DSSIPlugin_) {
-      return csound->InitError(csound, "DSSI4CS: Invalid plugin handle.");
+      return csoundInitError(csound, "DSSI4CS: Invalid plugin handle.");
     }
     if (p->DSSIPlugin_->Type == LADSPA) {
       Descriptor = p->DSSIPlugin_->Descriptor;
@@ -888,7 +893,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
 
     if (PortIndex >= Descriptor->PortCount) {
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("DSSI4CS: Port %lu from '%s' does not exist."),
                           (unsigned long)PortIndex, Descriptor->Name);
     }
@@ -896,14 +901,14 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
         (LADSPA_IS_HINT_SAMPLE_RATE
          (Descriptor->PortRangeHints[PortIndex].HintDescriptor) ? Sr : 1);
 #ifdef DEBUG
-    csound->Message(csound,
+    csoundMessage(csound,
                     "DSSI4CS: Port %lu multiplier (HintSampleRate): %i.\n",
                     (unsigned long)PortIndex, p->HintSampleRate);
 #endif
     LADSPA_PortDescriptor PortDescriptor =
         Descriptor->PortDescriptors[PortIndex];
     if (LADSPA_IS_PORT_OUTPUT(PortDescriptor))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("DSSI4CS: Port %lu from '%s' is an "
                                    "output port."),
                                (unsigned long)PortIndex, Descriptor->Name);
@@ -920,9 +925,9 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
     }
     p->PortNumber = Port;
 #ifdef DEBUG
-    csound->Message(csound, "DSSI4CS: Port %lu using internal port %lu.\n",
+    csoundMessage(csound, "DSSI4CS: Port %lu using internal port %lu.\n",
                     PortIndex, p->PortNumber);
-    /*csound->Message(csound, "DSSI4CS: ArgMask: %lu.\n",*/
+    /*csoundMessage(csound, "DSSI4CS: ArgMask: %lu.\n",*/
     /*                csound->GetInputArgAMask(p));*/
 #endif
 
@@ -938,7 +943,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
 
 int32_t dssictls_dummy(CSOUND * csound, DSSICTLS * p)
 {
-    csound->PerfError(csound, &(p->h),
+    csoundPerfError(csound, &(p->h),
                       "%s", Str("DSSI4CS: Not initialised or wrong argument types."));
     return NOTOK;
 }
@@ -951,7 +956,7 @@ int32_t dssisynth_init(CSOUND * csound, DSSISYNTH * p)
 {
   IGN(p);
     /* TODO docs: dssisynth only for DSSI plugs */
-    return csound->InitError(csound, "DSSI4CS: dssisynth not implemented yet.");
+    return csoundInitError(csound, "DSSI4CS: dssisynth not implemented yet.");
 }
 
 int32_t dssisynth(CSOUND * csound, DSSISYNTH * p)
@@ -966,7 +971,7 @@ int32_t dssisynth(CSOUND * csound, DSSISYNTH * p)
 int32_t dssinote_init(CSOUND * csound, DSSINOTE * p)
 {
   IGN(p);
-    return csound->InitError(csound, "%s", Str("DSSI4CS: dssinote not implemented yet."));
+    return csoundInitError(csound, "%s", Str("DSSI4CS: dssinote not implemented yet."));
 }
 
 int32_t dssinote(CSOUND * csound, DSSINOTE * p)
@@ -979,7 +984,7 @@ int32_t dssievent_init(CSOUND * csound, DSSINOTEON * p)
 {
   IGN(p);
     return
-      csound->InitError(csound, "%s", Str("DSSI4CS: dssievent not implemented yet."));
+      csoundInitError(csound, "%s", Str("DSSI4CS: dssievent not implemented yet."));
 }
 
 int32_t dssievent(CSOUND * csound, DSSINOTEON * p)
@@ -1027,7 +1032,7 @@ static void
       }
 
       pcFilename =
-        csound->Malloc(csound,
+        mmalloc(csound,
                        slen = (lDirLength + strlen(psDirectoryEntry->d_name) + 2));
       strNcpy(pcFilename, pcDirectory, slen); /*pcFilename[slen-1] = '\0';*/
       if (iNeedSlash)
@@ -1051,9 +1056,9 @@ static void
           /* It was a library, but not a LADSPA one. Unload it. */
           dlclose(pvPluginHandle);
           pvPluginHandle = NULL;
-          //csound->Free(csound, pcFilename);
+          //mfree(csound, pcFilename);
         }
-        csound->Free(csound, pcFilename);
+        mfree(csound, pcFilename);
       }
     }
 }
@@ -1071,7 +1076,7 @@ LADSPAPluginSearch(CSOUND *csound,
     pcLADSPAPath = getenv("LADSPA_PATH");
     pcDSSIPath = getenv("DSSI_PATH");
     if (!pcLADSPAPath) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       "%s", Str("DSSI4CS: LADSPA_PATH environment variable not set.\n"));
 #ifdef LIB64
       pcLADSPAPath = "/usr/lib64/ladspa/";
@@ -1080,7 +1085,7 @@ LADSPAPluginSearch(CSOUND *csound,
 #endif
     }
     if (!pcDSSIPath) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       "%s", Str("DSSI4CS: DSSI_PATH environment variable not set.\n"));
       pcStart = pcLADSPAPath;
     }
@@ -1097,13 +1102,13 @@ LADSPAPluginSearch(CSOUND *csound,
       while (*pcEnd != ':' && *pcEnd != '\0')
         pcEnd++;
 
-      pcBuffer = csound->Malloc(csound, 1 + (pcEnd - pcStart));
+      pcBuffer = mmalloc(csound, 1 + (pcEnd - pcStart));
       if (pcEnd > pcStart) {
         strNcpy(pcBuffer, pcStart, pcEnd - pcStart +1);
         //pcBuffer[pcEnd - pcStart] = '\0';
       }
       LADSPADirectoryPluginSearch(csound, pcBuffer, fCallbackFunction);
-      csound->Free(csound, pcBuffer);
+      mfree(csound, pcBuffer);
 
       pcStart = pcEnd;
       if (*pcStart == ':')
@@ -1121,10 +1126,10 @@ describePluginLibrary(CSOUND *csound,
     const LADSPA_Descriptor *psDescriptor;
     int32_t     lIndex;
 
-    csound->Message(csound, "Plugin: %s:\n", pcFullFilename);
+    csoundMessage(csound, "Plugin: %s:\n", pcFullFilename);
     for (lIndex = 0;
          (psDescriptor = fDescriptorFunction(lIndex)) != NULL; lIndex++)
-      csound->Message(csound, "  Index: %i : %s (%lu/%s)\n",
+      csoundMessage(csound, "  Index: %i : %s (%lu/%s)\n",
                       lIndex,
                       psDescriptor->Name,
                       (unsigned long)psDescriptor->UniqueID, psDescriptor->Label);
@@ -1158,11 +1163,11 @@ int32_t dssilist(CSOUND * csound, DSSILIST * p)
 
 
     if (!pcLADSPAPath) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       "%s", Str("DSSI4CS: LADSPA_PATH environment variable not set.\n"));
     }
     if (!pcDSSIPath) {
-      csound->Message(csound,
+      csoundMessage(csound,
                       "%s", Str("DSSI4CS: DSSI_PATH environment variable not set.\n"));
     }
     if ((!pcLADSPAPath) && (!pcDSSIPath)) /* Fixed - JPff */
@@ -1187,12 +1192,12 @@ int32_t dssilist(CSOUND * csound, DSSILIST * p)
       pcEnd = pcStart;
       while (*pcEnd != ':' && *pcEnd != '\0')
         pcEnd++;
-      pcBuffer = csound->Calloc(csound, 1 + (pcEnd - pcStart));
+      pcBuffer = mcalloc(csound, 1 + (pcEnd - pcStart));
       if (pcEnd > pcStart)
         strNcpy(pcBuffer, pcStart, pcEnd - pcStart +1);
       //pcBuffer[pcEnd - pcStart] = '\0';
       LADSPADirectoryPluginSearch(csound, pcBuffer, describePluginLibrary);
-      csound->Free(csound, pcBuffer);
+      mfree(csound, pcBuffer);
       pcStart = pcEnd;
       if (*pcStart == ':')
         pcStart++;

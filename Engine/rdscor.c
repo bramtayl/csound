@@ -21,9 +21,13 @@
     02110-1301 USA
 */
 
+#include "rdscor.h"
+
 #include "csoundCore_internal.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
 #include "insert.h"
+#include "rdscor.h"
+#include "memalloc.h"
 
 static inline int32_t byte_order(void)
 {
@@ -95,7 +99,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       char *sstrp;
       int n = csound->scnt;
       if ((sstrp = csound->sstrbuf) == NULL)
-        sstrp = csound->sstrbuf = csound->Malloc(csound, csound->strsiz=SSTRSIZ);
+        sstrp = csound->sstrbuf = mmalloc(csound, csound->strsiz=SSTRSIZ);
       while (n--!=0) sstrp += strlen(sstrp)+1;
       n = sstrp-csound->sstrbuf;
       while ((c = corfile_getc(csound->scstr)) != '"') {
@@ -116,7 +120,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         *sstrp++ = c;
         n++;
         if (n > csound->strsiz-10) {
-          csound->sstrbuf = csound->ReAlloc(csound, csound->sstrbuf,
+          csound->sstrbuf = mrealloc(csound, csound->sstrbuf,
                                             csound->strsiz+=SSTRSIZ);
           sstrp = csound->sstrbuf+n;
         }
@@ -153,7 +157,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
     }
     if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
       corfile_ungetc(csound->scstr);
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("ERROR: illegal character %c(%.2x) in scoreline: "),
                       c, c);
       dumpline(csound);
@@ -172,9 +176,9 @@ static void dumpline(CSOUND *csound)    /* print the line while flushing it */
 {
     int     c;
     while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n') {
-      csound->Message(csound, "%c", c);
+      csoundMessage(csound, "%c", c);
     }
-    csound->Message(csound, Str("\n\tremainder of line flushed\n"));
+    csoundMessage(csound, Str("\n\tremainder of line flushed\n"));
 }
 
 int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
@@ -224,7 +228,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
           corfile_ungetc(csound->scstr);          /* pfld:  back up */
           if (!scanflt(csound, ++pp))  break;     /*   & read value */
             if (UNLIKELY(pp >= plim)) {
-            csound->Message(csound, Str("ERROR: too many pfields: "));
+            csoundMessage(csound, Str("ERROR: too many pfields: "));
             dumpline(csound);
             break;
           }
@@ -242,7 +246,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       default:                                /* WARPED scorefile:       */
         if (!csound->warped) goto unwarped;
         e->opcod = c;                                       /* opcod */
-        csound->Free(csound, e->c.extra);
+        mfree(csound, e->c.extra);
         e->c.extra = NULL;
         pp = &e->p[0];
         plim = &e->p[PMAX];
@@ -263,10 +267,10 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       MYFLT *new;
                       MYFLT *q;
                       int c=1;
-                      csound->DebugMsg(csound, "Extra p-fields (%d %d %d %d)\n",
+                      csoundDebugMsg(csound, "Extra p-fields (%d %d %d %d)\n",
                                        (int)e->p[1],(int)e->p[2],
                                        (int)e->p[3],(int)e->p[4]);
-                      new = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*PMAX);
+                      new = (MYFLT*) mmalloc(csound, sizeof(MYFLT)*PMAX);
                       if (UNLIKELY(new==NULL)) {
                         fprintf(stderr, Str("Out of Memory\n"));
                         exit(7);
@@ -281,13 +285,13 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                           int size = (int)e->c.extra[0]+PMAX;
                           /* printf("last values(%p): %f %f %f\n", */
                           /*        q, q[c-3], q[c-2], q[c-1]); */
-                          csound->DebugMsg(csound,
+                          csoundDebugMsg(csound,
                                            "and more extra p-fields [%d](%d)%d\n",
                                            c, (int) e->c.extra[0],
                                            (int)sizeof(MYFLT)*
                                                    ((int)e->c.extra[0]+PMAX));
                           new =
-                            (MYFLT *) csound->ReAlloc(csound,
+                            (MYFLT *) mrealloc(csound,
                                                       e->c.extra,
                                                       sizeof(MYFLT)*size);
                           if (new==NULL) {

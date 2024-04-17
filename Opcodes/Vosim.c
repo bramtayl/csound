@@ -42,6 +42,8 @@
 #include "interlocks.h"
 #include <math.h>
 #include <limits.h>
+#include "fgens_public.h"
+#include "insert_public.h"
 
 typedef struct {
         OPDS h;
@@ -64,9 +66,9 @@ int32_t vosimset(CSOUND* csound, VOSIM *p)
     if (*p->iskip)
       return OK;
 
-    p->ftable = csound->FTFind(csound, p->iftab);
+    p->ftable = csoundFTFind(csound, p->iftab);
     if (UNLIKELY(p->ftable == NULL)) {
-      return csound->InitError(csound, Str("vosim: pulse table not found"));
+      return csoundInitError(csound, Str("vosim: pulse table not found"));
     }
 
      p->timrem = p->pulstogo = p->pulsephs = p->pulseinc = 0;
@@ -88,7 +90,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
     p->pulstogo = 1+(int32)*p->knofpulse;
     if (UNLIKELY(fundabs == FL(0.0))) {                /* infinitely long event */
       p->timrem = INT_MAX;
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("vosim: zero kfund. 'Infinite' length event generated."));
     }
     else {
@@ -96,7 +98,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
         if (UNLIKELY(p->timrem == 0)) {
           p->timrem = CS_KSMPS;
           p->pulstogo = 0;
-          csound->Warning(csound,
+          csoundWarning(csound,
                           Str("vosim: kfund (%f) > sr. Generating ksmps silence."),
                           *p->kfund);
         }
@@ -183,7 +185,7 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("vosim: not initialised"));
 }
 

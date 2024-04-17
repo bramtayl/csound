@@ -54,7 +54,7 @@ static int32_t urand_init(CSOUND *csound, URANDOM *p)
     int32_t ur = open("/dev/urandom", O_RDONLY);
     if (UNLIKELY(ur<0)) return NOTOK;
     p->ur = ur;
-    csound->RegisterDeinitCallback(csound, p,
+    csoundRegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) urand_deinit);
     p->mul = FL(0.5)*(*p->imax - *p->imin);
     p->add = FL(0.5)*(*p->imax + *p->imin);

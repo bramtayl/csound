@@ -646,14 +646,17 @@ set(libcsound_SRCS
     Engine/corfiles.c
     Engine/entry1.c
     Engine/envvar.c
+    Engine/envvar_public.c
     Engine/extract.c
-    Engine/fgens.c
+    Engine/fgens_public.c
     Engine/insert.c
-    Engine/linevent.c
+    Engine/insert_public.c
+    Engine/linevent_public.c
     Engine/memalloc.c
     Engine/memfiles.c
     Engine/musmon.c
     Engine/namedins.c
+    Engine/namedins_public.c
     Engine/rdscor.c
     Engine/scsort.c
     Engine/scxtract.c
@@ -674,17 +677,18 @@ set(libcsound_SRCS
     InOut/midisend.c
     InOut/winascii.c
     InOut/windin.c
-    InOut/cwindow_internal.c
+    InOut/cwindow.c
     InOut/winEPS.c
     InOut/circularbuffer.c
     OOps/aops.c
+    OOps/aops_public.c
     OOps/bus.c
     OOps/cmath.c
     OOps/diskin2.c
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
-    OOps/lpred.c
+    OOps/lpred_public.c
     OOps/pffft.c
     OOps/goto_ops.c
     OOps/midiinterop.c
@@ -693,7 +697,7 @@ set(libcsound_SRCS
     OOps/mxfft.c
     OOps/oscils.c
     OOps/pstream.c
-    OOps/pvfileio_internal.c
+    OOps/pvfileio.c
     OOps/pvsanal.c
     OOps/random.c
     OOps/remote.c
@@ -704,6 +708,7 @@ set(libcsound_SRCS
     OOps/ugens2.c
     OOps/ugens3.c
     OOps/ugens4.c
+    OOps/ugens4_public.c
     OOps/ugens5.c
     OOps/ugens6.c
     OOps/ugtabs.c
@@ -976,6 +981,7 @@ add_custom_command(
 list(APPEND libcsound_SRCS
     ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
     Engine/csound_orc_semantics.c
+    Engine/csound_orc_semantics_public.c
     Engine/csound_orc_expressions.c
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c

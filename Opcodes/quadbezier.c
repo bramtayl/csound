@@ -21,8 +21,9 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <math.h>
+#include "fgens_public.h"
 
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
 static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);
@@ -61,7 +62,7 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 5)) {
-      return csound->ftError(ff, Str("insufficient arguments"));
+      return fterror(ff, Str("insufficient arguments"));
     }
     ff->e.p[4] *= -1;
 

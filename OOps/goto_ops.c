@@ -26,7 +26,10 @@
 #include "csoundCore_internal.h" /*                            GOTO_OPS.C        */
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
-extern int32_t strarg2insno(CSOUND *, void *p, int32_t is_string);
+#include "rdscor.h"
+#include "namedins_public.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 int32_t igoto(CSOUND *csound, GOTO *p)
 {
@@ -193,7 +196,7 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   if (isStringArg) {
     p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
   }
-  else if (csound->ISSTRCOD(*p->kInsNo)) {
+  else if (isstrcod(*p->kInsNo)) {
     p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);
@@ -288,7 +291,7 @@ int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   if (isStringArg) {
     p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
   }
-  else if (csound->ISSTRCOD(*p->kInsNo)) {
+  else if (isstrcod(*p->kInsNo)) {
     p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);

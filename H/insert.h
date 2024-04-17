@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_internal.h"
+
 typedef struct {                        /*       INSERT.H                */
     OPDS    h;
     LBLBLK  *lblblk;
@@ -155,3 +157,4 @@ typedef struct {
     MYFLT   *insno;
 } DELETEIN;
 
+void putop(CSOUND *csound, TEXT *tp);

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "csoundCore_internal.h"
 #include "gtest/gtest.h"
+#include "memalloc.h"
 
 class OrcCompileTests : public ::testing::Test {
 public:
@@ -63,7 +64,7 @@ TEST_F (OrcCompileTests, testSplitArgs)
     ASSERT_STREQ ("k", results[0]);
     ASSERT_STREQ ("a", results[1]);
     ASSERT_STREQ ("k", results[2]);
-    csound->Free(csound, results);
+    mfree(csound, results);
 
     results = splitArgs(csound, (char *) "a[]k[]ka");
 
@@ -71,7 +72,7 @@ TEST_F (OrcCompileTests, testSplitArgs)
     ASSERT_STREQ ("[k]", results[1]);
     ASSERT_STREQ ("k", results[2]);
     ASSERT_STREQ ("a", results[3]);
-    csound->Free(csound, results);
+    mfree(csound, results);
 
     results = splitArgs(csound, (char *) "a[][]k[][]ka");
 
@@ -79,7 +80,7 @@ TEST_F (OrcCompileTests, testSplitArgs)
     ASSERT_STREQ ("[[k]", results[1]);
     ASSERT_STREQ ("k", results[2]);
     ASSERT_STREQ ("a", results[3]);
-    csound->Free(csound, results);
+    mfree(csound, results);
 }
 
 TEST_F (OrcCompileTests, testCompile)

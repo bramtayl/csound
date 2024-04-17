@@ -48,6 +48,11 @@
 #include "ugrw1.h"
 #include <math.h>
 #include <ctype.h>
+#include "rdscor.h"
+#include "csound_orc_semantics_public.h"
+#include "memalloc.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -207,7 +212,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
 int32_t printk(CSOUND *csound, PRINTK *p)
 {
     if (UNLIKELY(p->initialised != -1))
-      csound->PerfError(csound, &(p->h), Str("printk not initialised"));
+      csoundPerfError(csound, &(p->h), Str("printk not initialised"));
 
     //printf("printk: KCNT = %llu\n", CS_KCNT);
     //printf("printat = %lf\n", p->printat);
@@ -217,22 +222,22 @@ int32_t printk(CSOUND *csound, PRINTK *p)
        * Print instrument number and time. Instrument number stuff from
        * printv() in disprep.c.
        */
-      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
+      csoundMessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
                                (int32_t)p->h.insdshead->p1.value);
-      csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
+      csoundMessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
                                csound->icurTime/csound->esr-CS_ONEDKR);
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
         memset(s, ' ', 128 /*(size_t) p->pspace */);
         s[p->pspace] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
+        csoundMessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       if (*p->named)
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
+        csoundMessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
                          p->h.optext->t.inlist->arg[1], *p->val);
       else
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
+        csoundMessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->printat = CS_KCNT + p->ctime - 1;
     }
     return OK;
@@ -569,29 +574,29 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
 {
     char        string[8192]; /* matt ingals replacement */
 
-    if (csound->ISSTRCOD(*p->ifilcod) == 0) {
+    if (isstrcod(*p->ifilcod) == 0) {
       char *sarg;
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)
         return csoundPerfError(csound, &(p->h), Str("null string\n"));
       if (p->old==NULL || strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
-        csound->Free(csound, p->old);
+        mfree(csound, p->old);
         p->old = cs_strdup(csound, sarg);
       }
     }
 
     /*-----------------------------------*/
     if (UNLIKELY(p->initialised != -1))
-      csound->PerfError(csound, &(p->h), Str("printks not initialised"));
+      csoundPerfError(csound, &(p->h), Str("printks not initialised"));
     if (p->printat <= CS_KCNT-1) {
       //string[0]='\0';           /* incase of empty string */
       memset(string,0,8192);
       if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)!=OK)
         return
-          csound->PerfError(csound,  &(p->h),
+          csoundPerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing"));
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+      csoundMessageS(csound, CSOUNDMSG_ORCH, "%s", string);
       p->printat = CS_KCNT + p->ctime -1;
     }
     return OK;
@@ -612,9 +617,9 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     memset(pk.txtstring,0,sizeof(pk.txtstring));
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
-          csound->InitError(csound,
+          csoundInitError(csound,
                             Str("Insufficient arguments in formatted printing"));
-    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+    csoundMessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
 }
 
@@ -632,11 +637,11 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
       memset(string,0,8192);
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
-          csound->InitError(csound,
+          csoundInitError(csound,
                             Str("Insufficient arguments in formatted printing"));
-    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+    csoundMessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     } else {
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("Formatting string too long: %s"), pk.txtstring);
     }
     return OK;
@@ -708,19 +713,19 @@ int32_t printk2(CSOUND *csound, PRINTK2 *p)
     MYFLT   value = *p->val;
 
     if (p->oldvalue != value) {
-      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
+      csoundMessageS(csound, CSOUNDMSG_ORCH, " i%d ",
                                                (int32_t)p->h.insdshead->p1.value);
       if (p->pspace > 0) {
         char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
         memset(s, ' ', (size_t) p->pspace);
         s[p->pspace] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
+        csoundMessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       if (*p->named)
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
+        csoundMessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
                          *p->h.optext->t.inlist->arg, *p->val);
       else
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
+        csoundMessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->oldvalue = value;
     }
     return OK;
@@ -745,9 +750,9 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
       buff[0] = '\0';
       if (sprints(buff, p->sarg, vv, 1)!=OK)
         return
-          csound->PerfError(csound,  &(p->h),
+          csoundPerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing"));
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buff);
+      csoundMessageS(csound, CSOUNDMSG_ORCH, "%s", buff);
       p->oldvalue = value;
     }
     //else printf("....%f %f\n", p->oldvalue, value);
@@ -758,13 +763,13 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
 int32_t inz(CSOUND *csound, IOZ *p)
 {
     int32_t    indx, i;
-    int32_t     nchns = csound->GetNchnls(csound);
+    int32_t     nchns = csoundGetNchnls(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     /* Check to see this index is within the limits of za space.     */
     MYFLT* zastart;
-    int zalast = csound->GetZaBounds(csound, &zastart);
+    int zalast = csoundGetZaBounds(csound, &zastart);
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx + nchns >= zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;
@@ -780,10 +785,10 @@ int32_t inz(CSOUND *csound, IOZ *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("inz index > isizea. Not writing."));
  err2:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("inz index < 0. Not writing."));
 }
 
@@ -795,12 +800,12 @@ int32_t outz(CSOUND *csound, IOZ *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t     nchns = csound->GetNchnls(csound);
+    int32_t     nchns = csoundGetNchnls(csound);
     MYFLT *spout = csound->spout_tmp;
 
     /* Check to see this index is within the limits of za space.    */
     MYFLT* zastart;
-    int zalast = csound->GetZaBounds(csound, &zastart);
+    int zalast = csoundGetZaBounds(csound, &zastart);
     indx = (int32) *p->ndx;
     if (UNLIKELY((indx + nchns) >= zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;
@@ -818,9 +823,9 @@ int32_t outz(CSOUND *csound, IOZ *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("outz index > isizea. No output"));
  err2:
-    return csound->PerfError(csound, &(p->h),
+    return csoundPerfError(csound, &(p->h),
                              Str("outz index < 0. No output."));
 }

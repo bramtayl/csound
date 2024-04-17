@@ -24,22 +24,23 @@
 #include "csoundCore_internal.h"
 #include "pools.h"
 #include "csound_standard_types.h"
+#include "memalloc.h"
 
 /* MYFLT POOL */
 
 MYFLT_POOL* myflt_pool_create(CSOUND* csound) {
-    MYFLT_POOL* pool = csound->Malloc(csound, sizeof(MYFLT_POOL));
+    MYFLT_POOL* pool = mmalloc(csound, sizeof(MYFLT_POOL));
     pool->count = 0;
     pool->max = POOL_SIZE;
-    pool->values = csound->Calloc(csound, sizeof(CS_VAR_MEM) * POOL_SIZE);
+    pool->values = mcalloc(csound, sizeof(CS_VAR_MEM) * POOL_SIZE);
 
     return pool;
 }
 
 void myflt_pool_free(CSOUND *csound, MYFLT_POOL *pool){
     if (pool != NULL) {
-      csound->Free(csound, pool->values);
-      csound->Free(csound, pool);
+      mfree(csound, pool->values);
+      mfree(csound, pool);
     }
 }
 
@@ -64,7 +65,7 @@ int myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
 
       if (UNLIKELY(pool->count > 0 && pool->count % POOL_SIZE == 0)) {
         pool->max += POOL_SIZE;
-        pool->values = csound->ReAlloc(csound, pool->values,
+        pool->values = mrealloc(csound, pool->values,
                                        pool->max * sizeof
                                        (CS_VAR_MEM));
       }

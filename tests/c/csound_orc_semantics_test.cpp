@@ -11,6 +11,7 @@
 #include "csoundCore_internal.h"
 #include "csound_orc.h"
 #include "gtest/gtest.h"
+#include "memalloc.h"
 
 extern "C" {
     extern OENTRIES* find_opcode2 (CSOUND* csound, char* opname);
@@ -57,7 +58,7 @@ TEST_F (OrcSemanticsTest, FindOpcode2Test)
     OENTRIES* entries = find_opcode2(csound, "=");
     entries = find_opcode2(csound, "vco2");
     ASSERT_EQ (1, entries->count);
-    csound->Free(csound, entries);
+    mfree(csound, entries);
 }
 
 TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
@@ -66,21 +67,21 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 
     OENTRY* opc = resolve_opcode(csound, entries, "k", "k");
     ASSERT_TRUE (opc != NULL);
-    csound->Free(csound, entries);
+    mfree(csound, entries);
 
     entries = find_opcode2(csound, "vco2");
     ASSERT_EQ (1, entries->count);
 
     opc = resolve_opcode(csound, entries, "a", "cc");
     ASSERT_TRUE (opc != NULL);
-    csound->Free(csound, entries);
+    mfree(csound, entries);
 
     entries = find_opcode2(csound, "passign");
     ASSERT_EQ (3, entries->count);
 
     opc = resolve_opcode(csound, entries, "iiiiS", NULL);
     ASSERT_TRUE (opc != NULL);
-    csound->Free(csound, entries);
+    mfree(csound, entries);
 
     entries = find_opcode2(csound, "pcauchy");
     opc = resolve_opcode(csound, entries, "i", "k");
@@ -93,7 +94,7 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
     // opc = resolve_opcode(csound, entries, "a", "k");
     // ASSERT_TRUE (opc->aopadr != NULL);
 
-    csound->Free(csound, entries);
+    mfree(csound, entries);
 }
 
 TEST_F (OrcSemanticsTest, FindOpcodeNewTest)

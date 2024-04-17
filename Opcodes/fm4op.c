@@ -36,6 +36,8 @@
 
 #include "csoundCore_internal.h"
 #include "fm4op.h"
+#include "insert_public.h"
+#include "fgens_public.h"
 
 /***********************************************************/
 /*  Two Zero Filter Class,                                 */
@@ -146,7 +148,7 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
     make_ADSR(&p->adsr[2]);
     make_ADSR(&p->adsr[3]);
     make_TwoZero(&p->twozero);
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->vifn)) == NULL))
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->vifn)) == NULL))
       goto err1;
     p->vibWave = ftp;
     p->baseFreq = csound->A4;
@@ -164,25 +166,25 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
     return OK;
  err1:
 /* Expect sine wave */
-    return csound->InitError(csound, Str("No table for VibWaveato"));
+    return csoundInitError(csound, Str("No table for VibWaveato"));
 }
 
 static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
 {
     FUNC        *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn0)) == NULL)) goto err1;
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->ifn0)) == NULL)) goto err1;
     p->waves[0] = ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn1)) == NULL)) goto err1;
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->ifn1)) == NULL)) goto err1;
     p->waves[1] = ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn2)) == NULL)) goto err1;
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->ifn2)) == NULL)) goto err1;
     p->waves[2] = ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn3)) == NULL)) goto err1;
+    if (UNLIKELY((ftp = csoundFTnp2Finde(csound, p->ifn3)) == NULL)) goto err1;
     p->waves[3] = ftp;
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;
  err1:
-    return csound->InitError(csound, Str("No table for FM4Op"));
+    return csoundInitError(csound, Str("No table for FM4Op"));
 }
 
 void FM4Op_setRatio(FM4OP *p, int32_t whichOne, MYFLT ratio)

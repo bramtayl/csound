@@ -101,7 +101,7 @@ static inline MYFLT Clamp(const MYFLT x, const MYFLT minval, const MYFLT maxval)
 
 int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 {
-    const double sr = csound->GetSr(csound);
+    const double sr = csoundGetSr(csound);
 
     // Skip setting phase only if we have been inited at least once
     p->init_phase = (*p->iphase < 0 && p->Min_Sweep > 1.0) ? 0 : 1;
@@ -111,7 +111,7 @@ int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
     if (p->Min_Sweep < 4.0 || p->Min_Sweep > sr * 0.01) {
       const int32_t minsweep_default = (int32_t)Clamp(sr / 3000.0, 8.0, sr * 0.01);
       if (p->Min_Sweep != 0.0) {
-        csound->Warning(csound,
+        csoundWarning(csound,
                         Str("squinewave iminsweep range 4 to sr/100. "
                             "Set to default %d"), minsweep_default);
       }

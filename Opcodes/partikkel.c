@@ -22,13 +22,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "partikkel.h"
 #include <limits.h>
 #include <math.h>
+#include "memalloc.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
-#define INITERROR(x) csound->InitError(csound, Str("partikkel: " x))
-#define PERFERROR(x) csound->PerfError(csound, &(p->h),Str("partikkel: " x))
-#define WARNING(x) csound->Warning(csound, Str("partikkel: " x))
+#define INITERROR(x) csoundInitError(csound, Str("partikkel: " x))
+#define PERFERROR(x) csoundPerfError(csound, &(p->h),Str("partikkel: " x))
+#define WARNING(x) csoundWarning(csound, Str("partikkel: " x))
 
 /* Assume csound and p pointers are always available */
-#define frand() (csound->RandMT(&p->randstate)/(double)(0xffffffff))
+#define frand() (csoundRandMT(&p->randstate)/(double)(0xffffffff))
 /* linear interpolation between x and y by z
  * NOTE: arguments evaluated more than once, do not pass anything with side
  * effects
@@ -96,41 +100,41 @@ static int32_t setup_globals(CSOUND *csound, PARTIKKEL *p)
     PARTIKKEL_GLOBALS *pg;
     PARTIKKEL_GLOBALS_ENTRY **pe;
 
-    pg = csound->QueryGlobalVariable(csound, "partikkel");
+    pg = csoundQueryGlobalVariable(csound, "partikkel");
     if (pg == NULL) {
       int32_t i;
 
-      if (UNLIKELY(csound->CreateGlobalVariable(csound, "partikkel",
+      if (UNLIKELY(csoundCreateGlobalVariable(csound, "partikkel",
                                                 sizeof(PARTIKKEL_GLOBALS)) != 0))
         return INITERROR("could not allocate globals");
-      pg = csound->QueryGlobalVariable(csound, "partikkel");
+      pg = csoundQueryGlobalVariable(csound, "partikkel");
       pg->rootentry = NULL;
       /* build default tables. allocate enough for three, plus extra for the
        * ftable data itself */
       /* we only fill in the entries in the FUNC struct that we use */
       /* table with data [1.0, 1.0, 1.0], used as default by envelopes */
-      pg->ooo_tab = (FUNC *)csound->Calloc(csound, sizeof(FUNC));
-      pg->ooo_tab->ftable = (MYFLT*)csound->Calloc(csound, 3*sizeof(MYFLT));
+      pg->ooo_tab = (FUNC *)mcalloc(csound, sizeof(FUNC));
+      pg->ooo_tab->ftable = (MYFLT*)mcalloc(csound, 3*sizeof(MYFLT));
       pg->ooo_tab->flen = 2;
       pg->ooo_tab->lobits = 31;
       for (i = 0; i <= 2; ++i)
         pg->ooo_tab->ftable[i] = FL(1.0);
       /* table with data [0.0, 0.0, 0.0], used as default by grain
        * distribution table, channel masks and grain waveforms */
-      pg->zzz_tab = (FUNC *)csound->Calloc(csound, sizeof(FUNC));
-      pg->zzz_tab->ftable = (MYFLT*)csound->Calloc(csound, 3*sizeof(MYFLT));
+      pg->zzz_tab = (FUNC *)mcalloc(csound, sizeof(FUNC));
+      pg->zzz_tab->ftable = (MYFLT*)mcalloc(csound, 3*sizeof(MYFLT));
       pg->zzz_tab->flen = 2;
       pg->zzz_tab->lobits = 31;
       /* table with data [0.0, 0.0, 1.0], used as default by gain masks,
        * fm index table, and wave start and end freq tables */
-      pg->zzo_tab = (FUNC *)csound->Calloc(csound, sizeof(FUNC));
-      pg->zzo_tab->ftable = (MYFLT*)csound->Calloc(csound, 4*sizeof(MYFLT));
+      pg->zzo_tab = (FUNC *)mcalloc(csound, sizeof(FUNC));
+      pg->zzo_tab->ftable = (MYFLT*)mcalloc(csound, 4*sizeof(MYFLT));
       pg->zzo_tab->ftable[2] = FL(1.0);
       pg->zzo_tab->flen = 3;  /* JPff */
       /* table with data [0.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0], used as default
        * by wave gain table */
-      pg->zzhhhhz_tab = (FUNC *)csound->Calloc(csound, sizeof(FUNC));
-      pg->zzhhhhz_tab->ftable = (MYFLT*)csound->Calloc(csound, 8*sizeof(MYFLT));
+      pg->zzhhhhz_tab = (FUNC *)mcalloc(csound, sizeof(FUNC));
+      pg->zzhhhhz_tab->ftable = (MYFLT*)mcalloc(csound, 8*sizeof(MYFLT));
       for (i = 2; i <= 5; ++i)
         pg->zzhhhhz_tab->ftable[i] = FL(0.5);
     }
@@ -147,11 +151,11 @@ static int32_t setup_globals(CSOUND *csound, PARTIKKEL *p)
 
     /* check if one already existed, if not, create one */
     if (*pe == NULL) {
-      *pe = csound->Malloc(csound, sizeof(PARTIKKEL_GLOBALS_ENTRY));
+      *pe = mmalloc(csound, sizeof(PARTIKKEL_GLOBALS_ENTRY));
       (*pe)->id = *p->opcodeid;
       (*pe)->partikkel = p;
       /* allocate table for sync data */
-      (*pe)->synctab = csound->Calloc(csound, 2*CS_KSMPS*sizeof(MYFLT));
+      (*pe)->synctab = mcalloc(csound, 2*CS_KSMPS*sizeof(MYFLT));
       (*pe)->next = NULL;
     }
     p->globals_entry = *pe;
@@ -176,7 +180,7 @@ static inline MYFLT lrplookup(FUNC *tab, uint32_t phase, MYFLT zscale,
     return lrp(a, b, z);
 }
 
-/* Why not use csound->intpow ? */
+/* Why not use intpow ? */
 static inline double intpow_(MYFLT x, uint32_t n)
 {
     double ans = 1.0;
@@ -229,42 +233,42 @@ static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
     /* set grainphase to 1.0 to make grain scheduler create a grain immediately
      * after starting opcode */
     p->grainphase = 1.0;
-    p->num_outputs = csound->GetOutputArgCnt(p); /* save for faster access */
+    p->num_outputs = csoundGetOutputArgCnt(p); /* save for faster access */
     /* resolve tables with no default table handling */
-    p->costab = csound->FTFind(csound, p->cosine);
+    p->costab = csoundFTFind(csound, p->cosine);
     /* resolve some tables with default table handling */
     p->disttab = *p->dist >= FL(0.0)
-                 ? csound->FTFind(csound, p->dist)
+                 ? csoundFTFind(csound, p->dist)
                  : p->globals->zzz_tab;
     p->gainmasktab = *p->gainmasks >= FL(0.0)
-                     ? csound->FTFind(csound, p->gainmasks)
+                     ? csoundFTFind(csound, p->gainmasks)
                      : p->globals->zzo_tab;
     p->channelmasktab = *p->channelmasks >= FL(0.0)
-                        ? csound->FTFind(csound, p->channelmasks)
+                        ? csoundFTFind(csound, p->channelmasks)
                         : p->globals->zzz_tab;
     p->env_attack_tab = *p->env_attack >= FL(0.0)
-                        ? csound->FTFind(csound, p->env_attack)
+                        ? csoundFTFind(csound, p->env_attack)
                         : p->globals->ooo_tab;
     p->env_decay_tab = *p->env_decay >= FL(0.0)
-                       ? csound->FTFind(csound, p->env_decay)
+                       ? csoundFTFind(csound, p->env_decay)
                        : p->globals->ooo_tab;
     p->env2_tab = *p->env2 >= FL(0.0)
-                   ? csound->FTFind(csound, p->env2)
+                   ? csoundFTFind(csound, p->env2)
                    : p->globals->ooo_tab;
     p->wavfreqstarttab = *p->wavfreq_startmuls >= FL(0.0)
-                         ? csound->FTFind(csound, p->wavfreq_startmuls)
+                         ? csoundFTFind(csound, p->wavfreq_startmuls)
                          : p->globals->zzo_tab;
     p->wavfreqendtab = *p->wavfreq_endmuls >= FL(0.0)
-                       ? csound->FTFind(csound, p->wavfreq_endmuls)
+                       ? csoundFTFind(csound, p->wavfreq_endmuls)
                        : p->globals->zzo_tab;
     p->fmamptab = *p->fm_indices >= FL(0.0)
-                  ? csound->FTFind(csound, p->fm_indices)
+                  ? csoundFTFind(csound, p->fm_indices)
                   : p->globals->zzo_tab;
     p->wavgaintab = *p->waveamps >= FL(0.0)
-                    ? csound->FTFind(csound, p->waveamps)
+                    ? csoundFTFind(csound, p->waveamps)
                     : p->globals->zzhhhhz_tab;
     if (*p->pantable >= FL(0.0)) {
-        p->pantab = csound->FTFind(csound, p->pantable);
+        p->pantab = csoundFTFind(csound, p->pantable);
         if (!p->pantab)
             return INITERROR("unable to load panning function table");
     } else {
@@ -306,7 +310,7 @@ static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
     /* allocate memory for the grain mix buffer */
     size = CS_KSMPS*sizeof(MYFLT);
     if (p->aux.auxp == NULL || p->aux.size < size)
-        csound->AuxAlloc(csound, size, &p->aux);
+        csoundAuxAlloc(csound, size, &p->aux);
     else
       memset(p->aux.auxp, 0, size);
 
@@ -316,14 +320,14 @@ static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
                          "and positive");
     size = ((uint32_t)*p->max_grains)*sizeof(NODE);
     if (p->aux2.auxp == NULL || p->aux2.size < size)
-        csound->AuxAlloc(csound, size, &p->aux2);
+        csoundAuxAlloc(csound, size, &p->aux2);
     p->gpool.mempool = p->aux2.auxp;
     init_pool(&p->gpool, (uint32_t)*p->max_grains);
 
     /* find out which of the xrate parameters are arate */
     p->grainfreq_arate = IS_ASIG_ARG(p->grainfreq) ? 1 : 0;
     p->out_of_voices_warning = 0; /* reset user warning indicator */
-    csound->SeedRandMT(&p->randstate, NULL, csound->GetRandomSeedFromTime());
+    csoundSeedRandMT(&p->randstate, NULL, csoundGetRandomSeedFromTime());
     return OK;
 }
 
@@ -557,14 +561,14 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
     /* krate table lookup, first look up waveform ftables */
     for (n = 0; n < 4; ++n) {
         p->wavetabs[n] = *waveformparams[n] >= FL(0.0)
-                         ? csound->FTnp2Finde(csound, waveformparams[n])
+                         ? csoundFTnp2Finde(csound, waveformparams[n])
                          : p->globals->zzz_tab;
         if (UNLIKELY(p->wavetabs[n] == NULL))
             return PERFERROR("unable to load waveform table");
     }
     /* look up fm envelope table for use in grains scheduled this kperiod */
     p->fmenvtab = *p->fm_env >= FL(0.0)
-                  ? csound->FTFind(csound, p->fm_env)
+                  ? csoundFTFind(csound, p->fm_env)
                   : p->globals->ooo_tab;
     if (UNLIKELY(!p->fmenvtab))
         return PERFERROR("unable to load FM envelope table");
@@ -603,7 +607,7 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
             /* first determine time offset for grain */
             if (*p->distribution >= FL(0.0)) {
                 /* positive distrib, choose random point in table */
-                uint32_t rnd = csound->RandMT(&p->randstate);
+                uint32_t rnd = csoundRandMT(&p->randstate);
                 offset = p->disttab->ftable[rnd >> p->disttabshift];
                 offset *= *p->distribution;
             } else {
@@ -839,21 +843,21 @@ static int32_t partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
     PARTIKKEL_GLOBALS_ENTRY *pe;
 
     if (UNLIKELY((int32_t)*p->opcodeid == 0))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
             Str("partikkelsync: opcode id needs to be a non-zero integer"));
-    pg = csound->QueryGlobalVariable(csound, "partikkel");
+    pg = csoundQueryGlobalVariable(csound, "partikkel");
     if (UNLIKELY(pg == NULL || pg->rootentry == NULL))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
             Str("partikkelsync: could not find opcode id"));
     pe = pg->rootentry;
     while (pe->id != *p->opcodeid && pe->next != NULL)
         pe = pe->next;
     if (UNLIKELY(pe->id != *p->opcodeid))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
             Str("partikkelsync: could not find opcode id"));
     p->ge = pe;
     /* find out if we're supposed to output grain scheduler phase too */
-    p->output_schedphase = csound->GetOutputArgCnt(p) > 1;
+    p->output_schedphase = csoundGetOutputArgCnt(p) > 1;
     return OK;
 }
 
@@ -878,9 +882,9 @@ static int32_t get_global_entry(CSOUND *csound, PARTIKKEL_GLOBALS_ENTRY **entry,
     PARTIKKEL_GLOBALS *pg;
     PARTIKKEL_GLOBALS_ENTRY *pe;
 
-    pg = csound->QueryGlobalVariable(csound, "partikkel");
+    pg = csoundQueryGlobalVariable(csound, "partikkel");
     if (UNLIKELY(pg == NULL))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("%s: partikkel not initialized"), prefix);
     /* try to find entry corresponding to our opcodeid */
     pe = pg->rootentry;
@@ -888,7 +892,7 @@ static int32_t get_global_entry(CSOUND *csound, PARTIKKEL_GLOBALS_ENTRY **entry,
         pe = pe->next;
 
     if (UNLIKELY(pe == NULL))
-        return csound->InitError(csound,
+        return csoundInitError(csound,
                                  Str("%s: could not find opcode id"), prefix);
     *entry = pe;
     return OK;

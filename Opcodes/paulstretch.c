@@ -34,7 +34,10 @@
 #include <math.h>
 #include "csoundCore_internal.h"
 #include "interlocks.h"
-#include "H/fftlib.h"
+#include "fftlib.h"
+#include "auxfd.h"
+#include "fgens_public.h"
+#include "insert_public.h"
 
 #ifdef ANDROID
 float crealf(_Complex float);
@@ -122,12 +125,12 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
 
 static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
-    FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
+    FUNC *ftp = csoundFTnp2Find(csound, p->ifn);
     uint32_t i = 0;
     uint32_t size;
 
     if (ftp == NULL)
-      return csound->InitError(csound, Str("paulstretch: table not found"));
+      return csoundInitError(csound, Str("paulstretch: table not found"));
 
     p->ft = ftp;
     p->windowsize = (uint32_t)FLOOR((CS_ESR * *p->winsize));
@@ -138,21 +141,21 @@ static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
     p->displace_pos = (p->windowsize * FL(0.5)) / *p->stretch;
 
     size = sizeof(MYFLT) * p->windowsize;
-    csound->AuxAlloc(csound, size, &(p->m_window));
+    csoundAuxAlloc(csound, size, &(p->m_window));
     p->window = p->m_window.auxp;
 
-    csound->AuxAlloc(csound, size, &p->m_old_windowed_buf);
+    csoundAuxAlloc(csound, size, &p->m_old_windowed_buf);
     p->old_windowed_buf = p->m_old_windowed_buf.auxp;
 
-    csound->AuxAlloc(csound,
+    csoundAuxAlloc(csound,
                      (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_hinv_buf);
     p->hinv_buf = p->m_hinv_buf.auxp;
 
-    csound->AuxAlloc(csound,
+    csoundAuxAlloc(csound,
                      (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_output);
     p->output = p->m_output.auxp;
 
-    csound->AuxAlloc(csound, size + 2 * sizeof(MYFLT), &p->m_tmp);
+    csoundAuxAlloc(csound, size + 2 * sizeof(MYFLT), &p->m_tmp);
     p->tmp = p->m_tmp.auxp;
 
     /* Create Hann window */

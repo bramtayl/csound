@@ -23,6 +23,9 @@
 
 #include "csoundCore_internal.h"
 #include "interlocks.h"
+#include "fftlib.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 #include <math.h>
 /* definitions */
@@ -260,7 +263,7 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
       p->sr = sr;
 
       if (UNLIKELY(CS_ESR != sr))
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible"
                           " with HRTF processing SR of: %.0f\n\n"), sr);
 
@@ -283,18 +286,18 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
-    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+    fpl = ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+    fpr = ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
@@ -310,29 +313,29 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     /* common buffers (used by both min phase and phasetrunc) */
     if (!p->insig.auxp || p->insig.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->insig);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->insig);
     if (!p->outl.auxp || p->outl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outl);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outl);
     if (!p->outr.auxp || p->outr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outr);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outr);
     if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtflpad);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtflpad);
     if (!p->hrtfrpad.auxp || p->hrtfrpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtfrpad);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtfrpad);
     if (!p->complexinsig.auxp || p->complexinsig.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->complexinsig);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->complexinsig);
     if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtflfloat);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtflfloat);
     if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtfrfloat);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtfrfloat);
     if (!p->outspecl.auxp || p->outspecl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecl);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecl);
     if (!p->outspecr.auxp || p->outspecr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecr);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecr);
     if (!p->overlapl.auxp || p->overlapl.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
+      csoundAuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
     if (!p->overlapr.auxp || p->overlapr.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
+      csoundAuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
 
     memset(p->insig.auxp, 0, irlength * sizeof(MYFLT));
     memset(p->outl.auxp, 0, irlengthpad * sizeof(MYFLT));
@@ -349,25 +352,25 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     /* interpolation values */
     if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
     if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
     if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
     if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
     if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
     if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
     if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
     if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
     if (!p->currentphasel.auxp || p->currentphasel.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->currentphasel);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->currentphasel);
     if (!p->currentphaser.auxp || p->currentphaser.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->currentphaser);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->currentphaser);
 
     memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
     memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
@@ -382,21 +385,21 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     /* phase truncation buffers and variables */
     if (!p->oldhrtflpad.auxp || p->oldhrtflpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->oldhrtflpad);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->oldhrtflpad);
     if (!p->oldhrtfrpad.auxp || p->oldhrtfrpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->oldhrtfrpad);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->oldhrtfrpad);
     if (!p->outlold.auxp || p->outlold.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outlold);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outlold);
     if (!p->outrold.auxp || p->outrold.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outrold);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outrold);
     if (!p->outspecoldl.auxp || p->outspecoldl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecoldl);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecoldl);
     if (!p->outspecoldr.auxp || p->outspecoldr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecoldr);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecoldr);
     if (!p->overlapoldl.auxp || p->overlapoldl.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldl);
+      csoundAuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldl);
     if (!p->overlapoldr.auxp || p->overlapoldr.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldr);
+      csoundAuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapoldr);
 
     memset(p->oldhrtflpad.auxp, 0, irlengthpad * sizeof(MYFLT));
     memset(p->oldhrtfrpad.auxp, 0, irlengthpad * sizeof(MYFLT));
@@ -420,17 +423,17 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
 
     /* buffer declaration for min phase calculations */
     if (!p->logmagl.auxp || p->logmagl.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->logmagl);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->logmagl);
     if (!p->logmagr.auxp || p->logmagr.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->logmagr);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->logmagr);
     if (!p->xhatwinl.auxp || p->xhatwinl.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->xhatwinl);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->xhatwinl);
     if (!p->xhatwinr.auxp || p->xhatwinr.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->xhatwinr);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->xhatwinr);
     if (!p->expxhatwinl.auxp || p->expxhatwinl.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->expxhatwinl);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->expxhatwinl);
     if (!p->expxhatwinr.auxp || p->expxhatwinr.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->expxhatwinr);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->expxhatwinr);
 
     memset(p->logmagl.auxp, 0, irlength * sizeof(MYFLT));
     memset(p->logmagr.auxp, 0, irlength * sizeof(MYFLT));
@@ -442,18 +445,18 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     /* delay buffers */
     if (!p->delmeml.auxp ||
         p->delmeml.size < (int32_t)(sr * maxdeltime) * sizeof(MYFLT))
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmeml);
     if (!p->delmemr.auxp ||
         p->delmemr.size < (int32_t)(sr * maxdeltime) * sizeof(MYFLT))
-      csound->AuxAlloc(csound,
+      csoundAuxAlloc(csound,
                        (int32_t)(sr * maxdeltime) * sizeof(MYFLT), &p->delmemr);
 
     memset(p->delmeml.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(MYFLT));
     memset(p->delmemr.auxp, 0, (int32_t)(sr * maxdeltime) * sizeof(MYFLT));
 
     if (!p->win.auxp || p->win.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->win);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->win);
 
     win = (MYFLT *)p->win.auxp;
 
@@ -701,7 +704,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                             /* post warning if fades ovelap */
                             if(cross)
                               {
-                                csound->Message(csound,
+                                csoundMessage(csound,
                                                 Str("\nWARNING: fades are "
                                                     "overlapping: this could lead"
                                                     " to noise: reduce fade size "
@@ -989,8 +992,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   {
                     /* ifft!...see Oppehneim and Schafer for min phase
                        process...based on real cepstrum method */
-                    csound->InverseRealFFT(csound, logmagl, irlength);
-                    csound->InverseRealFFT(csound, logmagr, irlength);
+                    csoundInverseRealFFT(csound, logmagl, irlength);
+                    csoundInverseRealFFT(csound, logmagr, irlength);
 
                     /* window, note no need to scale on csound iffts... */
                     for(i = 0; i < irlength; i++)
@@ -1000,8 +1003,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                       }
 
                     /* fft */
-                    csound->RealFFT(csound, xhatwinl, irlength);
-                    csound->RealFFT(csound, xhatwinr, irlength);
+                    csoundRealFFT(csound, xhatwinl, irlength);
+                    csoundRealFFT(csound, xhatwinr, irlength);
 
                     /* exponential of result */
                     /* 0 hz and nyq purely real... */
@@ -1020,8 +1023,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                       }
 
                     /* ifft for output buffers */
-                    csound->InverseRealFFT(csound, expxhatwinl, irlength);
-                    csound->InverseRealFFT(csound, expxhatwinr, irlength);
+                    csoundInverseRealFFT(csound, expxhatwinl, irlength);
+                    csoundInverseRealFFT(csound, expxhatwinr, irlength);
 
                     /* output */
                     for(i= 0; i < irlength; i++)
@@ -1035,8 +1038,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 if(phasetrunc)
                   {
                     /* ifft */
-                    csound->InverseRealFFT(csound, hrtflfloat, irlength);
-                    csound->InverseRealFFT(csound, hrtfrfloat, irlength);
+                    csoundInverseRealFFT(csound, hrtflfloat, irlength);
+                    csoundInverseRealFFT(csound, hrtfrfloat, irlength);
 
                     for (i = 0; i < irlength; i++)
                       {
@@ -1054,8 +1057,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   }
 
                 /* back to freq domain */
-                csound->RealFFT(csound, hrtflpad, irlengthpad);
-                csound->RealFFT(csound, hrtfrpad, irlengthpad);
+                csoundRealFFT(csound, hrtflpad, irlengthpad);
+                csoundRealFFT(csound, hrtfrpad, irlengthpad);
 
                 if(minphase)
                   {
@@ -1188,17 +1191,17 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
             for (i = irlength; i < irlengthpad; i++)
               complexinsig[i] = FL(0.0);
 
-            csound->RealFFT(csound, complexinsig, irlengthpad);
+            csoundRealFFT(csound, complexinsig, irlengthpad);
 
             /* complex mult function... */
-            csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
+            csoundRealFFTMult(csound, outspecl, hrtflpad, complexinsig,
                                 irlengthpad, FL(1.0));
-            csound->RealFFTMult(csound, outspecr, hrtfrpad, complexinsig,
+            csoundRealFFTMult(csound, outspecr, hrtfrpad, complexinsig,
                                 irlengthpad, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->InverseRealFFT(csound, outspecl, irlengthpad);
-            csound->InverseRealFFT(csound, outspecr, irlengthpad);
+            csoundInverseRealFFT(csound, outspecl, irlengthpad);
+            csoundInverseRealFFT(csound, outspecr, irlengthpad);
 
             /* real values, scaled (by a little more than usual to ensure
                no clipping) sr related */
@@ -1215,13 +1218,13 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   {
                     crossout = 1;
 
-                    csound->RealFFTMult(csound, outspecoldl, oldhrtflpad,
+                    csoundRealFFTMult(csound, outspecoldl, oldhrtflpad,
                                         complexinsig, irlengthpad, FL(1.0));
-                    csound->RealFFTMult(csound, outspecoldr, oldhrtfrpad,
+                    csoundRealFFTMult(csound, outspecoldr, oldhrtfrpad,
                                         complexinsig, irlengthpad, FL(1.0));
 
-                    csound->InverseRealFFT(csound, outspecoldl, irlengthpad);
-                    csound->InverseRealFFT(csound, outspecoldr, irlengthpad);
+                    csoundInverseRealFFT(csound, outspecoldl, irlengthpad);
+                    csoundInverseRealFFT(csound, outspecoldr, irlengthpad);
 
                     /* scaled */
                     for(i = 0; i < irlengthpad; i++)
@@ -1448,7 +1451,7 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     p->sr = sr;
 
     if (UNLIKELY(CS_ESR != sr))
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible with "
                           "HRTF processing SR of: %.0f\n\n"), sr);
 
@@ -1471,18 +1474,18 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
-    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+    fpl = ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+    fpr = ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
@@ -1498,29 +1501,29 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
     /* buffers */
     if (!p->insig.auxp || p->insig.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->insig);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->insig);
     if (!p->outl.auxp || p->outl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outl);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outl);
     if (!p->outr.auxp || p->outr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outr);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outr);
     if (!p->hrtflpad.auxp || p->hrtflpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtflpad);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtflpad);
     if (!p->hrtfrpad.auxp || p->hrtfrpad.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtfrpad);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->hrtfrpad);
     if (!p->complexinsig.auxp || p->complexinsig.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p-> complexinsig);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p-> complexinsig);
     if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtflfloat);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtflfloat);
     if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtfrfloat);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->hrtfrfloat);
     if (!p->outspecl.auxp || p->outspecl.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecl);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecl);
     if (!p->outspecr.auxp || p->outspecr.size < irlengthpad * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecr);
+      csoundAuxAlloc(csound, irlengthpad*sizeof(MYFLT), &p->outspecr);
     if (!p->overlapl.auxp || p->overlapl.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
+      csoundAuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapl);
     if (!p->overlapr.auxp || p->overlapr.size < overlapsize * sizeof(MYFLT))
-      csound->AuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
+      csoundAuxAlloc(csound, overlapsize*sizeof(MYFLT), &p->overlapr);
 
     memset(p->insig.auxp, 0, irlength * sizeof(MYFLT));
     memset(p->outl.auxp, 0, irlengthpad * sizeof(MYFLT));
@@ -1537,21 +1540,21 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
 
     /* interpolation values */
     if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
     if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
     if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
     if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
     if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
     if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
     if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
     if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
 
     /* best to zero, for future changes (filled in init) */
     memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
@@ -1566,10 +1569,10 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     /* shift buffers */
     if (!p->leftshiftbuffer.auxp ||
         p->leftshiftbuffer.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->leftshiftbuffer);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->leftshiftbuffer);
     if (!p->rightshiftbuffer.auxp ||
         p->rightshiftbuffer.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength*sizeof(MYFLT), &p->rightshiftbuffer);
+      csoundAuxAlloc(csound, irlength*sizeof(MYFLT), &p->rightshiftbuffer);
 
     memset(p->leftshiftbuffer.auxp, 0, irlength * sizeof(MYFLT));
     memset(p->rightshiftbuffer.auxp, 0, irlength * sizeof(MYFLT));
@@ -1835,8 +1838,8 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
 
     /* ifft */
-    csound->InverseRealFFT(csound, hrtflfloat, irlength);
-    csound->InverseRealFFT(csound, hrtfrfloat, irlength);
+    csoundInverseRealFFT(csound, hrtflfloat, irlength);
+    csoundInverseRealFFT(csound, hrtfrfloat, irlength);
 
     for (i = 0; i < irlength; i++)
       {
@@ -1868,8 +1871,8 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
 
     /* back to freq domain */
-    csound->RealFFT(csound, hrtflpad, irlengthpad);
-    csound->RealFFT(csound, hrtfrpad, irlengthpad);
+    csoundRealFFT(csound, hrtflpad, irlengthpad);
+    csoundRealFFT(csound, hrtfrpad, irlengthpad);
 
         /* initialize counter */
     p->counter = 0;
@@ -1948,17 +1951,17 @@ static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
             for (i = irlength; i <  irlengthpad; i++)
               complexinsig[i] = FL(0.0);
 
-            csound->RealFFT(csound, complexinsig, irlengthpad);
+            csoundRealFFT(csound, complexinsig, irlengthpad);
 
             /* complex multiplication */
-            csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
+            csoundRealFFTMult(csound, outspecl, hrtflpad, complexinsig,
                                 irlengthpad, FL(1.0));
-            csound->RealFFTMult(csound, outspecr, hrtfrpad, complexinsig,
+            csoundRealFFTMult(csound, outspecr, hrtfrpad, complexinsig,
                                 irlengthpad, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->InverseRealFFT(csound, outspecl, irlengthpad);
-            csound->InverseRealFFT(csound, outspecr, irlengthpad);
+            csoundInverseRealFFT(csound, outspecl, irlengthpad);
+            csoundInverseRealFFT(csound, outspecr, irlengthpad);
 
             /* scaled by a factor related to sr...? */
             for(i = 0; i < irlengthpad; i++)
@@ -2079,7 +2082,7 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     p->sr = sr;
 
     if (UNLIKELY(CS_ESR != sr))
-      csound->Message(csound,
+      csoundMessage(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible"
                           "with HRTF processing SR of: %.0f\n\n"), sr);
 
@@ -2094,18 +2097,18 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1] = '\0';
 
     /* reading files, with byte swap */
-    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+    fpl = ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
      return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+    fpr = ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
-        csound->InitError(csound,
+        csoundInitError(csound,
                           Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
@@ -2127,22 +2130,22 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
     /* buffers */
     if (!p->inbuf.auxp || p->inbuf.size < (overlap * irlength) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->inbuf);
+      csoundAuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->inbuf);
     /* 2d arrays in 1d! */
     if (!p->outbufl.auxp || p->outbufl.size < (overlap * irlength) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->outbufl);
+      csoundAuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->outbufl);
     if (!p->outbufr.auxp || p->outbufr.size < (overlap * irlength) * sizeof(MYFLT))
-      csound->AuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->outbufr);
+      csoundAuxAlloc(csound, (overlap * irlength) * sizeof(MYFLT), &p->outbufr);
     if (!p->complexinsig.auxp || p->complexinsig.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p-> complexinsig);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p-> complexinsig);
     if (!p->hrtflfloat.auxp || p->hrtflfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtflfloat);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtflfloat);
     if (!p->hrtfrfloat.auxp || p->hrtfrfloat.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtfrfloat);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->hrtfrfloat);
     if (!p->outspecl.auxp || p->outspecl.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->outspecl);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->outspecl);
     if (!p->outspecr.auxp || p->outspecr.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->outspecr);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->outspecr);
 
     memset(p->inbuf.auxp, 0, (overlap*irlength) * sizeof(MYFLT));
     memset(p->outbufl.auxp, 0, (overlap*irlength) * sizeof(MYFLT));
@@ -2155,21 +2158,21 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
     /* interpolation values */
     if (!p->lowl1.auxp || p->lowl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl1);
     if (!p->lowr1.auxp || p->lowr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr1);
     if (!p->lowl2.auxp || p->lowl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowl2);
     if (!p->lowr2.auxp || p->lowr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->lowr2);
     if (!p->highl1.auxp || p->highl1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl1);
     if (!p->highr1.auxp || p->highr1.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr1);
     if (!p->highl2.auxp || p->highl2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highl2);
     if (!p->highr2.auxp || p->highr2.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->highr2);
 
     memset(p->lowl1.auxp, 0, irlength * sizeof(MYFLT));
     memset(p->lowr1.auxp, 0, irlength * sizeof(MYFLT));
@@ -2181,12 +2184,12 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     memset(p->highr2.auxp, 0, irlength * sizeof(MYFLT));
 
     if (!p->win.auxp || p->win.size < irlength * sizeof(MYFLT))
-      csound->AuxAlloc(csound, irlength * sizeof(MYFLT), &p->win);
+      csoundAuxAlloc(csound, irlength * sizeof(MYFLT), &p->win);
     if (!p->overlapskipin.auxp || p->overlapskipin.size < overlap * sizeof(int32_t))
-      csound->AuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipin);
+      csoundAuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipin);
     if (!p->overlapskipout.auxp ||
         p->overlapskipout.size < overlap * sizeof(int32_t))
-      csound->AuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipout);
+      csoundAuxAlloc(csound, overlap * sizeof(int32_t), &p->overlapskipout);
 
     memset(p->win.auxp, 0, irlength * sizeof(MYFLT));
     memset(p->overlapskipin.auxp, 0, overlap * sizeof(int32_t));
@@ -2596,16 +2599,16 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
             /* zero the current input sigframe time pointer */
             overlapskipin[t] = 0;
 
-            csound->RealFFT(csound, complexinsig, irlength);
+            csoundRealFFT(csound, complexinsig, irlength);
 
-            csound->RealFFTMult(csound, outspecl, hrtflfloat,
+            csoundRealFFTMult(csound, outspecl, hrtflfloat,
                                 complexinsig, irlength, FL(1.0));
-            csound->RealFFTMult(csound, outspecr, hrtfrfloat,
+            csoundRealFFTMult(csound, outspecr, hrtfrfloat,
                                 complexinsig, irlength, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->InverseRealFFT(csound, outspecl, irlength);
-            csound->InverseRealFFT(csound, outspecr, irlength);
+            csoundInverseRealFFT(csound, outspecl, irlength);
+            csoundInverseRealFFT(csound, outspecr, irlength);
 
             /* need scaling based on overlap (more overlaps -> louder) and sr... */
             for(i = 0; i < irlength; i++)

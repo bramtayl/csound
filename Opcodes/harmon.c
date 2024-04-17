@@ -23,6 +23,7 @@
 
 #include "csoundCore_internal.h"
 #include "interlocks.h"
+#include "auxfd.h"
 
 #include <math.h>
 
@@ -108,7 +109,7 @@ static int32_t hm234set(CSOUND *csound, HARM234 *p)
       int32  totalsiz = nbufsmps * 2 + maxprd * 4 + (SLEN+1);
       MYFLT *pulsbuf, *sigp;                            /*  & realloc buffers */
 
-      csound->AuxAlloc(csound, totalsiz * sizeof(MYFLT), &p->auxch);
+      csoundAuxAlloc(csound, totalsiz * sizeof(MYFLT), &p->auxch);
       p->bufp = (MYFLT *) p->auxch.auxp;
       p->midp = p->bufp + nbufsmps;                     /* each >= maxprd * 3 */
       pulsbuf = p->midp + nbufsmps;
@@ -254,14 +255,14 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
           /* find z-cross with grtst slope to peak */
           if (UNLIKELY(p->poslead < LCNT)) {   /*      and consistent polarity */
             if (p->poslead == 1)
-              csound->Warning(csound, Str("harm signal has positive lead\n"));
+              csoundWarning(csound, Str("harm signal has positive lead\n"));
             p->poslead += 1;
           }
         }
         else {
           if (UNLIKELY(p->poslead > -LCNT)) {
             if (p->poslead == -1)
-              csound->Warning(csound, Str("harm signal has negative lead\n"));
+              csoundWarning(csound, Str("harm signal has negative lead\n"));
             p->poslead -= 1;
           }
        }
@@ -392,7 +393,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     p->vocamp = vocamp;
 
     if (UNLIKELY(oflow && ++p->hmrngflg > 10)) {
-      csound->Warning(csound, Str("harmon234: out of range\n"));
+      csoundWarning(csound, Str("harmon234: out of range\n"));
       p->hmrngflg = 0;
     }
     if (inp1 >= p->midp) {                       /* if end of pq bufs */

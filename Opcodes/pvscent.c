@@ -25,6 +25,9 @@
 
 #include "pvs_ops.h"
 #include "pstream.h"
+#include "fftlib.h"
+#include "auxfd.h"
+#include "insert_public.h"
 
 typedef struct {
   OPDS    h;
@@ -40,7 +43,7 @@ static int32_t pvscentset(CSOUND *csound, PVSCENT *p)
     p->lastframe = 0;
     if (UNLIKELY(!((p->fin->format==PVS_AMP_FREQ) ||
                    (p->fin->format==PVS_AMP_PHASE))))
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("pvscent: format must be amp-phase"
                                    " or amp-freq.\n"));
     return OK;
@@ -191,18 +194,18 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
     while(fftsize >>= 1) p->fsize <<= 1;
     if (p->fsize < *p->ifftsize) {
       p->fsize <<= 1;
-      csound->Warning(csound,
+      csoundWarning(csound,
                       Str("centroid requested fftsize = %.0f, actual = %d\n"),
                       *p->ifftsize, p->fsize);
     }
     if (p->frame.auxp == NULL || p->frame.size < p->fsize*sizeof(MYFLT))
-      csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->frame);
+      csoundAuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->frame);
     if (p->windowed.auxp == NULL || p->windowed.size < p->fsize*sizeof(MYFLT))
-      csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->windowed);
+      csoundAuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->windowed);
     if (p->win.auxp == NULL || p->win.size < p->fsize*sizeof(MYFLT)) {
       uint32_t i;
       MYFLT *win;
-      csound->AuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->win);
+      csoundAuxAlloc(csound, p->fsize*sizeof(MYFLT), &p->win);
       win = (MYFLT *) p->win.auxp;
     for (i=0; i < p->fsize; i++)
       win[i] = 0.5 - 0.5*cos(i*TWOPI/p->fsize);
@@ -210,7 +213,7 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
     p->old = 0;
     memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
     memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
-    p->setup = csound->RealFFT2Setup(csound,p->fsize,FFT_FWD);
+    p->setup = csoundRealFFT2Setup(csound,p->fsize,FFT_FWD);
     return OK;
 }
 
@@ -246,7 +249,7 @@ static int32_t cent_k(CSOUND *csound, CENT *p)
         if (k == fsize-1) k=0;
         else k++;
       }
-      csound->RealFFT2(csound, p->setup, windowed);
+      csoundRealFFT2(csound, p->setup, windowed);
       cf=FL(0.5)*binsize;
       mag = fabs(windowed[0])/fsize;
       c += mag*cf;
@@ -313,14 +316,14 @@ int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
     p->lastframe = 0;
 
     if (UNLIKELY(p->fin->sliding))
-      return csound->InitError(csound, Str("SDFT case not implemented yet"));
+      return csoundInitError(csound, Str("SDFT case not implemented yet"));
     size = sizeof(MYFLT)*(p->fin->N+2);
     if (p->peakfreq.auxp == NULL || p->peakfreq.size < size)
-      csound->AuxAlloc(csound, size, &p->peakfreq);
+      csoundAuxAlloc(csound, size, &p->peakfreq);
     if (p->inharmonic.auxp == NULL || p->inharmonic.size < size)
-      csound->AuxAlloc(csound, size, &p->inharmonic);
+      csoundAuxAlloc(csound, size, &p->inharmonic);
     if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
-      return csound->InitError(csound,
+      return csoundInitError(csound,
                                Str("PV Frames must be in AMP_FREQ format!\n"));
     }
 
@@ -462,7 +465,7 @@ static OENTRY localops[] = {
 
 int32_t pvscent_init_(CSOUND *csound)
 {
-  return csound->AppendOpcodes(csound, &(localops[0]),
+  return csoundAppendOpcodes(csound, &(localops[0]),
                                (int32_t
                                 ) (sizeof(localops) / sizeof(OENTRY)));
 }

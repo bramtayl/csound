@@ -24,6 +24,8 @@
 
 #include "csoundCore_internal.h"                                 /*    MIDISEND.C    */
 #include "midioops.h"
+#include "memalloc.h"
+#include "envvar_public.h"
 
 typedef struct midiOutFile_s {
     FILE            *f;
@@ -189,8 +191,8 @@ void openMIDIout(CSOUND *csound)
     /* open MIDI out file */
     if (O->FMidioutname == NULL || p->midiOutFileData != NULL)
       return;
-    fp = (midiOutFile_t *) csound->Calloc(csound, sizeof(midiOutFile_t));
-    fp->fd = csound->FileOpen2(csound, &(fp->f), CSFILE_STD, O->FMidioutname,
+    fp = (midiOutFile_t *) mcalloc(csound, sizeof(midiOutFile_t));
+    fp->fd = csoundFileOpenWithType(csound, &(fp->f), CSFILE_STD, O->FMidioutname,
                                 "wb", NULL,  CSFTYPE_STD_MIDI, 0);
     if (UNLIKELY(fp->fd == NULL)) {
       csoundDie(csound, Str(" *** error opening MIDI out file '%s'"),
@@ -200,7 +202,7 @@ void openMIDIout(CSOUND *csound)
     /* write header */
     if (UNLIKELY(fwrite(&(midiOutFile_header[0]),
                         (size_t)1, (size_t)22, fp->f) != 22)) {
-      csound->Die(csound, Str("Short write in MIDI\n"));
+      csoundDie(csound, Str("Short write in MIDI\n"));
     }
 }
 
@@ -212,13 +214,13 @@ void csoundCloseMidiOutFile(CSOUND *csound)
     csoundWriteMidiOutFile(csound, &(midiOutFile_header[22]), 3);
     /* update header for track length */
     if (fseek(p->f, 18L, SEEK_SET)<0)
-      csound->Message(csound, Str("error closing MIDI output file\n"));
+      csoundMessage(csound, Str("error closing MIDI output file\n"));
     fputc((int)(p->nBytes >> 24) & 0xFF, p->f);
     fputc((int)(p->nBytes >> 16) & 0xFF, p->f);
     fputc((int)(p->nBytes >> 8) & 0xFF, p->f);
     fputc((int)(p->nBytes) & 0xFF, p->f);
     /* close file and clean up */
     csound->midiGlobals->midiOutFileData = NULL;
-    csound->FileClose(csound, p->fd);
-    csound->Free(csound, p);
+    csoundFileClose(csound, p->fd);
+    mfree(csound, p);
 }
