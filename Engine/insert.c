@@ -41,6 +41,7 @@
 #include "csound_orc_semantics_public.h"
 #include "fgens_public.h"
 #include "auxfd.h"
+#include "auxfd_internal.h"
 #include "insert_public.h"
 
 static  void    showallocs(CSOUND *);

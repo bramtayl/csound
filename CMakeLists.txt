@@ -642,6 +642,7 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 set(libcsound_SRCS
     Top/csound.c
     Engine/auxfd.c
+    Engine/auxfd_internal.c
     Engine/cfgvar.c
     Engine/corfiles.c
     Engine/entry1.c

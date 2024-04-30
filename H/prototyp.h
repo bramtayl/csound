@@ -34,8 +34,6 @@ void    *mcallocDebug(CSOUND *, size_t, char*, int);
 void    *mreallocDebug(CSOUND *, void *, size_t, char*, int);
 void    mfreeDebug(CSOUND *, void *, char*, int);
 char    *cs_strndup(CSOUND*, char*, size_t);
-void auxchfree(CSOUND *, INSDS *);
-void    fdchclose(CSOUND *, INSDS *);
 CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
 void    csoundErrorMsgS(CSOUND *, int attr, const char *, ...);
 TEXT    *getoptxt(CSOUND *, int *);

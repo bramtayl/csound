@@ -31,6 +31,7 @@
 #include <math.h>
 #include <string.h>
 
+#include "auxfd_internal.h"
 #include "insert.h"
 #include "oload.h"
 #include "pstream.h"
