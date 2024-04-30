@@ -644,6 +644,7 @@ set(libcsound_SRCS
     Engine/auxfd.c
     Engine/auxfd_internal.c
     Engine/cfgvar.c
+    Engine/cfgvar_internal.c
     Engine/corfiles.c
     Engine/entry1.c
     Engine/envvar.c
