@@ -23,6 +23,7 @@
 
 #include "entry1.h"             /*                      ENTRY1.C        */
 #include "interlocks.h"
+#include "csound_type_system_internal.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)

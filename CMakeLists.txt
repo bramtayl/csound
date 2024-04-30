@@ -667,6 +667,7 @@ set(libcsound_SRCS
     Engine/swritestr.c
     Engine/twarp.c
     Engine/csound_type_system.c
+    Engine/csound_type_system_internal.c
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
     Engine/pools.c
