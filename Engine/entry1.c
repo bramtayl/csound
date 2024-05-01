@@ -25,6 +25,7 @@
 #include "interlocks.h"
 #include "csound_type_system_internal.h"
 #include "fgens.h"
+#include "linevent.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
@@ -856,14 +857,14 @@ OENTRY opcodlst_1[] = {
   { "schedkwhennamed.S", S(TRIGINSTR),0, 3,"",
                                         "kkkSkz",triginset_S, ktriginstr_S, NULL, NULL},
   { "trigseq", S(TRIGSEQ),0, 3,     "",     "kkkkkz", trigseq_set, trigseq, NULL, NULL},
-  { "event", S(LINEVENT),0,  2,     "",     "Skz",  NULL, eventOpcode, NULL, NULL},
-  { "event_i", S(LINEVENT),0,1,     "",     "Sim",  eventOpcodeI, NULL, NULL, NULL},
-  { "event.S", S(LINEVENT),0,  2,     "",    "SSz",  NULL, eventOpcode_S, NULL, NULL},
-  { "event_i.S", S(LINEVENT),0,1,     "",    "SSm",  eventOpcodeI_S, NULL, NULL, NULL},
-  { "nstance", S(LINEVENT2),0,2,     "k",  "kkz",  NULL, instanceOpcode, NULL, NULL},
-  { "nstance.i", S(LINEVENT2),0,1,   "i",  "iiim",  instanceOpcode, NULL, NULL, NULL},
-  { "nstance.kS", S(LINEVENT2),0, 2, "k",  "SSz",  NULL, instanceOpcode_S, NULL, NULL},
-  { "nstance.S", S(LINEVENT2),0, 1,  "i",  "Siim",  instanceOpcode_S, NULL, NULL, NULL},
+  { "event", S(LINEVENT),0,  2,     "",     "Skz",  NULL, (SUBR)eventOpcode, NULL, NULL},
+  { "event_i", S(LINEVENT),0,1,     "",     "Sim",  (SUBR)eventOpcodeI, NULL, NULL, NULL},
+  { "event.S", S(LINEVENT),0,  2,     "",    "SSz",  NULL, (SUBR)eventOpcode_S, NULL, NULL},
+  { "event_i.S", S(LINEVENT),0,1,     "",    "SSm",  (SUBR)eventOpcodeI_S, NULL, NULL, NULL},
+  { "nstance", S(LINEVENT2),0,2,     "k",  "kkz",  NULL, (SUBR)instanceOpcode, NULL, NULL},
+  { "nstance.i", S(LINEVENT2),0,1,   "i",  "iiim",  (SUBR)instanceOpcode, NULL, NULL, NULL},
+  { "nstance.kS", S(LINEVENT2),0, 2, "k",  "SSz",  NULL, (SUBR)instanceOpcode_S, NULL, NULL},
+  { "nstance.S", S(LINEVENT2),0, 1,  "i",  "Siim",  (SUBR)instanceOpcode_S, NULL, NULL, NULL},
   { "turnoff.i", S(KILLOP),0,1,     "",     "i", kill_instance, NULL, NULL, NULL},
   { "turnoff.k", S(KILLOP),0,2,     "",     "k", NULL, kill_instance, NULL, NULL},
   { "lfo", S(LFO),0,         3,     "k",    "kko",  lfoset,   lfok,   NULL, NULL},

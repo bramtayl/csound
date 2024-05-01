@@ -44,7 +44,6 @@ char    *scsortstr(CSOUND *, CORFIL *);
 int     scxtract(CSOUND *, CORFIL *, FILE *);
 int     rdscor(CSOUND *, EVTBLK *);
 int     musmon(CSOUND *);
-void    RTLineset(CSOUND *);
 void    list_opcodes(CSOUND *, int);
 #if 0
 int     readOptions_file(CSOUND *, FILE *, int);

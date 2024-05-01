@@ -655,6 +655,7 @@ set(libcsound_SRCS
     Engine/find_opcode.c
     Engine/insert.c
     Engine/insert_public.c
+    Engine/linevent.c
     Engine/linevent_public.c
     Engine/memalloc.c
     Engine/memfiles.c

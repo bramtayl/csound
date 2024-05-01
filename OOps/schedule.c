@@ -39,11 +39,9 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "musmon.h"
+#include "linevent.h"
 
 extern void csoundInputMessageInternal(CSOUND *, const char *);
-int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
-int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
-
 
 int32_t schedule_array(CSOUND *csound, SCHED *p)
 {

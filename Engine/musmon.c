@@ -39,6 +39,7 @@
 #include "memalloc.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "linevent.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
