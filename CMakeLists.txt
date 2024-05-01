@@ -666,6 +666,7 @@ set(libcsound_SRCS
     Engine/namedins_public.c
     Engine/parse_param.c
     Engine/rdscor.c
+    Engine/rdscor_internal.c
     Engine/scsort.c
     Engine/scxtract.c
     Engine/sort.c

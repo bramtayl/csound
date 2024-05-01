@@ -26,6 +26,7 @@
 #include "corfile.h"
 #include "memalloc.h"
 #include "envvar_public.h"
+#include "rdscor_internal.h"
 
 #define TYP_FREE   0
 #define TYP_EVENT  1

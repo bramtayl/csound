@@ -41,6 +41,7 @@
 #include "insert_public.h"
 #include "linevent.h"
 #include "memfiles_internal.h"
+#include "rdscor_internal.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
