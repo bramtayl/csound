@@ -29,9 +29,8 @@
 /*  dpwe 16may90        */
 
 #include "csoundCore_internal.h"                                                          
-#include "winEPS.h"                             
-
-extern OENTRY* find_opcode_new(CSOUND*, char*, char*, char*);
+#include "winEPS.h"
+#include "find_opcode.h"                           
 
 extern void MakeAscii(CSOUND *, WINDAT *, const char *);
 extern void DrawAscii(CSOUND *, WINDAT *);

@@ -82,6 +82,7 @@
 #include "linevent_public.h"
 #include "memalloc.h"
 #include "cfgvar_internal.h"
+#include "find_opcode.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));

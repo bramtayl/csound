@@ -32,7 +32,7 @@
  If the name is truncated, caller is responsible for calling mfree
  on returned value.  Caller should compare the returned value with the
  passed in opname to see if it is different and thus requires mfree'ing. */
-#include "find_opcode.h"
+
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 
 typedef struct csstructvar {
@@ -40,5 +40,10 @@ typedef struct csstructvar {
 } CS_STRUCT_VAR;
 
 void do_baktrace(CSOUND *, uint64_t);
+
+OENTRIES* find_opcode2(CSOUND*, char*);
+
+OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
+                       char* outArgTypes, char* inArgTypes);
 
 #endif

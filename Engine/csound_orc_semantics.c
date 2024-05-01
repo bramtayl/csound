@@ -37,6 +37,7 @@
 #include "csound_orc_semantics.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "find_opcode.h"
 
 extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);
@@ -51,7 +52,6 @@ extern int argsRequired(char* arrayName);
 extern char** splitArgs(CSOUND* csound, char* argString);
 extern int pnum(char*);
 
-OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
                                 OENTRIES* entries, char* inArgTypes);
 int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
@@ -651,39 +651,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     print_tree(csound, "Arg Tree\n", tree);
     return NULL;
   }
-}
-
-
-
-char* get_opcode_short_name(CSOUND* csound, char* opname) {
-
-  char* dot = strchr(opname, '.');
-  if (dot != NULL) {
-    int opLen = dot - opname;
-    return cs_strndup(csound, opname, opLen);
-  }
-  return opname;
-}
-
-/* find opcode with the specified name in opcode list */
-/* returns index to opcodlst[], or zero if the opcode cannot be found */
-OENTRY* find_opcode(CSOUND *csound, char *opname)
-{
-  char *shortName;
-  CONS_CELL* head;
-  OENTRY* retVal;
-
-  if (opname[0] == '\0' || isdigit(opname[0]))
-    return 0;
-
-  shortName = get_opcode_short_name(csound, opname);
-
-  head = cs_hash_table_get(csound, csound->opcodes, shortName);
-
-  retVal = (head != NULL) ? head->value : NULL;
-  if (shortName != opname) mfree(csound, shortName);
-
-  return retVal;
 }
 
 static OENTRIES* get_entries(CSOUND* csound, int count)
@@ -1293,44 +1260,6 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
   mfree(csound, argTypes);
   return argString;
 }
-
-
-OENTRY* find_opcode_new(CSOUND* csound, char* opname,
-                        char* outArgsFound, char* inArgsFound) {
-
-  //    csoundMessage(csound, "Searching for opcode: %s | %s | %s\n",
-  //                    outArgsFound, opname, inArgsFound);
-
-  OENTRIES* opcodes = find_opcode2(csound, opname);
-
-  if (opcodes->count == 0) {
-    return NULL;
-  }
-  OENTRY* retVal = resolve_opcode(csound, opcodes, outArgsFound, inArgsFound);
-
-  mfree(csound, opcodes);
-  return retVal;
-
-}
-
-OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
-                          char* outArgsFound, char* inArgsFound) {
-
-  OENTRIES* opcodes = find_opcode2(csound, opname);
-
-  if (opcodes->count == 0) {
-    return NULL;
-  }
-
-
-  OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
-                                        outArgsFound, inArgsFound);
-
-  mfree(csound, opcodes);
-
-  return retVal;
-}
-
 
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]

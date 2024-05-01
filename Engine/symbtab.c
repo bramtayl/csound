@@ -36,6 +36,7 @@
 #include "csound_standard_types.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "find_opcode.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)

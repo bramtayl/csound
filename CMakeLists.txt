@@ -652,6 +652,7 @@ set(libcsound_SRCS
     Engine/extract.c
     Engine/fgens.c
     Engine/fgens_public.c
+    Engine/find_opcode.c
     Engine/insert.c
     Engine/insert_public.c
     Engine/linevent_public.c

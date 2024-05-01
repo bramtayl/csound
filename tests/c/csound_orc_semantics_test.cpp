@@ -12,11 +12,11 @@
 #include "csound_orc.h"
 #include "gtest/gtest.h"
 #include "memalloc.h"
+#include "find_opcode.h"
 
 extern "C" {
     extern OENTRIES* find_opcode2 (CSOUND* csound, char* opname);
     extern OENTRY* resolve_opcode (CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
-    extern OENTRY* find_opcode_new (CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound);
 
     extern bool check_in_arg (char* found, char* required);
     extern bool check_in_args (CSOUND* csound, char* outArgsFound, char* opOutArgs);

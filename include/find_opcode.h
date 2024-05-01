@@ -23,6 +23,13 @@
 #ifndef _FIND_OPCODE_H_
 #define _FIND_OPCODE_H_
 
+#include "csoundCore_common.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif /*  __cplusplus */
+
 char* get_opcode_short_name(CSOUND* csound, char* opname);
 
 PUBLIC OENTRY* find_opcode_new(CSOUND* csound, char* opname,
@@ -32,4 +39,9 @@ PUBLIC OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
 /* find OENTRY with the specified name in opcode list */
 
 OENTRY* find_opcode(CSOUND *, char *);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
 #endif

@@ -40,6 +40,7 @@
 #include "csound_standard_types.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "find_opcode.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
 void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
@@ -307,8 +308,6 @@ char** splitArgs(CSOUND* csound, char* argString)
   //    }
   return args;
 }
-
-OENTRY* find_opcode(CSOUND*, char*);
 
 char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
   char temp[512];
