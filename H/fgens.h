@@ -26,9 +26,35 @@
 #define CSOUND_FGENS_H
 
 #include "csound.h"
+#include "resize.h"
 
 #define MAXFNUM 100
 #define GENMAX  60
+#define FTAB_SEARCH_BASE (100)
+
+typedef struct namedgen {
+    char    *name;
+    int     genum;
+    struct namedgen *next;
+} NAMEDGEN;
+
+inline int32_t byte_order(void)
+{
+    const int32_t one = 1;
+    return (!*((char*) &one));
+};
+
+inline unsigned int isPowerOfTwo (unsigned int x) {
+  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
+};
+
+int32_t resize_table(CSOUND *csound, RESIZE *p);
+int allocgen(CSOUND *csound, char *s, GEN fn);
+extern const GEN or_sub[];
+CS_NOINLINE FUNC *ftalloc(const FGDATA *);
+CS_NOINLINE void ftresdisp(const FGDATA *, FUNC *);
+void generate_sine_tab(CSOUND *csound);
+FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose);
+FUNC *gen01_defer_load(CSOUND *csound, int fno);
 
 #endif  /* CSOUND_FGENS_H */
-

@@ -82,6 +82,7 @@
 #include "csmodule.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "fgens.h"
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -116,8 +117,6 @@ int             closedir(DIR*);
 #  include <io.h>
 #  include <direct.h>
 #endif
-
-extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
 
 #if defined(INIT_STATIC_MODULES)
 extern int init_static_modules(CSOUND *);

@@ -28,12 +28,7 @@
 #include "insert.h"
 #include "rdscor.h"
 #include "memalloc.h"
-
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
+#include "fgens.h"
 
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {

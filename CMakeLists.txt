@@ -650,6 +650,7 @@ set(libcsound_SRCS
     Engine/envvar.c
     Engine/envvar_public.c
     Engine/extract.c
+    Engine/fgens.c
     Engine/fgens_public.c
     Engine/insert.c
     Engine/insert_public.c

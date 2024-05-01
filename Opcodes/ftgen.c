@@ -28,6 +28,7 @@
 #include "fgens_public.h"
 #include "envvar_public.h"
 #include "insert_public.h"
+#include "fgens.h"
 
 typedef struct {
     OPDS    h;
@@ -54,12 +55,6 @@ typedef struct {
     OPDS    h;
     int32_t fno;
 } FTDELETE;
-
-typedef struct namedgen {
-    char    *name;
-    int32_t genum;
-    struct  namedgen *next;
-} NAMEDGEN;
 
 static int32_t ftable_delete(CSOUND *csound, void *p)
 {

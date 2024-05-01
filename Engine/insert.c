@@ -43,6 +43,7 @@
 #include "auxfd.h"
 #include "auxfd_internal.h"
 #include "insert_public.h"
+#include "fgens.h"
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -1155,12 +1156,6 @@ void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
   csoundMessage(csound,
                   Str("could not find playing instr %f\n"),
                   p1);
-}
-
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
 }
 
 int subinstrset_(CSOUND *csound, SUBINST *p, int instno)

@@ -430,7 +430,6 @@ int32_t kgaussi(CSOUND *, void *), agaussi(CSOUND *, void *);
 int32_t lsgset_bkpt(CSOUND *csound, void *p);
 int32_t xsgset_bkpt(CSOUND *csound, void *p);
 int32_t xsgset_bkpt(CSOUND *csound, void *p), xsgset2b(CSOUND *, void *);
-int32_t resize_table(CSOUND *csound, void *p);
 int32_t error_fn(CSOUND *csound, void *p);
 int32_t fassign_set(CSOUND *csound, FASSIGN *p);
 int32_t tabler_init(CSOUND *csound, TABL *p);
