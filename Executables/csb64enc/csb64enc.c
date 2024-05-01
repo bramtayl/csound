@@ -6,6 +6,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include "base64.h"
+
 static  int     nr_infiles = 0;
 static  int     max_infiles = 0;
 static  char    **infile_names = NULL;
@@ -13,13 +15,6 @@ static  int     style      = 0;
 static  int     output_is_stdout = 1;
 static  char    *outflname = NULL;
 static  FILE    *outfile = NULL;
-
-/* convert 6 bits of input and write to output file */
-extern  int     encode_byte(FILE*, FILE*);
-/* convert an entire input file */
-extern  void    encode_file(char*, FILE*, int);
-/* line width */
-extern  int     maxlinepos;
 
 int main(int argc, char **argv)
 {
