@@ -66,6 +66,7 @@
 #include "find_opcode.h"
 #include "csound_orc_semantics_public.h"
 #include "musmon.h"
+#include "memalloc_internal.h"
 
 #if defined(linux)||defined(__HAIKU__)|| defined(__EMSCRIPTEN__)||defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -101,7 +102,6 @@ int  csoundPerformKsmpsInternal(CSOUND *csound);
 INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 
 extern void cscoreRESET(CSOUND *);
-extern void memRESET(CSOUND *);
 extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
