@@ -54,7 +54,6 @@ void    xturnoff_now(CSOUND *, INSDS *);
 //MEMFIL  *ldmemfile(CSOUND *, const char *);
 //MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
 void    rlsmemfiles(CSOUND *);
-int     delete_memfile(CSOUND *, const char *);
 char    *csoundTmpFileName(CSOUND *, const char *);
 void    dbfs_init(CSOUND *, MYFLT dbfs);
 int     csoundLoadExternals(CSOUND *);

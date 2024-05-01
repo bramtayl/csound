@@ -36,6 +36,8 @@
 #include "memalloc.h"
 #include "envvar_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "memfiles_internal.h"
 
 static int Load_Het_File_(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)
@@ -382,44 +384,6 @@ MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
                   pathnam, (long) len);
     mfree(csound, pathnam);
     return mfp;                                          /* rtn new slotadr */
-}
-
-/* clear the memfile array, & free all allocated space */
-
-void rlsmemfiles(CSOUND *csound)
-{
-    MEMFIL  *mfp = csound->memfiles, *nxt;
-
-    while (mfp != NULL) {
-      nxt = mfp->next;
-      mfree(csound, mfp->beginp);       /*   free the space */
-      mfree(csound, mfp);
-      mfp = nxt;
-    }
-    csound->memfiles = NULL;
-}
-
-int delete_memfile(CSOUND *csound, const char *filnam)
-{
-    MEMFIL  *mfp, *prv;
-
-    prv = NULL;
-    mfp = csound->memfiles;
-    while (mfp != NULL) {
-      if (strcmp(mfp->filename, filnam) == 0)
-        break;
-      prv = mfp;
-      mfp = mfp->next;
-    }
-    if (mfp == NULL)
-      return -1;
-    if (prv == NULL)
-      csound->memfiles = mfp->next;
-    else
-      prv->next = mfp->next;
-    mfree(csound, mfp->beginp);
-    mfree(csound, mfp);
-    return 0;
 }
 
  /* ------------------------------------------------------------------------ */

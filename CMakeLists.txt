@@ -660,6 +660,7 @@ set(libcsound_SRCS
     Engine/memalloc.c
     Engine/memalloc_internal.c
     Engine/memfiles.c
+    Engine/memfiles_internal.c
     Engine/musmon.c
     Engine/namedins.c
     Engine/namedins_public.c
