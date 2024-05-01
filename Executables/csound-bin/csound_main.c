@@ -36,7 +36,7 @@
 #endif
 #define IGN(x) (void) x
 #if defined(__gnu_linux__) && !(defined(__ANDROID__))
-extern int set_rt_priority(int argc, const char **argv);
+#include "sched.h"
 #endif
 
 static FILE *logFile = NULL;
