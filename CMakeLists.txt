@@ -664,6 +664,7 @@ set(libcsound_SRCS
     Engine/musmon.c
     Engine/namedins.c
     Engine/namedins_public.c
+    Engine/parse_param.c
     Engine/rdscor.c
     Engine/scsort.c
     Engine/scxtract.c
