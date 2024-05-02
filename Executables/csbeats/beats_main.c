@@ -25,6 +25,7 @@
 #include <string.h>
 #include <time.h>
 #include "beats.h"
+#include "beats_main.h"
 
 FILE *myout;
 extern FILE *yyin;

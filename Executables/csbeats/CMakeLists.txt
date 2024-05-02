@@ -10,7 +10,7 @@ if(BUILD_CSBEATS)
     ADD_FLEX_BISON_DEPENDENCY(csbeats_SCANNER csbeats_PARSER)
 
     set(csbeats_SRCS 
-        main.c
+        beats_main.c
         ${FLEX_csbeats_SCANNER_OUTPUTS}
         ${BISON_csbeats_PARSER_OUTPUTS}
     )

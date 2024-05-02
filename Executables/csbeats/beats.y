@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "beats.h"
+#include "beats_main.h"
 
     int last_note;
     int last_integer;
