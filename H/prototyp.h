@@ -28,7 +28,6 @@
 extern "C" {
 #endif
 
-void    cscore_(CSOUND *);
 char    *cs_strndup(CSOUND*, char*, size_t);
 CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
 void    csoundErrorMsgS(CSOUND *, int attr, const char *, ...);

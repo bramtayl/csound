@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include "gtest/gtest.h"
 #include "csound.h"
-extern "C" {
-  #include "cscore.h"
-}
+#include "cscore.h"
 
 void cscore(CSOUND *cs)
 {

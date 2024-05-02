@@ -1032,20 +1032,6 @@ typedef struct instr {
   PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 
   /**
-   * Prepares an instance of Csound for Cscore
-   * processing outside of running an orchestra (i.e. "standalone Cscore").
-   * It is an alternative to csoundCompile(), and
-   * csoundPerform*() and should not be used with these functions.
-   * You must call this function before using the interface in "cscore.h"
-   * when you do not wish to compile an orchestra.
-   * Pass it the already open FILE* pointers to the input and
-   * output score files.
-   * It returns CSOUND_SUCCESS on success and CSOUND_INITIALIZATION or other
-   * error code if it fails.
-   */
-  PUBLIC int csoundInitializeCscore(CSOUND *, FILE *insco, FILE *outsco);
-
-  /**
    *  Read arguments, parse and compile an orchestra, read, process and
    *  load a score.
    */

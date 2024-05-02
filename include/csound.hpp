@@ -44,6 +44,7 @@
 #ifdef __BUILDING_CSOUND_INTERFACES
 #endif
 #endif
+#include "cscore.h"
 
 #ifdef SWIGPYTHON
 #define MESSAGE_BUFFER_LENGTH 8192

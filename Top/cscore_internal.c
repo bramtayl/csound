@@ -22,6 +22,7 @@
 */
 
 #include "cscore.h"                              /*  CSCORE_DEFAULT.C   */
+#include "cscore_internal.h"
 
 void cscore_(CSOUND *cs)  /* callable from Csound or standalone cscore  */
                           /* csound -C will run Csound scores as normal */

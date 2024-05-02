@@ -42,6 +42,7 @@
 #include "linevent.h"
 #include "memfiles_internal.h"
 #include "rdscor_internal.h"
+#include "cscore.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
