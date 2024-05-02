@@ -26,6 +26,9 @@
 #include "csound_orc.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "csound_orc_semantics.h"
+#include "aops.h"
+#include "csound_orc_optimize.h"
 
 extern void print_tree(CSOUND *csound, char*, TREE *l);
 extern void delete_tree(CSOUND *csound, TREE *l);

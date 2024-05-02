@@ -28,6 +28,7 @@
 #include "corfile.h"
 #include "score_param.h"
 #include "memalloc.h"
+#include "csound_orc_optimize.h"
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
@@ -64,7 +65,6 @@ extern int csound_orclex_destroy(void *);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
-extern TREE* csound_orc_optimize(CSOUND *, TREE *);
 //extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
 extern void csp_orc_sa_print_list(CSOUND*);
 
