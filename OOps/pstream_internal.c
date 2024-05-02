@@ -28,6 +28,7 @@
 
 #include "csoundCore_internal.h"
 #include "pstream.h"
+#include "pstream_internal.h"
 #include "pvfileio.h"
 #include "rdscor.h"
 #include "namedins_public.h"
@@ -35,6 +36,7 @@
 #include "auxfd.h"
 #include "memfiles.h"
 #include "insert_public.h"
+#include "text.h"
 
 #ifdef _DEBUG
 #include <assert.h>

@@ -27,6 +27,7 @@
 #include "fgens.h"
 #include "linevent.h"
 #include "goto_ops.h"
+#include "pstream_internal.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
@@ -884,14 +885,14 @@ OENTRY opcodlst_1[] = {
   { "init.f",   S(FASSIGN),0, 1,    "f",   "f", (SUBR)fassign_set, NULL, NULL, NULL},
   { "pvsanal",  S(PVSANAL), 0, 3,   "f",   "aiiiioo", pvsanalset, pvsanal, NULL, NULL},
   { "pvsynth",  S(PVSYNTH),0, 3,    "a",   "fo",     pvsynthset, pvsynth, NULL, NULL},
-  { "pvsadsyn", S(PVADS),0,   3,    "a",   "fikopo", pvadsynset, pvadsyn, NULL, NULL},
-  { "pvscross", S(PVSCROSS),0,3,    "f",   "ffkk",   pvscrosset, pvscross, NULL, NULL},
-  { "pvsfread", S(PVSFREAD),0,3,    "f",   "kSo",    pvsfreadset_S, pvsfread, NULL, NULL},
-  { "pvsfread.i", S(PVSFREAD),0,3,  "f",   "kio",    pvsfreadset, pvsfread, NULL, NULL},
-  { "pvsmaska", S(PVSMASKA),0,3,    "f",   "fik",    pvsmaskaset, pvsmaska, NULL, NULL},
-  { "pvsftw",   S(PVSFTW),  TW, 3,  "k",   "fio",    pvsftwset, pvsftw, NULL, NULL},
-  { "pvsftr",   S(PVSFTR),TR, 3,    "",    "fio",    pvsftrset, pvsftr, NULL, NULL},
-  { "pvsinfo",  S(PVSINFO),0, 1,    "iiii","f",      pvsinfo, NULL, NULL, NULL},
+  { "pvsadsyn", S(PVADS),0,   3,    "a",   "fikopo", (SUBR)pvadsynset, (SUBR)pvadsyn, NULL, NULL},
+  { "pvscross", S(PVSCROSS),0,3,    "f",   "ffkk",   (SUBR)pvscrosset, (SUBR)pvscross, NULL, NULL},
+  { "pvsfread", S(PVSFREAD),0,3,    "f",   "kSo",    (SUBR)pvsfreadset_S, (SUBR)pvsfread, NULL, NULL},
+  { "pvsfread.i", S(PVSFREAD),0,3,  "f",   "kio",    (SUBR)pvsfreadset, (SUBR)pvsfread, NULL, NULL},
+  { "pvsmaska", S(PVSMASKA),0,3,    "f",   "fik",    (SUBR)pvsmaskaset, (SUBR)pvsmaska, NULL, NULL},
+  { "pvsftw",   S(PVSFTW),  TW, 3,  "k",   "fio",    (SUBR)pvsftwset, (SUBR)pvsftw, NULL, NULL},
+  { "pvsftr",   S(PVSFTR),TR, 3,    "",    "fio",    (SUBR)pvsftrset, (SUBR)pvsftr, NULL, NULL},
+  { "pvsinfo",  S(PVSINFO),0, 1,    "iiii","f",      (SUBR)pvsinfo, NULL, NULL, NULL},
   { "octave.i", S(EVAL),0,    1,    "i",    "i",     powoftwo, NULL, NULL, NULL},
   { "octave.k", S(EVAL),0,    2,    "k",    "k",     NULL,  powoftwo, NULL, NULL},
   { "octave.a", S(EVAL),0,    2,    "a",    "a",     NULL, powoftwoa, NULL, NULL},

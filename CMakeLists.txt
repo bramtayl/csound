@@ -706,7 +706,7 @@ set(libcsound_SRCS
     OOps/midiout.c
     OOps/mxfft.c
     OOps/oscils.c
-    OOps/pstream.c
+    OOps/pstream_internal.c
     OOps/pvfileio.c
     OOps/pvsanal.c
     OOps/random.c
