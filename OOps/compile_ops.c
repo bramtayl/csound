@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include "memalloc.h"
 #include "insert_public.h"
+#include "csound_orc_compile.h"
 
-int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
 
 int32_t compile_orc_i(CSOUND *csound, COMPILE *p){

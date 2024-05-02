@@ -109,6 +109,5 @@ typedef struct score_parm_s {
 } SCORE_PARM;
 
 uint64_t make_slocation(PRS_PARM *);
-extern uint8_t file_to_int(CSOUND*, const char*);
 
 #endif

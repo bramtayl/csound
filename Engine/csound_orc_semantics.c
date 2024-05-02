@@ -38,6 +38,7 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "find_opcode.h"
+#include "csound_orc_compile.h"
 
 extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);
@@ -48,8 +49,6 @@ extern  int tree_arg_list_count(TREE *);
 void print_tree(CSOUND *, char *, TREE *);
 
 /* from csound_orc_compile.c */
-extern int argsRequired(char* arrayName);
-extern char** splitArgs(CSOUND* csound, char* argString);
 extern int pnum(char*);
 
 char* resolve_opcode_get_outarg(CSOUND* csound,

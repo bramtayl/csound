@@ -32,6 +32,7 @@
 #include "csound_orc_semantics_public.h"
 #include "envvar_public.h"
 #include "libsnd_u.h"
+#include "csound_orc_compile.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 CS_NORETURN void    dieu(CSOUND *, char *, ...);
@@ -46,7 +47,6 @@ CS_NORETURN void    dieu(CSOUND *, char *, ...);
 //void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 //void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
  void csoundInputMessageInternal(CSOUND *csound, const char *message);
- int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 
 static void checkOptions(CSOUND *csound)
 {

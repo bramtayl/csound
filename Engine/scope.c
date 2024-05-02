@@ -2,8 +2,8 @@
 #include "corfile.h"
 #include "score_param.h"
 #include "memalloc.h"
+#include "csound_orc_compile.h"
 
-extern uint8_t file_to_int(CSOUND*, const char*);
 int scope(CSOUND *csound)
 {
 extern void print_csound_prsdata(void *);

@@ -37,6 +37,7 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "find_opcode.h"
+#include "csound_orc_compile.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
@@ -49,9 +50,6 @@
 #define namedInstrFlag csound->parserNamedInstrFlag
 
 extern int csound_orcget_lineno(void*);
-
-/* from csound_orc_compile.c */
-extern char** splitArgs(CSOUND* csound, char* argString);
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {

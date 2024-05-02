@@ -44,6 +44,7 @@
 #include "auxfd_internal.h"
 #include "insert_public.h"
 #include "fgens.h"
+#include "csound_orc_compile.h"
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -51,7 +52,6 @@ static  void    schedofftim(CSOUND *, INSDS *);
 void    beatexpire(CSOUND *, double);
 void    timexpire(CSOUND *, double);
 static  void    instance(CSOUND *, int);
-extern int argsRequired(char* argString);
 static int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn,
                        MEVENT *mep);
 static int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp);

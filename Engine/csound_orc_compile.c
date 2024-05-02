@@ -23,6 +23,8 @@
   02110-1301 USA
 */
 
+#include "csound_orc_compile.h"
+
 #include "csoundCore_internal.h"
 #include "csound_orc.h"
 #include "parse_param.h"
@@ -41,6 +43,9 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "find_opcode.h"
+#include "text.h"
+#include "auxfd_internal.h"
+#include "csmodule.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
 void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
@@ -50,11 +55,9 @@ static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
 static void insprep(CSOUND *, INSTRTXT *, ENGINE_STATE *engineState);
 static void lgbuild(CSOUND *, INSTRTXT *, char *, int inarg,
                     ENGINE_STATE *engineState);
-int pnum(char *s);
 static void unquote_string(char *, const char *);
 void print_tree(CSOUND *, char *, TREE *);
 void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip);
-char argtyp2(char *s);
 void debugPrintCsound(CSOUND *csound);
 
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
@@ -2333,7 +2336,6 @@ char argtyp2(char *s) { /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
 
 /* For diagnostics map file name or macro name to an index */
 uint8_t file_to_int(CSOUND *csound, const char *name) {
-  // extern char *strdup(const char *);
   uint8_t n = 0;
   char **filedir = csound->filedir;
   while (n < 255 && filedir[n] && n < 255) { /* Do we have it already? */

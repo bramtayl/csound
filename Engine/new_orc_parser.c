@@ -29,6 +29,7 @@
 #include "score_param.h"
 #include "memalloc.h"
 #include "csound_orc_optimize.h"
+#include "csound_orc_compile.h"
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>

@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "csound_orc_compile.h"
 
 #ifdef USE_DOUBLE
 #  define MYFLT_INT_TYPE int64_t
@@ -36,8 +37,6 @@
 
 int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
                                int mode, int allow_release, int async);
-int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async);
-int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE* typetable, OPDS *ids);
 void killInstance(CSOUND *csound, MYFLT instr, int insno, INSDS *ip,
