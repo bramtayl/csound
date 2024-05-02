@@ -63,7 +63,6 @@
 
 #define S(x)    sizeof(x)
 
-int32_t ihold(CSOUND *, void *), turnoff(CSOUND *, void *);
 int32_t gaassign(CSOUND *, void *), rassign(CSOUND *, void *);
 int32_t aassign(CSOUND *, void *), laassign(CSOUND *, void *);
 int32_t assign(CSOUND *, void *);
@@ -243,12 +242,7 @@ int32_t outq3(CSOUND *, void *), outq4(CSOUND *, void *);
 /* int32_t outh(CSOUND *, void *), outo(CSOUND *, void *); */
 /* int32_t outx(CSOUND *, void *), outX(CSOUND *, void *); */
 int32_t outch(CSOUND *, void *), outall(CSOUND *, void *);
-int32_t igoto(CSOUND *, void *), kgoto(CSOUND *, void *);
-int32_t icgoto(CSOUND *, void *), kcgoto(CSOUND *, void *);
-int32_t timset(CSOUND *, void *), timout(CSOUND *, void *);
-int32_t reinit(CSOUND *, void *), rigoto(CSOUND *, void *);
-int32_t rireturn(CSOUND *, void *), tigoto(CSOUND *, void *);
-int32_t tival(CSOUND *, void *), printv(CSOUND *, void *);
+int32_t printv(CSOUND *, void *);
 int32_t dspset(CSOUND *, void *), kdsplay(CSOUND *, void *);
 int32_t fdspset(CSOUND *, void *), fdsplay(CSOUND *, void *);
 int32_t dsplay(CSOUND *, void *), fftset(CSOUND *, void *);
@@ -394,11 +388,8 @@ int32_t subinstrset(CSOUND *, void *), subinstr(CSOUND *, void *);
 int32_t useropcdset(CSOUND *, void *), useropcd(CSOUND *, void *);
 int32_t setksmpsset(CSOUND *, void *);
 int32_t xinset(CSOUND *, void *), xoutset(CSOUND *, void *);
-int32_t ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
-int32_t nstrnumset(CSOUND *, void *), turnoff2k(CSOUND *, void *);
+int32_t nstrnumset(CSOUND *, void *);
 int32_t nstrnumset_S(CSOUND *, void *), nstrstr(CSOUND *, void *);
-int32_t turnoff2S(CSOUND *, void *) ;
-int32_t turnoff3S(CSOUND *, void *), turnoff3k(CSOUND *, void *);
 int32_t savectrl_init(CSOUND*, void*), savectrl_perf(CSOUND*, void*);
 int32_t printctrl(CSOUND*, void*);
 int32_t printctrl_init(CSOUND*, void*), printctrl_init1(CSOUND*, void*);
@@ -407,10 +398,6 @@ int32_t presetctrl1_init(CSOUND*, void*), presetctrl1_perf(CSOUND*, void*);
 int32_t selectctrl_init(CSOUND*, void*), selectctrl_perf(CSOUND*, void*);
 int32_t printpresets_init(CSOUND*, void*), printpresets_init1(CSOUND*, void*);
 int32_t printpresets_perf(CSOUND*, void*);
-int32_t loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
-int32_t loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
-int32_t loop_l_p(CSOUND *, void *), loop_le_p(CSOUND *, void *);
-int32_t loop_g_p(CSOUND *, void *), loop_ge_p(CSOUND *, void *);
 int32_t delete_instr(CSOUND *, void *);
 int32_t insremot(CSOUND *, void *), insglobal(CSOUND *, void *);
 int32_t midremot(CSOUND *, void *), midglobal(CSOUND *, void *);

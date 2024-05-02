@@ -30,6 +30,8 @@
 #include "namedins_public.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "goto_ops.h"
 
 int32_t igoto(CSOUND *csound, GOTO *p)
 {
