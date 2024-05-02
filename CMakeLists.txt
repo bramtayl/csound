@@ -792,6 +792,7 @@ set(libcsound_SRCS
     Top/new_opts.c
     Top/one_file.c
     Top/opcode.c
+    Top/opcode_internal.c
     Top/threads.c
     Top/utility.c
     Top/threadsafe.c

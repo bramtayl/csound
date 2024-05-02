@@ -2333,19 +2333,6 @@ typedef struct instr {
   PUBLIC void *csoundGetNamedGens(CSOUND *);
 
   /**
-   * Gets an alphabetically sorted list of all opcodes.
-   * Should be called after externals are loaded by csoundCompile().
-   * Returns the number of opcodes, or a negative error code on failure.
-   * Make sure to call csoundDisposeOpcodeList() when done with the list.
-   */
-  PUBLIC int csoundNewOpcodeList(CSOUND *, opcodeListEntry **opcodelist);
-
-  /**
-   * Releases an opcode list.
-   */
-  PUBLIC void csoundDisposeOpcodeList(CSOUND *, opcodeListEntry *opcodelist);
-
-  /**
    * Appends an opcode implemented by external software
    * to Csound's internal opcode list.
    * The opcode list is extended by one slot,

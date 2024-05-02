@@ -29,6 +29,7 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "envvar_public.h"
+#include "opcode_internal.h"
 
 static void list_audio_devices(CSOUND *csound, int output);
 static void list_midi_devices(CSOUND *csound, int output);

@@ -38,7 +38,6 @@ void    scsort(CSOUND *, FILE *, FILE *);
 char    *scsortstr(CSOUND *, CORFIL *);
 int     scxtract(CSOUND *, CORFIL *, FILE *);
 int     musmon(CSOUND *);
-void    list_opcodes(CSOUND *, int);
 #if 0
 int     readOptions_file(CSOUND *, FILE *, int);
 #else
