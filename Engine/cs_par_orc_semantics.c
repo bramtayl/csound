@@ -35,6 +35,7 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "find_opcode.h"
+#include "text.h"
 
 /***********************************************************************
  * static function prototypes

@@ -1981,7 +1981,7 @@ if (engineState != &csound->engineState) {
 #ifdef EMSCRIPTEN
 void sanitize(CSOUND *csound) {}
 #else
-extern void sanitize(CSOUND *csound);
+#include "cs_par_orc_semantics.h"
 #endif
 
 /**

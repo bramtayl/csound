@@ -1083,7 +1083,7 @@ if(BUILD_MULTI_CORE)
     list(APPEND libcsound_SRCS
         Engine/cs_new_dispatch.c
         Engine/cs_par_base.c
-        Engine/cs_par_orc_semantic_analysis.c)
+        Engine/cs_par_orc_semantics.c)
 
     target_compile_definitions(libcsound_internals INTERFACE "PARCS")
 
