@@ -998,7 +998,7 @@ list(APPEND libcsound_SRCS
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
     Engine/new_orc_parser.c
-    Engine/symbtab.c)
+    Engine/tok.c)
 
 set_source_files_properties(${YACC_OUT} GENERATED)
 set_source_files_properties(${YACC_OUTH} GENERATED)

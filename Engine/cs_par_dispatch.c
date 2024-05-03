@@ -37,7 +37,6 @@
 /***********************************************************************
  * external prototypes not in headers
  */
-extern ORCTOKEN *lookup_token(CSOUND *csound, char *);
 extern void print_tree(CSOUND *, char *, TREE *);
 
 /***********************************************************************

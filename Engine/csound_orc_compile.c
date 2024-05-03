@@ -46,6 +46,7 @@
 #include "text.h"
 #include "auxfd_internal.h"
 #include "csmodule.h"
+#include "tok.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
 void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);

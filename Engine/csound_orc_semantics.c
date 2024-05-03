@@ -39,6 +39,7 @@
 #include "csound_orc_semantics_public.h"
 #include "find_opcode.h"
 #include "csound_orc_compile.h"
+#include "tok.h"
 
 extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);
@@ -59,8 +60,6 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
 
-extern int add_udo_definition(CSOUND *csound, char *opname,
-                              char *outtypes, char *intypes, int flags);
 extern TREE * create_opcode_token(CSOUND *csound, char* op);
 int is_reserved(char*);
 

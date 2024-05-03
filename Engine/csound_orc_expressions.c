@@ -30,6 +30,7 @@
 #include <inttypes.h>
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "tok.h"
 
 extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);
