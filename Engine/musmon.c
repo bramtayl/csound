@@ -43,6 +43,7 @@
 #include "memfiles_internal.h"
 #include "rdscor_internal.h"
 #include "cscore.h"
+#include "libsnd_u_internal.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG

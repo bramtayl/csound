@@ -52,7 +52,6 @@ void    xturnoff_now(CSOUND *, INSDS *);
 //MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
 void    rlsmemfiles(CSOUND *);
 char    *csoundTmpFileName(CSOUND *, const char *);
-void    dbfs_init(CSOUND *, MYFLT dbfs);
 int     csoundLoadExternals(CSOUND *);
 void    print_opcodedir_warning(CSOUND *);
 int     check_rtaudio_name(char *fName, char **devName, int isOutput);

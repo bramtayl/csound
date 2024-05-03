@@ -682,6 +682,7 @@ set(libcsound_SRCS
     InOut/soundfile.c
     InOut/libsnd.c
     InOut/libsnd_u.c
+    InOut/libsnd_u_internal.c
     InOut/midifile.c
     InOut/midirecv.c
     InOut/midisend.c
