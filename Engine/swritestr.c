@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "corfile.h"
+#include "sread.h"
 
 static SRTBLK *nxtins(SRTBLK *), *prvins(SRTBLK *);
 static char   *pfout(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);
@@ -317,7 +318,6 @@ static char *ramp(CSOUND *csound, SRTBLK *bp, char *p,
     char    *psav;
     SRTBLK  *prvbp, *nxtbp;
     MYFLT   pval, qval, rval, p2span;
-    extern  MYFLT stof(CSOUND *, char *);
     int     pnum, n;
 
     psav = ++p;
@@ -383,7 +383,6 @@ static char *expramp(CSOUND *csound, SRTBLK *bp, char *p,
     SRTBLK  *prvbp, *nxtbp;
     MYFLT   pval, qval, rval;
     double  p2span;
-    extern  MYFLT stof(CSOUND *, char *);
     int     pnum, n;
 
     psav = ++p;
@@ -451,7 +450,6 @@ static char *randramp(CSOUND *csound, SRTBLK *bp, char *p,
     char    *psav;
     SRTBLK  *prvbp, *nxtbp;
     MYFLT   pval, qval, rval;
-    extern  MYFLT stof(CSOUND *, char *);
     int     pnum, n;
 
     psav = ++p;

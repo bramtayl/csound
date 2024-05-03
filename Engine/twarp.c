@@ -23,6 +23,7 @@
 
 #include "csoundCore_internal.h"                               /*    TWARP.C  */
 #include "memalloc.h"
+#include "sread.h"
 
 typedef struct {
     MYFLT   betbas;
@@ -95,7 +96,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
 {
     char    *p;
     char    c;
-    MYFLT   tempo, betspan, durbas, avgdur, stof(CSOUND *, char *);
+    MYFLT   tempo, betspan, durbas, avgdur;
     TSEG    *tp, *prvtp;
     TSEG    *tseg = (TSEG*)csound->tseg;
 

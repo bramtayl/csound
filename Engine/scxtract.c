@@ -25,17 +25,13 @@
 #include "corfile.h"
 #include "extract.h"
 #include "memalloc.h"
+#include "sread.h"
 
-extern void sfree(CSOUND *csound);
-extern int  sread(CSOUND *csound);
-//extern void sread_init(CSOUND *csound);
 extern void swritestr(CSOUND *csound, CORFIL *sco, int first);
 
 /* called from xmain.c or some other main */
 /*   extracts events from each score sect */
 /*   according to the controlling xfile   */
-
-extern void sread_initstr(CSOUND *, CORFIL *sco);
 
 int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
 {
