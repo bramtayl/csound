@@ -119,7 +119,7 @@ int             closedir(DIR*);
 #endif
 
 #if defined(INIT_STATIC_MODULES)
-extern int init_static_modules(CSOUND *);
+#include "init_static_modules.h"
 #endif
 
 /* module interface function names */

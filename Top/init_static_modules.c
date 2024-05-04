@@ -23,6 +23,7 @@
 
 #include "csoundCore_internal.h"
 #include "csmodule.h"
+#include "init_static_modules.h"
 
 /* Do not declare these in header files; just define them in the module file
  * as extern "C", and declare them here as extern.
