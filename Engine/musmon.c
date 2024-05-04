@@ -44,14 +44,13 @@
 #include "rdscor_internal.h"
 #include "cscore.h"
 #include "libsnd_u_internal.h"
+#include "midirecv.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
 
 int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
   int     insert(CSOUND *, int, EVTBLK*);
-  void    MidiOpen(CSOUND *);
-  void    m_chn_init_all(CSOUND *);
 //  char *  scsortstr(CSOUND *, CORFIL *);
   void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
   void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
@@ -994,8 +993,6 @@ static int process_rt_event(CSOUND *csound, int sensType)
 }
 
 #define RNDINT64(x) ((int64_t) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
-
-extern  int     sensMidi(CSOUND *);
 
 /* sense events for one k-period            */
 /* return value is one of the following:    */
