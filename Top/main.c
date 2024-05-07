@@ -34,6 +34,7 @@
 #include "libsnd_u.h"
 #include "csound_orc_compile.h"
 #include "one_file.h"
+#include "scsort.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 CS_NORETURN void    dieu(CSOUND *, char *, ...);

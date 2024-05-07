@@ -25,7 +25,9 @@
 #include "corfile.h"
 #include <ctype.h>
 #include "csound_orc_semantics_public.h"
+#include "scsort.h"
 #include "sread.h"
+#include "sort.h"
 
 extern void sort(CSOUND*);
 extern void twarp(CSOUND*);

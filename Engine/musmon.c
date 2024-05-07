@@ -46,6 +46,7 @@
 #include "libsnd_u_internal.h"
 #include "midirecv.h"
 #include "midisend.h"
+#include "scsort.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
