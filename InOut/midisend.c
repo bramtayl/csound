@@ -26,6 +26,8 @@
 #include "midioops.h"
 #include "memalloc.h"
 #include "envvar_public.h"
+#include "text.h"
+#include "midisend.h"
 
 typedef struct midiOutFile_s {
     FILE            *f;

@@ -37,7 +37,6 @@
 #define NUMCHN          (16)
 #define EXTRA_TIME      (1)
 
-extern void openMIDIout(CSOUND *);
 /* static MYFLT   invkr; */
 void note_on(CSOUND *, int32_t chan, int32_t num, int32_t vel);
 void note_off(CSOUND *, int32_t chan, int32_t num, int32_t vel);
