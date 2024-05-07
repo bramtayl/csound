@@ -87,6 +87,7 @@
 #include "memfiles_internal.h"
 #include "cscore_internal.h"
 #include "libsnd_u_internal.h"
+#include "one_file.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));

@@ -38,20 +38,12 @@ void    scsort(CSOUND *, FILE *, FILE *);
 char    *scsortstr(CSOUND *, CORFIL *);
 int     scxtract(CSOUND *, CORFIL *, FILE *);
 int     musmon(CSOUND *);
-#if 0
-int     readOptions_file(CSOUND *, FILE *, int);
-#else
-int     readOptions(CSOUND *, CORFIL *, int);
-#endif
 PUBLIC int     argdecode(CSOUND *, int, const char **);
-void    remove_tmpfiles(CSOUND *);
-void    add_tmpfile(CSOUND *, char *);
 void    xturnoff(CSOUND *, INSDS *);
 void    xturnoff_now(CSOUND *, INSDS *);
 //MEMFIL  *ldmemfile(CSOUND *, const char *);
 //MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
 void    rlsmemfiles(CSOUND *);
-char    *csoundTmpFileName(CSOUND *, const char *);
 int     csoundLoadExternals(CSOUND *);
 void    print_opcodedir_warning(CSOUND *);
 int     check_rtaudio_name(char *fName, char **devName, int isOutput);

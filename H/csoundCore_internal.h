@@ -179,15 +179,6 @@ typedef struct threadInfo {
 #define CS_STATE_CLN (8)
 #define CS_STATE_JMP (16)
 
-/* These are used to set/clear bits in csound->tempStatus.
-   If the bit is set, it indicates that the given file is
-   a temporary. */
-extern const uint32_t csOrcMask;
-extern const uint32_t csScoInMask;
-extern const uint32_t csScoSortMask;
-extern const uint32_t csMidiScoMask;
-extern const uint32_t csPlayScoMask;
-
 #ifdef PARCS
 int nodePerf(CSOUND *csound, int index, int numThreads);
 #endif
