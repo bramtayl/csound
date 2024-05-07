@@ -1,7 +1,7 @@
 /*
-  haiku_midi.h:
+  haiku_audio.hpp:
 
-  Haiku MIDI Interface
+  Haiku Audio Interface
   -- Caution -- things may change...
 
   Copyright (C) 2012 Peter J. Goodeve
@@ -26,34 +26,28 @@
 */
 
 
-#ifndef _HAIKU_MIDI
-#define _HAIKU_MIDI
+#ifndef _HAIKU_AUDIO
+#define _HAIKU_AUDIO
 
+#include "sysdep.h"
 
-class MidiIn {
+class Generator {
  public:
-        MidiIn(const char *name);
-        ~MidiIn();
-        uint32 GetEvent();
+        Generator(float sampleRate, int nchans, size_t bufferSize,
+                  int32 sampleSize);
+;       ~Generator();
+        int RunAudio();
 
-        const char *nodename;
-        class BMidiProducer *extSource;
+        size_t mBufSize;      // in bytes (= samples * chans * floatsize)
+        float mFrameRate;
+        int mChans;
+        int32 mSampleSize;
+        double *mDataBuf;     // filled by rtplay_, cleared afer copy
+        size_t mXferSize;     // actual source size in bytes (may be less than full)
+        sem_id cs_sem;        // to be waited on by Csound
+
 private:
-        class MidiInHandler *handler;
+        struct Generator_Private * state;
 };
-
-struct MidiEvent {
-        uint8 nbytes, status, data1, data2;
-        MidiEvent(uint8 n, uint8 s=0, uint8 d1=0, uint8 d2=0) :
-                nbytes(n), status(s), data1(d1), data2(d2) {}
-        MidiEvent(uint32 seq) {*(uint32 *)&nbytes = seq;}
-        int Size() {return nbytes;}
-        uint8 * Bytes() {return (uint8 *)&status;}
-        operator uint32() {return *(uint32 *)&nbytes;}
-        operator uint8 *() {return (uint8 *)&nbytes;}
-        MidiEvent& operator = (uint32 seq)
-                        {*(uint32 *)&nbytes = seq; return *this;}
-};
-
 
 #endif
