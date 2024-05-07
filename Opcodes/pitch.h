@@ -3,7 +3,7 @@
 /*
     pitch.h:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker,
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubï¿½cker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
@@ -295,7 +295,6 @@ int32_t mac(CSOUND *, SUM *p);
 int32_t maca(CSOUND *, SUM *p);
 int32_t macset(CSOUND *, SUM *p);
 int32_t maxalloc(CSOUND *, CPU_PERC *p);
-int32_t mute_inst(CSOUND *, MUTE *p);
 int32_t maxalloc_S(CSOUND *, CPU_PERC *p);
 int32_t mute_inst_S(CSOUND *, MUTE *p);
 int32_t pfun(CSOUND *, PFUN *p);
