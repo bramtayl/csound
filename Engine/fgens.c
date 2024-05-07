@@ -43,6 +43,7 @@
 #include "insert_public.h"
 #include "libsnd_u.h"
 #include "text.h"
+#include "pvsanal.h"
 
 static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);

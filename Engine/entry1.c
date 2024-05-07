@@ -29,6 +29,7 @@
 #include "goto_ops.h"
 #include "pstream_internal.h"
 #include "midiops_internal.h"
+#include "pvsanal.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
@@ -884,8 +885,8 @@ OENTRY opcodlst_1[] = {
     (SUBR)reverbx_set,(SUBR) reverbx, NULL, NULL},
   { "=.f",      S(FASSIGN),0, 3,    "f",   "f", (SUBR)fassign_set, (SUBR)fassign, NULL, NULL},
   { "init.f",   S(FASSIGN),0, 1,    "f",   "f", (SUBR)fassign_set, NULL, NULL, NULL},
-  { "pvsanal",  S(PVSANAL), 0, 3,   "f",   "aiiiioo", pvsanalset, pvsanal, NULL, NULL},
-  { "pvsynth",  S(PVSYNTH),0, 3,    "a",   "fo",     pvsynthset, pvsynth, NULL, NULL},
+  { "pvsanal",  S(PVSANAL), 0, 3,   "f",   "aiiiioo", (SUBR)pvsanalset, (SUBR)pvsanal, NULL, NULL},
+  { "pvsynth",  S(PVSYNTH),0, 3,    "a",   "fo",     (SUBR)pvsynthset, (SUBR)pvsynth, NULL, NULL},
   { "pvsadsyn", S(PVADS),0,   3,    "a",   "fikopo", (SUBR)pvadsynset, (SUBR)pvadsyn, NULL, NULL},
   { "pvscross", S(PVSCROSS),0,3,    "f",   "ffkk",   (SUBR)pvscrosset, (SUBR)pvscross, NULL, NULL},
   { "pvsfread", S(PVSFREAD),0,3,    "f",   "kSo",    (SUBR)pvsfreadset_S, (SUBR)pvsfread, NULL, NULL},

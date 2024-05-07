@@ -329,8 +329,6 @@ int32_t trigseq_set(CSOUND *, void *), trigseq(CSOUND *, void *);
 int32_t kill_instance(CSOUND *csound, void *p);
 int32_t lfoset(CSOUND *, void *);
 int32_t lfok(CSOUND *, void *), lfoa(CSOUND *, void *);
-int32_t pvsanalset(CSOUND *, void *), pvsanal(CSOUND *, void *);
-int32_t pvsynthset(CSOUND *, void *), pvsynth(CSOUND *, void *);
 int32_t gettempo(CSOUND *, void *);
 int32_t loopseg_set(CSOUND *, void *);
 int32_t loopseg(CSOUND *, void *), lpshold(CSOUND *, void *);

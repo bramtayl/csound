@@ -23,8 +23,6 @@
 
 #pragma once
 
-double besseli(double);
-
 /* returns 0 on success, -1 if there are insufficient arguments, */
 /* and -2 in the case of an unknown distribution */
 int32_t gen21_rand(FGDATA *ff, FUNC *ftp);

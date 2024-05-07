@@ -32,8 +32,10 @@
 #include "fftlib.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "fgens_public.h"
+#include "text.h"
+#include "pvsanal.h"
 
-        double  besseli(double x);
 static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);
 static  void    vonhann(MYFLT *win, int32_t winLen, int32_t even);
 
