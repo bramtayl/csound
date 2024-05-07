@@ -23,6 +23,7 @@
 */
 
 #include "csoundCore_internal.h"                                 /*      MIDIOPS.C   */
+#include "midiops_internal.h"
 #include "midiops.h"
 #include <math.h>
 #include <time.h>

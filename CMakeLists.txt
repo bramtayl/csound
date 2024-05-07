@@ -703,7 +703,7 @@ set(libcsound_SRCS
     OOps/pffft.c
     OOps/goto_ops.c
     OOps/midiinterop.c
-    OOps/midiops.c
+    OOps/midiops_internal.c
     OOps/midiout.c
     OOps/mxfft.c
     OOps/oscils.c
