@@ -28,9 +28,9 @@
 #include "scsort.h"
 #include "sread.h"
 #include "sort.h"
+#include "twarp.h"
 
 extern void sort(CSOUND*);
-extern void twarp(CSOUND*);
 extern void swritestr(CSOUND*, CORFIL *sco, int first);
 
 /* called from smain.c or some other main */

@@ -23,6 +23,8 @@
 
 #include "csoundCore_internal.h"                               /*    TWARP.C  */
 #include "memalloc.h"
+#include "text.h"
+#include "twarp.h"
 #include "sread.h"
 
 typedef struct {
@@ -31,9 +33,6 @@ typedef struct {
     MYFLT   durbas;
     MYFLT   timbas;
 } TSEG;
-
-int     realtset(CSOUND *, SRTBLK *);
-MYFLT   realt(CSOUND *, MYFLT);
 
 void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
 {
