@@ -31,6 +31,7 @@
 #include "envvar_public.h"
 #include "opcode_internal.h"
 #include "one_file.h"
+#include "libsnd_internal.h"
 
 static void list_audio_devices(CSOUND *csound, int output);
 static void list_midi_devices(CSOUND *csound, int output);
@@ -508,9 +509,6 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { "mpc2k",  TYP_MPC2K },  { "rf64",   TYP_RF64  },
     { NULL , -1 }
 };
-
-extern void sfopenout(CSOUND *csound);
-extern void sfcloseout(CSOUND *csound);
 
 static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 {

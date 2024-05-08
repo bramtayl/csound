@@ -37,6 +37,7 @@
 #include "csound_orc_semantics_public.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "libsnd_internal.h"
 
 #define STRSMAX 8
 

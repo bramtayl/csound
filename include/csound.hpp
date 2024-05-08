@@ -46,6 +46,7 @@
 #endif
 #include "cscore.h"
 #include "opcode.h"
+#include "libsnd.h"
 
 #ifdef SWIGPYTHON
 #define MESSAGE_BUFFER_LENGTH 8192

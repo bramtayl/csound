@@ -45,7 +45,6 @@ void    xturnoff_now(CSOUND *, INSDS *);
 void    rlsmemfiles(CSOUND *);
 int     csoundLoadExternals(CSOUND *);
 void    print_opcodedir_warning(CSOUND *);
-int     check_rtaudio_name(char *fName, char **devName, int isOutput);
 int     csoundLoadOpcodeDB(CSOUND *, const char *);
 void    csoundDestroyOpcodeDB(CSOUND *);
 int     csoundCheckOpcodePluginFile(CSOUND *, const char *);

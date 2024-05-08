@@ -47,6 +47,7 @@
 #include "midirecv.h"
 #include "midisend.h"
 #include "scsort.h"
+#include "libsnd_internal.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
@@ -56,8 +57,6 @@ int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
 //  char *  scsortstr(CSOUND *, CORFIL *);
   void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
   void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
-  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
-  void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
   void    MidiClose(CSOUND *);
   void    RTclose(CSOUND *);
   void    remote_Cleanup(CSOUND *);

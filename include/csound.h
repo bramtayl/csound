@@ -1448,20 +1448,6 @@ typedef struct instr {
   PUBLIC long csoundGetOutputBufferSize(CSOUND *);
 
   /**
-   * Returns the address of the Csound audio input buffer.
-   * Enables external software to write audio into Csound before calling
-   * csoundPerformBuffer.
-   */
-  PUBLIC MYFLT *csoundGetInputBuffer(CSOUND *);
-
-  /**
-   * Returns the address of the Csound audio output buffer.
-   * Enables external software to read audio from Csound after calling
-   * csoundPerformBuffer.
-   */
-  PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *);
-
-  /**
    * Returns the address of the Csound audio input working buffer (spin).
    * Enables external software to write audio into Csound before calling
    * csoundPerformKsmps.

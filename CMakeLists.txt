@@ -681,6 +681,7 @@ set(libcsound_SRCS
     Engine/ugen.c
     InOut/soundfile.c
     InOut/libsnd.c
+    InOut/libsnd_internal.c
     InOut/libsnd_u.c
     InOut/libsnd_u_internal.c
     InOut/midifile.c
