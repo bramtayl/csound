@@ -712,6 +712,7 @@ set(libcsound_SRCS
     OOps/pvfileio.c
     OOps/pvsanal.c
     OOps/random.c
+    OOps/random_internal.c
     OOps/remote.c
     OOps/schedule.c
     OOps/sndinfUG.c

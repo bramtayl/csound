@@ -34,6 +34,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "random.h"
 
 #define unirand(x) ((MYFLT) (csoundRand31(&(x->randSeed1)) - 1) / FL(2147483645.0))
 

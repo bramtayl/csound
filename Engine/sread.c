@@ -34,6 +34,7 @@
 #include "text.h"
 #include "sread.h"
 #include "aops.h"
+#include "random.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */

@@ -67,6 +67,7 @@
 #include "csound_orc_semantics_public.h"
 #include "musmon.h"
 #include "memalloc_internal.h"
+#include "random_internal.h"
 
 #if defined(linux)||defined(__HAIKU__)|| defined(__EMSCRIPTEN__)||defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -1113,8 +1114,6 @@ int DummyMidiOutOpen(CSOUND *csound, void **userData,
                             const char *devName);
 int DummyMidiWrite(CSOUND *csound, void *userData,
                           const unsigned char *buf, int nbytes);
-/* random.c */
-extern void csound_init_rand(CSOUND *);
 
 /*
 PUBLIC int csoundQueryInterface(const char *name, void **iface, int *version)

@@ -28,6 +28,7 @@
 
 #include "csoundCore_internal.h"
 #include "auxfd.h"
+#include "random.h"
 
 typedef struct {
         OPDS    h;

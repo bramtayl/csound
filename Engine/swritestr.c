@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include "corfile.h"
 #include "sread.h"
+#include "random.h"
 
 static SRTBLK *nxtins(SRTBLK *), *prvins(SRTBLK *);
 static char   *pfout(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);

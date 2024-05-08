@@ -50,6 +50,7 @@
 #include "interlocks.h"
 #include "phisem.h"
 #include <math.h>
+#include "random.h"
 
 /* To do
    "10: Wrench", "12: CokeCan"};

@@ -25,6 +25,7 @@
 #include "bbcut.h"
 #include <math.h>
 #include "auxfd.h"
+#include "random.h"
 
 /* my auxilliary functions */
 

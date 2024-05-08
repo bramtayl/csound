@@ -53,6 +53,7 @@ But we're smarter than that!!!  See below
 // #include "csdl.h"
 #include "csoundCore_internal.h"
 #include "shaker.h"
+#include "random.h"
 
 int32_t shakerset(CSOUND *csound, SHAKER *p)
 {
