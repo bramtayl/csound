@@ -25,6 +25,7 @@
 #include "corfile.h"
 #include "extract.h"
 #include "memalloc.h"
+#include "scxtract.h"
 #include "sread.h"
 
 extern void swritestr(CSOUND *csound, CORFIL *sco, int first);

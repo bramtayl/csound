@@ -27,6 +27,7 @@
 #include "memalloc.h"
 #include "utility.h"
 #include "scsort.h"
+#include "scxtract.h"
 
 typedef struct csUtility_s {
     char                *name;

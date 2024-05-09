@@ -35,7 +35,6 @@ TEXT    *getoptxt(CSOUND *, int *);
 void    reverbinit(CSOUND *);
 int     init0(CSOUND *);
 void    scsort(CSOUND *, FILE *, FILE *);
-int     scxtract(CSOUND *, CORFIL *, FILE *);
 int     musmon(CSOUND *);
 PUBLIC int     argdecode(CSOUND *, int, const char **);
 void    xturnoff(CSOUND *, INSDS *);
