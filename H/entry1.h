@@ -44,7 +44,6 @@
 #include "midiout.h"
 #include "sndinfUG.h"
 #include "ugrw1.h"
-#include "schedule.h"
 #include "vdelay.h"
 #include "pstream.h"
 #include "oscils.h"
@@ -320,15 +319,8 @@ int32_t clarinset(CSOUND *, void *), clarin(CSOUND *, void *);
 int32_t fluteset(CSOUND *, void *), flute(CSOUND *, void *);
 int32_t bowedset(CSOUND *, void *), bowed(CSOUND *, void *);
 int32_t brassset(CSOUND *, void *), brass(CSOUND *, void *);
-int32_t schedule(CSOUND *, void *), schedule_S(CSOUND *, void *);
-int32_t schedule_N(CSOUND *, void *), schedule_SN(CSOUND *, void *);
-int32_t ifschedule(CSOUND *, void *), kschedule(CSOUND *, void *);
-int32_t triginset(CSOUND *, void *), ktriginstr(CSOUND *, void *);
 int32_t triginset_S(CSOUND *, void *), ktriginstr_S(CSOUND *, void *);
-int32_t trigseq_set(CSOUND *, void *), trigseq(CSOUND *, void *);
 int32_t kill_instance(CSOUND *csound, void *p);
-int32_t lfoset(CSOUND *, void *);
-int32_t lfok(CSOUND *, void *), lfoa(CSOUND *, void *);
 int32_t gettempo(CSOUND *, void *);
 int32_t loopseg_set(CSOUND *, void *);
 int32_t loopseg(CSOUND *, void *), lpshold(CSOUND *, void *);
@@ -443,5 +435,4 @@ int32_t coef2parm_init(CSOUND *csound, void *p);
 int32_t coef2parm(CSOUND *csound, void *p);
 int32_t resonbnk_init(CSOUND *csound, void *p);
 int32_t resonbnk(CSOUND *csound, void *p);
-int32_t schedule_array(CSOUND *csound, void *p);
 

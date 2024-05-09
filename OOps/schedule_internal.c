@@ -40,8 +40,8 @@
 #include "insert_public.h"
 #include "musmon.h"
 #include "linevent.h"
-
-extern void csoundInputMessageInternal(CSOUND *, const char *);
+#include "text.h"
+#include "schedule_internal.h"
 
 int32_t schedule_array(CSOUND *csound, SCHED *p)
 {

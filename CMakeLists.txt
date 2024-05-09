@@ -714,7 +714,7 @@ set(libcsound_SRCS
     OOps/random.c
     OOps/random_internal.c
     OOps/remote.c
-    OOps/schedule.c
+    OOps/schedule_internal.c
     OOps/sndinfUG.c
     OOps/str_ops.c
     OOps/ugens1.c
