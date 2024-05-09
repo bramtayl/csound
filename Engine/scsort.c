@@ -29,9 +29,9 @@
 #include "sread.h"
 #include "sort.h"
 #include "twarp.h"
+#include "swritestr.h"
 
 extern void sort(CSOUND*);
-extern void swritestr(CSOUND*, CORFIL *sco, int first);
 
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */

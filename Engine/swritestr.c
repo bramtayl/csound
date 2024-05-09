@@ -26,7 +26,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "corfile.h"
+#include "random.h"
+#include "text.h"
 #include "sread.h"
+#include "swritestr.h"
 #include "random.h"
 
 static SRTBLK *nxtins(SRTBLK *), *prvins(SRTBLK *);

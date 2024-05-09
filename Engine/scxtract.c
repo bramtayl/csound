@@ -27,8 +27,7 @@
 #include "memalloc.h"
 #include "scxtract.h"
 #include "sread.h"
-
-extern void swritestr(CSOUND *csound, CORFIL *sco, int first);
+#include "swritestr.h"
 
 /* called from xmain.c or some other main */
 /*   extracts events from each score sect */
