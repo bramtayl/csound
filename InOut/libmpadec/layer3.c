@@ -21,15 +21,9 @@
 /* $Id: layer3.c,v 1.3 2009/03/01 15:27:05 jpff Exp $ */
 
 #include "mpadec_internal.h"
+#include "tables.h"
 
 extern const uint32_t bitmask[17];
-extern bandinfo_t band_info[];
-extern newhuff_t hufft[], hufftc[];
-extern const MYFLT newcos[8];
-extern const MYFLT tfcos36[9];
-extern const MYFLT tfcos12[3];
-extern const MYFLT cs[8];
-extern const MYFLT ca[8];
 
 extern uint32_t mpa_getbits(mpadec_t mpadec, unsigned n);
 extern uint16_t update_crc(uint16_t init, uint8_t *buf, int length);

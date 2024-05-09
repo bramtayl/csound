@@ -22,7 +22,6 @@
 #include "mpadec_internal.h"
 
 extern const uint32_t bitmask[17];
-extern alloc_table_t *alloc_tables[5];
 
 extern unsigned mpa_getbits(mpadec_t mpadec, int n);
 extern uint16_t update_crc(uint16_t init, uint8_t *buf, int length);

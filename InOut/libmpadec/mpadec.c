@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include "csoundCore.h"
 #include "mpadec_internal.h"
+#include "tables.h"
 
-extern const uint16_t crc_table[256];
 extern void *synth_table[2][2][4][4];
 
 const uint32_t bitmask[17] = {
