@@ -789,6 +789,7 @@ set(libcsound_SRCS
     Top/cscore_internal.c
     Top/cscore.c
     Top/csmodule.c
+    Top/csmodule_public.c
     Top/csoundCore_internal.c
     Top/getstring.c
     Top/main.c

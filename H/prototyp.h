@@ -42,13 +42,10 @@ void    xturnoff_now(CSOUND *, INSDS *);
 //MEMFIL  *ldmemfile(CSOUND *, const char *);
 //MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
 void    rlsmemfiles(CSOUND *);
-int     csoundLoadExternals(CSOUND *);
-void    print_opcodedir_warning(CSOUND *);
 int     csoundLoadOpcodeDB(CSOUND *, const char *);
 void    csoundDestroyOpcodeDB(CSOUND *);
 int     csoundCheckOpcodePluginFile(CSOUND *, const char *);
 //int     csoundLoadAllPluginOpcodes(CSOUND *);
-int     csoundLoadAndInitModule(CSOUND *, const char *);
 
 /**
  * Returns a binary value of which bit 0 is set if the first input

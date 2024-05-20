@@ -32,6 +32,7 @@
 #include "opcode_internal.h"
 #include "one_file.h"
 #include "libsnd_internal.h"
+#include "csmodule.h"
 
 static void list_audio_devices(CSOUND *csound, int output);
 static void list_midi_devices(CSOUND *csound, int output);

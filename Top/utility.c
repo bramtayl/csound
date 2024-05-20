@@ -28,6 +28,7 @@
 #include "utility.h"
 #include "scsort.h"
 #include "scxtract.h"
+#include "csmodule.h"
 
 typedef struct csUtility_s {
     char                *name;

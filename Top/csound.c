@@ -108,7 +108,6 @@ int  csoundPerformKsmpsInternal(CSOUND *csound);
 INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 
 extern void cscoreRESET(CSOUND *);
-extern int csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
