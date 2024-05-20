@@ -31,10 +31,7 @@
 #include "csoundCore_internal.h"                                                          
 #include "winEPS.h"
 #include "find_opcode.h"                           
-
-extern void MakeAscii(CSOUND *, WINDAT *, const char *);
-extern void DrawAscii(CSOUND *, WINDAT *);
-extern void KillAscii(CSOUND *, WINDAT *);
+#include "winascii.h"
 
 /* somewhere to invoke for no display */
 
