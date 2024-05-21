@@ -26,8 +26,7 @@
 #include "layer2.h"
 #include "layer3.h"
 #include "tables.h"
-
-extern void *synth_table[2][2][4][4];
+#include "synth.h"
 
 const uint32_t bitmask[17] = {
   0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F,
