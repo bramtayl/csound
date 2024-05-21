@@ -7,6 +7,7 @@
 #include "gtest/gtest.h"
 #include "csound.h"
 #include "csdebug.h"
+#include "main.h"
 
 class DebuggerTests : public ::testing::Test {
 public:

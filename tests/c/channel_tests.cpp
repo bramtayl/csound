@@ -2,6 +2,7 @@
 #include <string.h>
 #include "gtest/gtest.h"
 #include "csound.h"
+#include "main.h"
 
 const char orc1 [] = "chn_k \"testing\", 3\n  instr 1\n  endin\n";
 

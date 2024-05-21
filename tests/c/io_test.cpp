@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "csound.h"
+#include "main.h"
 
 class IOTests : public ::testing::Test {
 public:

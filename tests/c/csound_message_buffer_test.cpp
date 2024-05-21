@@ -2,6 +2,7 @@
 #include <string.h>
 #include "csound.h"
 #include "gtest/gtest.h"
+#include "main.h"
 
 class MessageBufferTests : public ::testing::Test {
 public:

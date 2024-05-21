@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "gtest/gtest.h"
 #include "time.h"
+#include "main.h"
 
 class EngineTests : public ::testing::Test {
 public:

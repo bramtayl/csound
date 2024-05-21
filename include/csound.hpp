@@ -48,6 +48,7 @@
 #include "opcode.h"
 #include "libsnd.h"
 #include "random.h"
+#include "main.h"
 
 #ifdef SWIGPYTHON
 #define MESSAGE_BUFFER_LENGTH 8192

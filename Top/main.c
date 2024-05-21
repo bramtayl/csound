@@ -32,6 +32,7 @@
 #include "csound_orc_semantics_public.h"
 #include "envvar_public.h"
 #include "libsnd_u.h"
+#include "main.h"
 #include "csound_orc_compile.h"
 #include "one_file.h"
 #include "scsort.h"

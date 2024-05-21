@@ -38,6 +38,7 @@
 #if defined(__gnu_linux__) && !(defined(__ANDROID__))
 #include "sched.h"
 #endif
+#include "main.h"
 
 static FILE *logFile = NULL;
 

@@ -11,6 +11,7 @@
 #include "gtest/gtest.h"
 #include "memalloc.h"
 #include "csound_orc_compile.h"
+#include "main.h"
 
 class OrcCompileTests : public ::testing::Test {
 public:
