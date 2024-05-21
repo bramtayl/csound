@@ -20,6 +20,7 @@
 /* $Id: layer2.c,v 1.2 2009/03/01 15:27:05 jpff Exp $ */
 
 #include "mpadec_internal.h"
+#include "layer2.h"
 #include "tables.h"
 
 extern const uint32_t bitmask[17];
