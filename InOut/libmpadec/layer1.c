@@ -20,6 +20,7 @@
 /* $Id: layer1.c,v 1.1.1.1 2004/07/27 02:57:18 metal_man Exp $ */
 
 #include "mpadec_internal.h"
+#include "layer1.h"
 
 extern const uint32_t bitmask[17];
 
