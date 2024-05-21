@@ -78,8 +78,6 @@ static MACRO *find_definition(MACRO *, char *);
 %option reentrant
 %option noyywrap
 %option prefix="csound_prs"
-%option outfile="Engine/csound_prslex.c"
-%option stdout
 
 NEWLINE         (\n|\r\n?)
 STSTR           \"

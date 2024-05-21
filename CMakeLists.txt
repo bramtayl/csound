@@ -935,51 +935,50 @@ endif()
 
 # Handling New Parser
 
-set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
-set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orcparse.c)
-set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orcparse.h)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Engine)
 
-set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
-set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orclex.c)
-set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orclex.c
-    PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
-
-set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
-set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_prelex.c)
-set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_prelex.c
-    PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
-
+set(FLEX_OPTIONS "--batch")
 if(LEXER_DEBUG)
     message(STATUS "Building lexer with debug option")
-
-    add_custom_command(
-        OUTPUT ${LEX_OUT}
-        DEPENDS ${LEX_SRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -d -B -t ${LEX_SRC} > ${LEX_OUT}
-    )
-else()
-    add_custom_command(
-        OUTPUT ${LEX_OUT}
-        DEPENDS ${LEX_SRC}
-        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t  ${LEX_SRC} > ${LEX_OUT}
-    )
+    string(APPEND FLEX_OPTIONS " --debug")
 endif()
 
-add_custom_command(
-    DEPENDS ${PRELEX_SRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SRC} > ${PRELEX_OUT}
-    OUTPUT ${PRELEX_OUT}
+BISON_TARGET(Csound_YACC
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y"
+    "${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orcparse.c"
+    COMPILE_FLAGS "-pcsound_orc -d --report=itemset"
 )
 
-add_custom_command(
-    OUTPUT ${YACC_OUT} ${YACC_OUTH}
-    DEPENDS ${YACC_SRC} ${LEX_OUT}
-    COMMAND ${BISON_EXECUTABLE}
-    ARGS -pcsound_orc -d --report=itemset -o ${YACC_OUT} ${YACC_SRC}
+FLEX_TARGET(Csound_LEX
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex"
+    "${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orclex.c"
+    COMPILE_FLAGS "${FLEX_OPTIONS}"
+)
+ADD_FLEX_BISON_DEPENDENCY(Csound_LEX Csound_YACC)
+
+FLEX_TARGET(Csound_PRELEX
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex"
+    "${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_prelex.c"
+    COMPILE_FLAGS "${FLEX_OPTIONS}"
+)
+ADD_FLEX_BISON_DEPENDENCY(Csound_PRELEX Csound_YACC)
+
+FLEX_TARGET(Csound_PRELEX_SCO
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex"
+    "${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_prslex.c"
+    COMPILE_FLAGS "${FLEX_OPTIONS}"
+)
+ADD_FLEX_BISON_DEPENDENCY(Csound_PRELEX_SCO Csound_YACC)
+
+set(FLEX_OUTPUTS
+    ${FLEX_Csound_PRELEX_OUTPUTS}
+    ${FLEX_Csound_LEX_OUTPUTS}
+    ${FLEX_Csound_PRELEX_SCO_OUTPUTS}
 )
 
 list(APPEND libcsound_SRCS
-    ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
+    ${BISON_Csound_YACC_OUTPUTS}
+    ${FLEX_OUTPUTS}
     Engine/csound_orc_semantics.c
     Engine/csound_orc_semantics_public.c
     Engine/csound_orc_expressions.c
@@ -988,66 +987,14 @@ list(APPEND libcsound_SRCS
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
-set_source_files_properties(${YACC_OUT} GENERATED)
-set_source_files_properties(${YACC_OUTH} GENERATED)
-set_source_files_properties(${LEX_OUT} GENERATED)
-set_source_files_properties(${PRELEX_OUT} GENERATED)
-
-if(MSVC)
-    set_source_files_properties(${LEX_OUT} PROPERTIES
-        COMPILE_FLAGS -DYY_NO_UNISTD_H)
-    set_source_files_properties(${PRELEX_OUT} PROPERTIES
-        COMPILE_FLAGS -DYY_NO_UNISTD_H)
-endif()
-
-# Handling New Score Parser
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Engine)
-
-##target_compile_definitions(libcsound_internals INTERFACE "SCORE_PARSER")
-
-#set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
-#set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
-#set(YACC_SCOOUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.h)
-
-#set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
-#set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
-
-set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
-set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_prslex.c)
-
-##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
-##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
-##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
-
-#add_custom_command(
-#    OUTPUT ${LEX_SCOOUT}
-#    DEPENDS ${LEX_SCOSRC}
-#    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
-#    )
-
-add_custom_command(
-    OUTPUT ${PRELEX_SCOOUT}
-    DEPENDS ${PRELEX_SCOSRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
+set_source_files_properties(${FLEX_OUTPUTS}
+    PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough"
 )
 
-#add_custom_command(
-#    OUTPUT ${YACC_SCOOUT} ${YACC_SCOOUTH}
-#    DEPENDS ${YACC_SCOSRC} ${LEX_SCOOUT}
-#    COMMAND ${BISON_EXECUTABLE}
-#    ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
-#    )
-
-list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
-    #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
-
-#set_source_files_properties(${YACC_SCOOUT} GENERATED)
-#set_source_files_properties(${LEX_SCOOUT} GENERATED)
-set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
 if(MSVC)
-    set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
-        COMPILE_FLAGS -DYY_NO_UNISTD_H)
+    set_source_files_properties(${FLEX_OUTPUTS} 
+        PROPERTIES COMPILE_FLAGS -DYY_NO_UNISTD_H
+    )
 endif()
 
 # for generated private headers

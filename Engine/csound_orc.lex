@@ -72,8 +72,6 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option bison-bridge
 %option bison-locations
 %option prefix="csound_orc"
-%option outfile="Engine/csound_orclex.c"
-%option stdout
 %option 8bit
    /* to avoid unused function errors */
 %option nounput

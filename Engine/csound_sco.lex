@@ -56,8 +56,6 @@ static SCOTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
 %option bison-bridge
 %option bison-locations
 %option prefix="csound_sco"
-%option outfile="Engine/csound_scolex.c"
-%option stdout
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$
