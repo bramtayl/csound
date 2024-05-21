@@ -24,6 +24,7 @@
 #include "mpadec_internal.h"
 #include "layer1.h"
 #include "layer2.h"
+#include "layer3.h"
 #include "tables.h"
 
 extern void *synth_table[2][2][4][4];
@@ -45,7 +46,6 @@ const int16_t mpa_bitrate_table[2][3][16] = {
 };
 
 extern void init_tables(mpadec_t mpadec, MYFLT scale, int32_t sblimit);
-extern void decode_layer3(mpadec_t mpadec, uint8_t *buffer);
 
 uint32_t mpa_getbits(mpadec_t mpadec, unsigned n)
 {
