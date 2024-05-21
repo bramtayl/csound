@@ -67,8 +67,6 @@ static MACRO *find_definition(MACRO *, char *);
 %option reentrant
 %option noyywrap
 %option prefix="csound_pre"
-%option outfile="Engine/csound_prelex.c"
-%option stdout
 
 NEWLINE         (\n|\r\n?)
 STSTR           \"
