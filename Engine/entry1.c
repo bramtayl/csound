@@ -31,6 +31,7 @@
 #include "midiops_internal.h"
 #include "pvsanal.h"
 #include "schedule_internal.h"
+#include "diskin2.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
@@ -513,13 +514,13 @@ OENTRY opcodlst_1[] = {
   { "balance2",S(BALANCE),0, 3,      "a",    "aaqo", balnset,   balance2, NULL, NULL},
   { "pan",    S(PAN),0,   3, "aaaa", "akkioo",(SUBR)panset, (SUBR)pan, NULL, NULL},
   { "soundin",S(DISKIN2),0,3,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","Soooo",
-    sndinset_S, soundin, NULL, NULL},
+    (SUBR)sndinset_S, (SUBR)soundin, NULL, NULL},
   { "soundin.i",S(DISKIN2),0,3,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","ioooo",
-    sndinset, soundin, NULL, NULL},
-  { "soundout",S(SNDOUT), _QQ, 3,   "",    "aSo",  sndoutset_S, soundout, NULL, NULL},
-  { "soundout.i",S(SNDOUT), _QQ, 3,   "",    "aio",  sndoutset, soundout, NULL, NULL},
-  { "soundouts",S(SNDOUTS),_QQ, 3,  "",    "aaSo", sndoutset_S, soundouts, NULL, NULL},
-  { "soundouts.i",S(SNDOUTS),_QQ, 3,  "",    "aaio", sndoutset, soundouts, NULL, NULL},
+    (SUBR)sndinset, (SUBR)soundin, NULL, NULL},
+  { "soundout",S(SNDOUT), _QQ, 3,   "",    "aSo",  (SUBR)sndoutset_S, (SUBR)soundout, NULL, NULL},
+  { "soundout.i",S(SNDOUT), _QQ, 3,   "",    "aio",  (SUBR)sndoutset, (SUBR)soundout, NULL, NULL},
+  { "soundouts",S(SNDOUTS),_QQ, 3,  "",    "aaSo", (SUBR)sndoutset_S, (SUBR)soundouts, NULL, NULL},
+  { "soundouts.i",S(SNDOUTS),_QQ, 3,  "",    "aaio", (SUBR)sndoutset, (SUBR)soundouts, NULL, NULL},
   { "in.a",   S(INM),0,     2,      "a",    "",     NULL,   in, NULL, NULL},
   { "in.s",   S(INS),0,     2,      "aa",    "",     NULL,   ins, NULL, NULL},
   { "in.A",   S(INA),0,     2,      "a[]",  "",     NULL,   inarray, NULL, NULL},

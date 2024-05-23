@@ -206,11 +206,7 @@ int32_t lpslotset(CSOUND *, void *), lpitpset(CSOUND *, void *);
 int32_t lpinterpol(CSOUND *, void *);
 int32_t rmsset(CSOUND *, void *), rms(CSOUND *, void *);
 int32_t gainset(CSOUND *, void *), gain(CSOUND *, void *);
-int32_t sndinset(CSOUND *, void *), sndinset_S(CSOUND *, void *),
-        soundin(CSOUND *, void *);
-int32_t sndoutset(CSOUND *, void *), sndoutset_S(CSOUND *, void *),
-        soundout(CSOUND *, void *);
-int32_t soundouts(CSOUND *, void *), inarray(CSOUND *, void *);
+int32_t inarray(CSOUND *, void *);
 int32_t in(CSOUND *, void *), ins(CSOUND *, void *);
 int32_t inq(CSOUND *, void *), inh(CSOUND *, void *);
 int32_t ino(CSOUND *, void *), in16(CSOUND *, void *);
@@ -400,8 +396,6 @@ int32_t table_ra(CSOUND *csound, TABLRA *p);
 int32_t table_wa_set(CSOUND *csound, TABLWA *p);
 int32_t table_wa(CSOUND *csound, TABLWA *p);
 int32_t tablkt_setup(CSOUND *csound, TABL *p);
-int32_t diskin_init(CSOUND *csound, DISKIN2 *p);
-int32_t diskin_init_S(CSOUND *csound, DISKIN2 *p);
 int32_t inch1_set(CSOUND *csound, void *p);
 int32_t inch_opcode1(CSOUND *csound, void *p);
 int32_t adset_S(CSOUND *csound, void *p);
