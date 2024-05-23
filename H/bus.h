@@ -33,8 +33,15 @@
 #include "pstream.h"
 #include "arrays.h"
 #include "csound_standard_types.h"
+#include "csoundCore_internal.h"
 
 #define MAX_CHAN_NAME 1024
+
+#ifdef USE_DOUBLE
+#define MYFLT_INT_TYPE int64_t
+#else
+#define MYFLT_INT_TYPE int32_t
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -219,6 +226,20 @@ int32_t outvalset_string_S(CSOUND *csound, OUTVAL *p);
 int32_t outvalset_S(CSOUND *csound, OUTVAL *p);
 int32_t outvalsetgo(CSOUND *csound, OUTVAL *p);
 int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p);
+
+inline CHNENTRY *find_channel(CSOUND *csound, const char *name)
+{
+    if (csound->chn_db != NULL && name[0]) {
+        return (CHNENTRY*) cs_hash_table_get(csound, csound->chn_db, (char*) name);
+    }
+    return NULL;
+}
+
+CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
+                                       int32_t type);
+
+int32_t bus_cmp_func(const void *p1, const void *p2);
+
 #ifdef __cplusplus
 }
 #endif

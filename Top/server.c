@@ -38,6 +38,7 @@
 #endif
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "bus_public.h"
 
 typedef struct {
   int port;

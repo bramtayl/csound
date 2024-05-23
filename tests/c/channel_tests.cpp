@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include "csound.h"
 #include "main.h"
+#include "bus_public.h"
 
 const char orc1 [] = "chn_k \"testing\", 3\n  instr 1\n  endin\n";
 

@@ -695,6 +695,7 @@ set(libcsound_SRCS
     OOps/aops.c
     OOps/aops_public.c
     OOps/bus.c
+    OOps/bus_public.c
     OOps/cmath.c
     OOps/diskin2.c
     OOps/disprep.c

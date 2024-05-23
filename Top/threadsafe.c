@@ -28,12 +28,8 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "csound_orc_compile.h"
-
-#ifdef USE_DOUBLE
-#  define MYFLT_INT_TYPE int64_t
-#else
-#  define MYFLT_INT_TYPE int32_t
-#endif
+#include "bus.h"
+#include "bus_public.h"
 
 int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
                                int mode, int allow_release, int async);
