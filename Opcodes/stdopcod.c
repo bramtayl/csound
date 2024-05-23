@@ -23,6 +23,7 @@
 
 #include "stdopcod.h"
 #include "memalloc.h"
+#include "ftgen.h"
 
 /* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {

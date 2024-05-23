@@ -28,6 +28,8 @@
 #include "fgens_public.h"
 #include "envvar_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "ftgen.h"
 #include "fgens.h"
 
 typedef struct {

@@ -81,7 +81,6 @@ extern int32_t dam_init_(CSOUND *);
 extern int32_t flanger_init_(CSOUND *);
 extern int32_t follow_init_(CSOUND *);
 extern int32_t fout_init_(CSOUND *);
-extern int32_t ftgen_init_(CSOUND *);
 extern int32_t gab_gab_init_(CSOUND *);
 extern int32_t gab_vectorial_init_(CSOUND *);
 extern int32_t grain_init_(CSOUND *);
