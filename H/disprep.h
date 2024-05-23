@@ -25,6 +25,7 @@
 #pragma once
 
 #include "pstream.h"
+#include "cwindow.h"
 
 typedef struct {
         OPDS    h;
@@ -81,3 +82,9 @@ typedef struct {
         AUXCH   auxch;
 } TEMPEST;
 
+int32_t printv(CSOUND *, PRINTV *);
+int32_t dspset(CSOUND *, DSPLAY *), kdsplay(CSOUND *, DSPLAY *);
+int32_t fdspset(CSOUND *, FSIGDISP *), fdsplay(CSOUND *, FSIGDISP *);
+int32_t dsplay(CSOUND *, DSPLAY *), fftset(CSOUND *, DSPFFT *);
+int32_t kdspfft(CSOUND *, DSPFFT *), dspfft(CSOUND *, DSPFFT *);
+int32_t tempeset(CSOUND *, TEMPEST *), tempest(CSOUND *, TEMPEST *);

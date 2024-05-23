@@ -32,6 +32,7 @@
 #include "pvsanal.h"
 #include "schedule_internal.h"
 #include "diskin2.h"
+#include "disprep.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
@@ -553,12 +554,12 @@ OENTRY opcodlst_1[] = {
   { "rireturn",S(LINK),0,   1,      "",     "",     (SUBR)rireturn, NULL, NULL, NULL},
   { "tigoto", S(GOTO),0,    1,      "",     "l",    (SUBR)tigoto, NULL, NULL, NULL},
   { "tival",  S(EVAL),0,    1,      "i",    "",     (SUBR)tival, NULL, NULL, NULL},
-  { "print",  S(PRINTV),WR, 1,      "",     "m",    printv, NULL, NULL, NULL},
-  { "display.k",S(DSPLAY),0,  3,    "",     "kioo", dspset, kdsplay,NULL, NULL},
-  { "display.a",S(DSPLAY),0,  3,    "",     "aioo", dspset ,dsplay, NULL, NULL},
-  { "pvsdisp",S(FSIGDISP),0,  3,    "",     "foo", fdspset, fdsplay,NULL, NULL},
-  { "dispfft.k",S(DSPFFT),0,  3,    "",     "kiiooooo",fftset,kdspfft,NULL, NULL},
-  { "dispfft.a",S(DSPFFT),0,  3,    "",     "aiiooooo",fftset,dspfft, NULL, NULL},
+  { "print",  S(PRINTV),WR, 1,      "",     "m",    (SUBR)printv, NULL, NULL, NULL},
+  { "display.k",S(DSPLAY),0,  3,    "",     "kioo", (SUBR)dspset, (SUBR)kdsplay,NULL, NULL},
+  { "display.a",S(DSPLAY),0,  3,    "",     "aioo", (SUBR)dspset ,(SUBR)dsplay, NULL, NULL},
+  { "pvsdisp",S(FSIGDISP),0,  3,    "",     "foo", (SUBR)fdspset, (SUBR)fdsplay,NULL, NULL},
+  { "dispfft.k",S(DSPFFT),0,  3,    "",     "kiiooooo",(SUBR)fftset,(SUBR)kdspfft,NULL, NULL},
+  { "dispfft.a",S(DSPFFT),0,  3,    "",     "aiiooooo",(SUBR)fftset,(SUBR)dspfft, NULL, NULL},
   { "dumpk",  S(KDUMP),0,   3,      "",     "kSii", kdmpset_S,kdump, NULL, NULL},
   { "dumpk2", S(KDUMP2),0,  3,      "",     "kkSii",kdmp2set_S,kdump2, NULL, NULL},
   { "dumpk3", S(KDUMP3),0,  3,      "",     "kkkSii",kdmp3set_S,kdump3, NULL, NULL},
@@ -578,7 +579,7 @@ OENTRY opcodlst_1[] = {
   { "readks", S(KREADS),0,  3,      "S",    "Si",    krdsset_S, kreads, NULL, NULL},
   { "readks.i", S(KREADS),0,  3,      "S",    "ii",    krdsset_p, kreads, NULL, NULL},
   { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",xyinset,NULL, NULL, NULL},
-  { "tempest",  S(TEMPEST),0, 3,    "k","kiiiiiiiiiop",tempeset,tempest, NULL, NULL},
+  { "tempest",  S(TEMPEST),0, 3,    "k","kiiiiiiiiiop",(SUBR)tempeset,(SUBR)tempest, NULL, NULL},
   { "tempo",    S(TEMPO),0,   3,    "",     "ki",   tempset,tempo, NULL, NULL},
   { "pow.i",    S(POW),0,   1,      "i",    "iip",  ipow,    NULL,  NULL, NULL},
   { "pow.k",    S(POW),0,   2,      "k",    "kkp",  NULL,    ipow,  NULL, NULL},

@@ -223,13 +223,7 @@ int32_t outq3(CSOUND *, void *), outq4(CSOUND *, void *);
 /* int32_t outh(CSOUND *, void *), outo(CSOUND *, void *); */
 /* int32_t outx(CSOUND *, void *), outX(CSOUND *, void *); */
 int32_t outch(CSOUND *, void *), outall(CSOUND *, void *);
-int32_t printv(CSOUND *, void *);
-int32_t dspset(CSOUND *, void *), kdsplay(CSOUND *, void *);
-int32_t fdspset(CSOUND *, void *), fdsplay(CSOUND *, void *);
-int32_t dsplay(CSOUND *, void *), fftset(CSOUND *, void *);
-int32_t kdspfft(CSOUND *, void *), dspfft(CSOUND *, void *);
 int32_t xyinset(CSOUND *, void *);
-int32_t tempeset(CSOUND *, void *), tempest(CSOUND *, void *);
 int32_t tempset(CSOUND *, void *), tempo(CSOUND *, void *);
 int32_t old_kdmpset(CSOUND *, void *), old_kdmp2set(CSOUND *, void *);
 int32_t old_kdmp3set(CSOUND *, void *), old_kdmp4set(CSOUND *, void *);

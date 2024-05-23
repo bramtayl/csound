@@ -30,6 +30,7 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */
