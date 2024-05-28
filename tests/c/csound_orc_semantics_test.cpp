@@ -55,39 +55,39 @@ public:
 
 TEST_F (OrcSemanticsTest, FindOpcode2Test)
 {
-    OENTRIES* entries = find_opcode2(csound, "=");
-    entries = find_opcode2(csound, "vco2");
+    OENTRIES* entries = find_opcode2(csound, (char*)"=");
+    entries = find_opcode2(csound, (char*)"vco2");
     ASSERT_EQ (1, entries->count);
     mfree(csound, entries);
 }
 
 TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 {
-    OENTRIES* entries = find_opcode2(csound, "=");
+    OENTRIES* entries = find_opcode2(csound, (char*)"=");
 
-    OENTRY* opc = resolve_opcode(csound, entries, "k", "k");
+    OENTRY* opc = resolve_opcode(csound, entries, (char*)"k", (char*)"k");
     ASSERT_TRUE (opc != NULL);
     mfree(csound, entries);
 
-    entries = find_opcode2(csound, "vco2");
+    entries = find_opcode2(csound, (char*)"vco2");
     ASSERT_EQ (1, entries->count);
 
-    opc = resolve_opcode(csound, entries, "a", "cc");
+    opc = resolve_opcode(csound, entries, (char*)"a", (char*)"cc");
     ASSERT_TRUE (opc != NULL);
     mfree(csound, entries);
 
-    entries = find_opcode2(csound, "passign");
+    entries = find_opcode2(csound, (char*)"passign");
     ASSERT_EQ (3, entries->count);
 
-    opc = resolve_opcode(csound, entries, "iiiiS", NULL);
+    opc = resolve_opcode(csound, entries, (char*)"iiiiS", NULL);
     ASSERT_TRUE (opc != NULL);
     mfree(csound, entries);
 
-    entries = find_opcode2(csound, "pcauchy");
-    opc = resolve_opcode(csound, entries, "i", "k");
+    entries = find_opcode2(csound, (char*)"pcauchy");
+    opc = resolve_opcode(csound, entries, (char*)"i", (char*)"k");
     ASSERT_TRUE (opc->iopadr != NULL);
 
-    opc = resolve_opcode(csound, entries, "k", "k");
+    opc = resolve_opcode(csound, entries, (char*)"k", (char*)"k");
     ASSERT_TRUE (opc->kopadr != NULL);
 
     // TODO this test is failing
@@ -99,144 +99,144 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 
 TEST_F (OrcSemanticsTest, FindOpcodeNewTest)
 {
-    ASSERT_TRUE (find_opcode_new(csound, "##error", "i", "i") != NULL);
-    ASSERT_TRUE (find_opcode_new(csound, "##error", NULL, "i") == NULL);
+    ASSERT_TRUE (find_opcode_new(csound, (char*)"##error", (char*)"i", (char*)"i") != NULL);
+    ASSERT_TRUE (find_opcode_new(csound, (char*)"##error", NULL, (char*)"i") == NULL);
     // TODO this assertion is failing
     // ASSERT_TRUE (find_opcode_new(csound, "##xin256", "i", NULL) != NULL);
-    ASSERT_TRUE (find_opcode_new(csound, "##userOpcode", NULL, NULL) != NULL);
-    ASSERT_TRUE (find_opcode_new(csound, "##array_set", NULL, "k[]k") != NULL);
-    ASSERT_TRUE (find_opcode_new(csound, ">=", "B", "kc") != NULL);
+    ASSERT_TRUE (find_opcode_new(csound, (char*)"##userOpcode", NULL, NULL) != NULL);
+    ASSERT_TRUE (find_opcode_new(csound, (char*)"##array_set", NULL, (char*)"k[]k") != NULL);
+    ASSERT_TRUE (find_opcode_new(csound, (char*)">=", (char*)"B", (char*)"kc") != NULL);
 }
 
 TEST_F (OrcSemanticsTest, CheckInArgsTest)
 {
     ASSERT_FALSE (check_in_arg(NULL, NULL));
-    ASSERT_FALSE (check_in_arg("a", NULL));
-    ASSERT_FALSE (check_in_arg(NULL, "a"));
-    ASSERT_TRUE (check_in_arg("a", "a"));
-    ASSERT_FALSE (check_in_arg("a", "k"));
-    ASSERT_TRUE (check_in_arg("c", "i"));
-    ASSERT_TRUE (check_in_arg("i", "k"));
+    ASSERT_FALSE (check_in_arg((char*)"a", NULL));
+    ASSERT_FALSE (check_in_arg(NULL, (char*)"a"));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"a"));
+    ASSERT_FALSE (check_in_arg((char*)"a", (char*)"k"));
+    ASSERT_TRUE (check_in_arg((char*)"c", (char*)"i"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"k"));
 
     // checking union types
-    ASSERT_TRUE (check_in_arg("k", "x"));
-    ASSERT_TRUE (check_in_arg("a", "x"));
-    ASSERT_TRUE (check_in_arg("S", "T"));
-    ASSERT_TRUE (check_in_arg("i", "T"));
-    ASSERT_FALSE (check_in_arg("k", "T"));
-    ASSERT_TRUE (check_in_arg("S", "U"));
-    ASSERT_TRUE (check_in_arg("i", "U"));
-    ASSERT_TRUE (check_in_arg("k", "U"));
-    ASSERT_TRUE (check_in_arg("i", "k"));
-    ASSERT_TRUE (check_in_arg("p", "k"));
-    ASSERT_TRUE (check_in_arg("c", "k"));
-    ASSERT_TRUE (check_in_arg("r", "k"));
-    ASSERT_TRUE (check_in_arg("c", "i"));
-    ASSERT_TRUE (check_in_arg("r", "k"));
-    ASSERT_TRUE (check_in_arg("p", "k"));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"x"));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"x"));
+    ASSERT_TRUE (check_in_arg((char*)"S", (char*)"T"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"T"));
+    ASSERT_FALSE (check_in_arg((char*)"k", (char*)"T"));
+    ASSERT_TRUE (check_in_arg((char*)"S", (char*)"U"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"U"));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"U"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"k"));
+    ASSERT_TRUE (check_in_arg((char*)"p", (char*)"k"));
+    ASSERT_TRUE (check_in_arg((char*)"c", (char*)"k"));
+    ASSERT_TRUE (check_in_arg((char*)"r", (char*)"k"));
+    ASSERT_TRUE (check_in_arg((char*)"c", (char*)"i"));
+    ASSERT_TRUE (check_in_arg((char*)"r", (char*)"k"));
+    ASSERT_TRUE (check_in_arg((char*)"p", (char*)"k"));
 
     // checking var-arg types
-    ASSERT_FALSE (check_in_arg("a", "m"));
-    ASSERT_TRUE (check_in_arg("i", "m"));
-    ASSERT_TRUE (check_in_arg("i", "M"));
-    ASSERT_TRUE (check_in_arg("k", "M"));
-    ASSERT_TRUE (check_in_arg("a", "M"));
-    ASSERT_TRUE (check_in_arg("a", "N"));
-    ASSERT_TRUE (check_in_arg("k", "N"));
-    ASSERT_TRUE (check_in_arg("i", "N"));
-    ASSERT_TRUE (check_in_arg("S", "N"));
+    ASSERT_FALSE (check_in_arg((char*)"a", (char*)"m"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"m"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"M"));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"M"));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"M"));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"N"));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"N"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"N"));
+    ASSERT_TRUE (check_in_arg((char*)"S", (char*)"N"));
 
-    ASSERT_TRUE (check_in_arg("i", "n"));
-    ASSERT_TRUE (check_in_arg("a", "y"));
-    ASSERT_TRUE (check_in_arg("k", "z"));
-    ASSERT_TRUE (check_in_arg("k", "Z"));
-    ASSERT_TRUE (check_in_arg("a", "Z"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"n"));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"y"));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"z"));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"Z"));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"Z"));
 
-    ASSERT_TRUE (check_in_arg("a", "."));
-    ASSERT_TRUE (check_in_arg("k", "."));
-    ASSERT_TRUE (check_in_arg("i", "."));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"."));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"."));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"."));
 
-    ASSERT_TRUE (check_in_arg("a", "?"));
-    ASSERT_TRUE (check_in_arg("k", "?"));
-    ASSERT_TRUE (check_in_arg("i", "?"));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"?"));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"?"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"?"));
 
-    ASSERT_TRUE (check_in_arg("a", "*"));
-    ASSERT_TRUE (check_in_arg("k", "*"));
-    ASSERT_TRUE (check_in_arg("i", "*"));
+    ASSERT_TRUE (check_in_arg((char*)"a", (char*)"*"));
+    ASSERT_TRUE (check_in_arg((char*)"k", (char*)"*"));
+    ASSERT_TRUE (check_in_arg((char*)"i", (char*)"*"));
 
     //array
-    ASSERT_FALSE (check_in_arg("a", "a[]"));
-    ASSERT_FALSE (check_in_arg("a[]", "a"));
-    ASSERT_TRUE (check_in_arg("a[]", "a[]"));
-    ASSERT_FALSE (check_in_arg("k[]", "a[]"));
-    ASSERT_TRUE (check_in_arg("a[]", "?[]"));
-    ASSERT_TRUE (check_in_arg("k[]", "?[]"));
+    ASSERT_FALSE (check_in_arg((char*)"a", (char*)"a[]"));
+    ASSERT_FALSE (check_in_arg((char*)"a[]", (char*)"a"));
+    ASSERT_TRUE (check_in_arg((char*)"a[]", (char*)"a[]"));
+    ASSERT_FALSE (check_in_arg((char*)"k[]", (char*)"a[]"));
+    ASSERT_TRUE (check_in_arg((char*)"a[]", (char*)"?[]"));
+    ASSERT_TRUE (check_in_arg((char*)"k[]", (char*)"?[]"));
 }
 
 TEST_F (OrcSemanticsTest, CheckInArgs2Test)
 {
-    ASSERT_TRUE (check_in_args(csound, NULL, ""));
-    ASSERT_TRUE (check_in_args(csound, "", NULL));
+    ASSERT_TRUE (check_in_args(csound, NULL, (char*)""));
+    ASSERT_TRUE (check_in_args(csound, (char*)"", NULL));
     ASSERT_TRUE (check_in_args(csound, NULL, NULL));
-    ASSERT_TRUE (check_in_args(csound, "", ""));
+    ASSERT_TRUE (check_in_args(csound, (char*)"", (char*)""));
 
-    ASSERT_TRUE (check_in_args(csound, "akiSakiS", "N"));
-    ASSERT_TRUE (check_in_args(csound, "akiSakiS", "aN"));
-    ASSERT_FALSE (check_in_args(csound, "akiSakiS", "akiSakiSa"));
+    ASSERT_TRUE (check_in_args(csound, (char*)"akiSakiS", (char*)"N"));
+    ASSERT_TRUE (check_in_args(csound, (char*)"akiSakiS", (char*)"aN"));
+    ASSERT_FALSE (check_in_args(csound, (char*)"akiSakiS", (char*)"akiSakiSa"));
 
-    ASSERT_TRUE (check_in_args(csound, "cc", "kkoM"));
-    ASSERT_TRUE (check_in_args(csound, "k[]kk", ".[].M"));
-    ASSERT_TRUE (check_in_args(csound, "a", "az"));
+    ASSERT_TRUE (check_in_args(csound, (char*)"cc", (char*)"kkoM"));
+    ASSERT_TRUE (check_in_args(csound, (char*)"k[]kk", (char*)".[].M"));
+    ASSERT_TRUE (check_in_args(csound, (char*)"a", (char*)"az"));
 }
 
 TEST_F (OrcSemanticsTest, CheckOutArgTest)
 {
     ASSERT_FALSE (check_out_arg(NULL, NULL));
-    ASSERT_FALSE (check_out_arg("a", NULL));
-    ASSERT_FALSE (check_out_arg(NULL, "a"));
-    ASSERT_TRUE (check_out_arg("a", "a"));
-    ASSERT_FALSE (check_out_arg("a", "k"));
-    ASSERT_FALSE (check_out_arg("i", "k"));
+    ASSERT_FALSE (check_out_arg((char*)"a", NULL));
+    ASSERT_FALSE (check_out_arg(NULL, (char*)"a"));
+    ASSERT_TRUE (check_out_arg((char*)"a", (char*)"a"));
+    ASSERT_FALSE (check_out_arg((char*)"a", (char*)"k"));
+    ASSERT_FALSE (check_out_arg((char*)"i", (char*)"k"));
 
-    ASSERT_FALSE (check_out_arg("c", "i"));
+    ASSERT_FALSE (check_out_arg((char*)"c", (char*)"i"));
 
     // checking union types
-    ASSERT_TRUE (check_out_arg("k", "s"));
-    ASSERT_TRUE (check_out_arg("a", "s"));
-    ASSERT_TRUE (check_out_arg("p", "i"));
+    ASSERT_TRUE (check_out_arg((char*)"k", (char*)"s"));
+    ASSERT_TRUE (check_out_arg((char*)"a", (char*)"s"));
+    ASSERT_TRUE (check_out_arg((char*)"p", (char*)"i"));
 
     // checking var-arg types
-    ASSERT_TRUE (check_out_arg("a", "m"));
-    ASSERT_TRUE (check_out_arg("k", "z"));
-    ASSERT_TRUE (check_out_arg("i", "I"));
-    ASSERT_TRUE (check_out_arg("a", "X"));
-    ASSERT_TRUE (check_out_arg("k", "X"));
-    ASSERT_TRUE (check_out_arg("i", "X"));
-    ASSERT_FALSE (check_out_arg("S", "X"));
-    ASSERT_TRUE (check_out_arg("a", "N"));
-    ASSERT_TRUE (check_out_arg("k", "N"));
-    ASSERT_TRUE (check_out_arg("i", "N"));
-    ASSERT_TRUE (check_out_arg("S", "N"));
-    ASSERT_TRUE (check_out_arg("f", "F"));
+    ASSERT_TRUE (check_out_arg((char*)"a", (char*)"m"));
+    ASSERT_TRUE (check_out_arg((char*)"k", (char*)"z"));
+    ASSERT_TRUE (check_out_arg((char*)"i", (char*)"I"));
+    ASSERT_TRUE (check_out_arg((char*)"a", (char*)"X"));
+    ASSERT_TRUE (check_out_arg((char*)"k", (char*)"X"));
+    ASSERT_TRUE (check_out_arg((char*)"i", (char*)"X"));
+    ASSERT_FALSE (check_out_arg((char*)"S", (char*)"X"));
+    ASSERT_TRUE (check_out_arg((char*)"a", (char*)"N"));
+    ASSERT_TRUE (check_out_arg((char*)"k", (char*)"N"));
+    ASSERT_TRUE (check_out_arg((char*)"i", (char*)"N"));
+    ASSERT_TRUE (check_out_arg((char*)"S", (char*)"N"));
+    ASSERT_TRUE (check_out_arg((char*)"f", (char*)"F"));
 
     //array
-    ASSERT_FALSE (check_out_arg("a", "[a]"));
-    ASSERT_FALSE (check_out_arg("a[]", "a"));
-    ASSERT_TRUE (check_out_arg("a[]", "a[]"));
-    ASSERT_FALSE (check_out_arg("k[]", "a[]"));
-    ASSERT_TRUE (check_out_arg("a[]", ".[]"));
+    ASSERT_FALSE (check_out_arg((char*)"a", (char*)"[a]"));
+    ASSERT_FALSE (check_out_arg((char*)"a[]", (char*)"a"));
+    ASSERT_TRUE (check_out_arg((char*)"a[]", (char*)"a[]"));
+    ASSERT_FALSE (check_out_arg((char*)"k[]", (char*)"a[]"));
+    ASSERT_TRUE (check_out_arg((char*)"a[]", (char*)".[]"));
 }
 
 TEST_F (OrcSemanticsTest, CheckOutArgs2Test)
 {
-    ASSERT_TRUE (check_out_args(csound, NULL, ""));
-    ASSERT_TRUE (check_out_args(csound, "", NULL));
+    ASSERT_TRUE (check_out_args(csound, NULL, (char*)""));
+    ASSERT_TRUE (check_out_args(csound, (char*)"", NULL));
     ASSERT_TRUE (check_out_args(csound, NULL, NULL));
-    ASSERT_TRUE (check_out_args(csound, "", ""));
+    ASSERT_TRUE (check_out_args(csound, (char*)"", (char*)""));
 
-    ASSERT_TRUE (check_out_args(csound, "akiSakiS", "N"));
-    ASSERT_TRUE (check_out_args(csound, "akiSakiS", "aN"));
-    ASSERT_FALSE (check_out_args(csound, "akiSakiS", "akiSakiSa"));
+    ASSERT_TRUE (check_out_args(csound, (char*)"akiSakiS", (char*)"N"));
+    ASSERT_TRUE (check_out_args(csound, (char*)"akiSakiS", (char*)"aN"));
+    ASSERT_FALSE (check_out_args(csound, (char*)"akiSakiS", (char*)"akiSakiSa"));
 
-    ASSERT_TRUE (check_out_args(csound, "a", "aX"));
+    ASSERT_TRUE (check_out_args(csound, (char*)"a", (char*)"aX"));
 }
