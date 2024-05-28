@@ -187,7 +187,6 @@ static inline int same_type(char *var, char ty)
 /* Called directly from the parser; constant fold and some alebraic identities */
 TREE* constant_fold(CSOUND *csound, TREE* root)
 {
-    extern MYFLT MOD(MYFLT, MYFLT);
     TREE* current = root;
     while (current) {
       switch (current->type) {

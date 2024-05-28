@@ -186,7 +186,6 @@ static void print_input_backtrace(CSOUND *csound, int needLFs,
 static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
 {
     MYFLT ans;
-    extern MYFLT MOD(MYFLT,MYFLT);
 
     switch (c) {
     case '+': ans = a + b; break;

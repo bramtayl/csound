@@ -90,6 +90,7 @@
 #include "libsnd_u_internal.h"
 #include "one_file.h"
 #include "scsort.h"
+#include "aops.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
@@ -757,8 +758,6 @@ static const CSOUND cenviron_ = {
     NULL,           /* opcodedir */
     NULL           /* score_srt */
 };
-
-void csound_aops_init_tables(CSOUND *cs);
 
 typedef struct csInstance_s {
     CSOUND              *csound;

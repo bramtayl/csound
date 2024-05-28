@@ -47,6 +47,7 @@
 #include "auxfd_internal.h"
 #include "csmodule.h"
 #include "tok.h"
+#include "aops.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
@@ -724,7 +725,6 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   if (A4 == 0)
     csound->A4 = 440.0;
   else {
-    extern void csound_aops_init_tables(CSOUND *);
     csound->A4 = A4;
     csound_aops_init_tables(csound);
   }

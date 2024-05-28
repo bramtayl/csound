@@ -34,8 +34,6 @@
 #include "insert_public.h"
 #include "fgens.h"
 
-extern MYFLT MOD(MYFLT a, MYFLT bb);
-
 typedef struct {
   OPDS    h;
   ARRAYDAT  *arrayDat;
