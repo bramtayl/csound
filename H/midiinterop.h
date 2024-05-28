@@ -190,4 +190,13 @@ typedef struct MIDIDEFAULT_
 }
 MIDIDEFAULT;
 
+int32_t midinoteoff(CSOUND *, MIDINOTEON *), midinoteonkey(CSOUND *, MIDINOTEON *);
+int32_t midinoteoncps(CSOUND *, MIDINOTEON *), midinoteonoct(CSOUND *, MIDINOTEON *);
+int32_t midinoteonpch(CSOUND *, MIDINOTEON *), midipolyaftertouch(CSOUND *, MIDIPOLYAFTERTOUCH *);
+int32_t midicontrolchange(CSOUND *, MIDICONTROLCHANGE *);
+int32_t midiprogramchange(CSOUND *, MIDIPROGRAMCHANGE *);
+int32_t midichannelaftertouch(CSOUND *, MIDICHANNELAFTERTOUCH *);
+int32_t midipitchbend(CSOUND *, MIDIPITCHBEND *);
+int32_t mididefault(CSOUND *, MIDIDEFAULT *);
+
 #endif
