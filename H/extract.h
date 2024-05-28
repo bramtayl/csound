@@ -26,6 +26,9 @@
 
 #define INSMAX  4096
 
+#include "csound.h"
+#include "sort.h"
+
 typedef struct extractStatics__ {
     char    inslst[INSMAX];         /*   values set by readxfil         */
     int     sectno, a0done;
