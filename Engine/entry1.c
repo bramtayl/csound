@@ -37,6 +37,7 @@
 #include "aops.h"
 #include "dumpf.h"
 #include "midiout.h"
+#include "remote.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
@@ -139,11 +140,11 @@ OENTRY opcodlst_1[] = {
   { "massign.iS",S(MASSIGNS), 0,1,  "",  "iSp",(SUBR)massign_S, NULL, NULL, NULL},
   { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL},
   { "turnon.S", S(TURNON),  0,1,    "",     "So", turnon_S, NULL, NULL, NULL},
-  { "remoteport", S(REMOTEPORT), 0,1, "",  "i", remoteport, NULL, NULL, NULL},
-  { "insremot",S(INSREMOT),0,1,     "",     "SSm",insremot, NULL, NULL, NULL},
-  { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL},
-  { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL},
-  { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
+  { "remoteport", S(REMOTEPORT), 0,1, "",  "i", (SUBR)remoteport, NULL, NULL, NULL},
+  { "insremot",S(INSREMOT),0,1,     "",     "SSm",(SUBR)insremot, NULL, NULL, NULL},
+  { "midremot",S(MIDREMOT),0,1,     "",     "SSm",(SUBR)midremot, NULL, NULL, NULL},
+  { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", (SUBR)insglobal, NULL, NULL, NULL},
+  { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", (SUBR)midglobal, NULL, NULL, NULL},
   { "ihold",  S(LINK),0,    1,      "",     "",     (SUBR)ihold, NULL, NULL, NULL  },
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   (SUBR)turnoff, NULL, NULL },
   /* VL: 10.2.22 this was thread 1, but with parser3 we need to make string assignment on threads 1 & 2 */
