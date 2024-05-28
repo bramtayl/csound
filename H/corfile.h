@@ -25,6 +25,8 @@
 
 #define __corfil
 
+#include "csound.h"
+
 CORFIL *corfile_create_w(CSOUND*);
 CORFIL *corfile_create_r(CSOUND*,const char *text);
 void corfile_putc(CSOUND*,int32_t c, CORFIL *f);
@@ -47,12 +49,12 @@ char *corfile_body(CORFIL *f);
 char *corfile_current(CORFIL *f);
 #define corfile_current(f) (f->body+f->p)
 CORFIL *copy_to_corefile(CSOUND *, const char *, const char *, int32_t);
-CORFIL *copy_url_corefile(CSOUND *, const char *, int32_t);
+// CORFIL *copy_url_corefile(CSOUND *, const char *, int32_t);
 int32_t corfile_length(CORFIL *f);
 #define corfile_length(f) (strlen(f->body))
 void corfile_set(CORFIL *f, int32_t n);
 #define corfile_set(f,n) (f->p = n)
 void corfile_seek(CORFIL *f, int32_t n, int32_t dir);
 void corfile_preputs(CSOUND *csound, const char *s, CORFIL *f);
-void add_corfile(CSOUND* csound, CORFIL *smpf, char *filename);
+// void add_corfile(CSOUND* csound, CORFIL *smpf, char *filename);
 #endif
