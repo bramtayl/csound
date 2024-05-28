@@ -12,6 +12,7 @@
 #include "memalloc.h"
 #include "csound_orc_compile.h"
 #include "main.h"
+#include "envvar_public.h"
 
 class OrcCompileTests : public ::testing::Test {
 public:

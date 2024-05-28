@@ -13,6 +13,7 @@
 #include "gtest/gtest.h"
 #include "memalloc.h"
 #include "find_opcode.h"
+#include "envvar_public.h"
 
 extern "C" {
     extern OENTRIES* find_opcode2 (CSOUND* csound, char* opname);

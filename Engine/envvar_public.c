@@ -6,6 +6,7 @@
 #include "envvar.h"
 #include "libsnd_u.h"
 #include "memalloc.h"
+#include "text.h"
 
 /**
  * Search for input file 'filename'.
@@ -514,4 +515,59 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence) {
   }
   csoundNotifyThreadLock(csound->file_io_threadlock);
   return ret;
+}
+
+/**
+ * Get pointer to value of environment variable 'name'.
+ * Return value is NULL if the variable is not set.
+ */
+
+PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name) {
+  if (csound == NULL) {
+      int i;
+      if (name == NULL || name[0] == '\0')
+      return (const char *)NULL;
+      for (i = 0; i < 16; i++) {
+      if (strcmp(globalEnvVarName(i), name) == 0)
+          return (const char *)globalEnvVarValue(i);
+      }
+      return (const char *)getenv(name);
+  }
+
+  if (csound->envVarDB == NULL)
+      return NULL;
+
+  return (const char *)cs_hash_table_get(csound, csound->envVarDB,
+                                         (char *)name);
+}
+
+/**
+ * Set the global value of environment variable 'name' to 'value',
+ * or delete variable if 'value' is NULL.
+ * It is not safe to call this function while any Csound instances
+ * are active.
+ * Returns zero on success.
+ */
+
+PUBLIC int csoundSetGlobalEnv(const char *name, const char *value) {
+  int i;
+
+  if (UNLIKELY(name == NULL || name[0] == '\0' || (int)strlen(name) >= 32))
+      return -1; /* invalid name             */
+  for (i = 0; i < 16; i++) {
+      if ((value != NULL && globalEnvVarName(i)[0] == '\0') ||
+          strcmp(name, globalEnvVarName(i)) == 0)
+      break;
+  }
+  if (UNLIKELY(i >= 16)) /* not found / no free slot */
+      return -1;
+  if (value == NULL) {
+      globalEnvVarName(i)[0] = '\0'; /* delete existing variable */
+      return 0;
+  }
+  if (UNLIKELY(strlen(value) >= 480))
+      return -1; /* string value is too long */
+  strcpy(globalEnvVarName(i), name);
+  strcpy(globalEnvVarValue(i), value);
+  return 0;
 }

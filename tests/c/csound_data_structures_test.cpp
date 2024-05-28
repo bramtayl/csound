@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "csoundCore_internal.h"
 #include "gtest/gtest.h"
+#include "envvar_public.h"
 
 class CsoundDataStructuresTests : public ::testing::Test {
 public:

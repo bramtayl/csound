@@ -11,6 +11,7 @@
 #include "csound_standard_types.h"
 #include "csoundCore_internal.h"
 #include "gtest/gtest.h"
+#include "envvar_public.h"
 
 class TypeSystemTests : public ::testing::Test {
 public:

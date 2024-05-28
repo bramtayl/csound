@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include "csound.h"
 #include "cscore.h"
+#include "envvar_public.h"
 
 void cscore(CSOUND *cs)
 {

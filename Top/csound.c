@@ -92,6 +92,7 @@
 #include "scsort.h"
 #include "aops.h"
 #include "midifile.h"
+#include "envvar.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
@@ -110,7 +111,6 @@ int  csoundPerformKsmpsInternal(CSOUND *csound);
 INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 
 extern void cscoreRESET(CSOUND *);
-extern void close_all_files(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 extern OENTRY opcodlst_1[];

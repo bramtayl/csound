@@ -8,6 +8,7 @@
 #include "csound.h"
 #include "csdebug.h"
 #include "main.h"
+#include "envvar_public.h"
 
 class DebuggerTests : public ::testing::Test {
 public:

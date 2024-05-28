@@ -32,6 +32,7 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "tok.h"
+#include "envvar.h"
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \
@@ -44,7 +45,6 @@
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 ORCTOKEN *new_token(CSOUND *csound, int type);
 ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);

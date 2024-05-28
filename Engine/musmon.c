@@ -48,6 +48,7 @@
 #include "midisend.h"
 #include "scsort.h"
 #include "libsnd_internal.h"
+#include "envvar.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
@@ -60,7 +61,6 @@ int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
   void    MidiClose(CSOUND *);
   void    RTclose(CSOUND *);
   void    remote_Cleanup(CSOUND *);
-  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 void print_csound_version(CSOUND*);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK

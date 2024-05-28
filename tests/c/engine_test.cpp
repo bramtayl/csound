@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include "time.h"
 #include "main.h"
+#include "envvar_public.h"
 
 class EngineTests : public ::testing::Test {
 public:

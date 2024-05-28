@@ -3,6 +3,7 @@
 
 #include "csound.h"
 #include "main.h"
+#include "envvar_public.h"
 
 class IOTests : public ::testing::Test {
 public:

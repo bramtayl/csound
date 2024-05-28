@@ -57,6 +57,15 @@ extern "C" {
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
 #endif
 
+/* Space for 16 global environment variables, */
+/* 32 bytes for name and 480 bytes for value. */
+/* Only written by csoundSetGlobalEnv().      */
+
+static char globalEnvVars[8192] = {(char)0};
+
+#define globalEnvVarName(x) ((char *)&(globalEnvVars[(int)(x) << 9]))
+#define globalEnvVarValue(x) ((char *)&(globalEnvVars[((int)(x) << 9) + 32]))
+
 typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
@@ -72,6 +81,10 @@ typedef struct CSFILE_ {
     int             bufsize;
     char            fullName[1];
 } CSFILE;
+
+void close_all_files(CSOUND *csound);
+void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
+                 char *env, int fromScore);
 
   /**
    * Set environment variable 'name' to 'value'.
@@ -162,6 +175,8 @@ typedef struct CSFILE_ {
                                 const char *envList);
 
   uintptr_t file_iothread(void *p);
+
+char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList);
 
 #ifdef __cplusplus
 }
