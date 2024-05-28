@@ -24,6 +24,8 @@
                                                         /*  DUMPF.H  */
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS   h;
         MYFLT  *ksig, *ifilcod, *iformat, *iprd;
@@ -114,3 +116,18 @@ typedef struct {
         FDCH   fdch;
 } KREADS;
 
+
+int32_t kdmpset_p(CSOUND *, KDUMP *), kdmp2set_p(CSOUND *, KDUMP2 *);
+int32_t kdmp3set_p(CSOUND *, KDUMP3 *), kdmp4set_p(CSOUND *, KDUMP4 *);
+int32_t kdmpset_S(CSOUND *, KDUMP *), kdmp2set_S(CSOUND *, KDUMP2 *);
+int32_t kdmp3set_S(CSOUND *, KDUMP3 *), kdmp4set_S(CSOUND *, KDUMP4 *);
+int32_t kdump(CSOUND *, KDUMP *), kdump2(CSOUND *, KDUMP2 *);
+int32_t kdump3(CSOUND *, KDUMP3 *), kdump4(CSOUND *, KDUMP4 *);
+int32_t krdset_S(CSOUND *, KREAD *), krd2set_S(CSOUND *, KREAD2 *);
+int32_t krd3set_S(CSOUND *, KREAD3 *), krd4set_S(CSOUND *, KREAD4 *);
+int32_t krdset_p(CSOUND *, KREAD *), krd2set_p(CSOUND *, KREAD2 *);
+int32_t krd3set_p(CSOUND *, KREAD3 *), krd4set_p(CSOUND *, KREAD4 *);
+int32_t kread(CSOUND *, KREAD *), kread2(CSOUND *, KREAD2 *);
+int32_t kread3(CSOUND *, KREAD3 *), kread4(CSOUND *, KREAD4 *);
+int32_t krdsset_S(CSOUND *, KREADS *),krdsset_p(CSOUND *, KREADS *),
+        kreads(CSOUND *, KREADS *);
