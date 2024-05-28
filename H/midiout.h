@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef int BOOL;
 #ifndef TRUE
 #   define TRUE (1)
@@ -159,3 +161,20 @@ typedef struct {
     MYFLT             time[DELTAB_LENGTH];
     unsigned int  write_index, read_index;
 } MDELAY;
+
+int32_t midiout(CSOUND *, MIDIOUT *);
+int32_t iout_on(CSOUND *, OUT_ON *), iout_off(CSOUND *, OUT_ON *);
+int32_t out_controller(CSOUND *, OUT_CONTR *), iout_on_dur_set(CSOUND *, OUT_ON_DUR *);
+int32_t iout_on_dur(CSOUND *, OUT_ON_DUR *), iout_on_dur2(CSOUND *, OUT_ON_DUR *);
+int32_t moscil_set(CSOUND *, MOSCIL *), moscil(CSOUND *, MOSCIL *);
+int32_t kvar_out_on_set(CSOUND *, KOUT_ON *);
+int32_t kvar_out_on(CSOUND *, KOUT_ON *), out_controller14(CSOUND *, OUT_CONTR14 *);
+int32_t out_pitch_bend(CSOUND *, OUT_PB *), out_aftertouch(CSOUND *, OUT_ATOUCH *);
+int32_t out_poly_aftertouch(CSOUND*, OUT_POLYATOUCH*), out_progchange(CSOUND*, OUT_PCHG*);
+int32_t release_set(CSOUND *, REL *), release(CSOUND *, REL *);
+int32_t xtratim(CSOUND *, XTRADUR *);
+int32_t mclock_set(CSOUND *, MCLOCK *), mclock(CSOUND *, MCLOCK *);
+int32_t mrtmsg(CSOUND *, MRT *);
+int32_t kon2_set(CSOUND *, KON2 *), kon2(CSOUND *, KON2 *);
+int32_t nrpn(CSOUND *, NRPN *);
+int32_t mdelay(CSOUND *, MDELAY *), mdelay_set(CSOUND *, MDELAY *);
