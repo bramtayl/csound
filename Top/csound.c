@@ -91,6 +91,7 @@
 #include "one_file.h"
 #include "scsort.h"
 #include "aops.h"
+#include "midifile.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
@@ -1682,7 +1683,6 @@ PUBLIC MYFLT csoundGetScoreOffsetSeconds(CSOUND *csound)
 }
 
 extern void musmon_rewind_score(CSOUND *csound);      /* musmon.c */
-extern void midifile_rewind_score(CSOUND *csound);    /* midifile.c */
 
 PUBLIC void csoundRewindScore(CSOUND *csound)
 {

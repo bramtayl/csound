@@ -24,6 +24,9 @@
 #ifndef CSOUND_MIDIFILE_H
 #define CSOUND_MIDIFILE_H
 
+#include "csound.h"
+#include "csoundCore_common.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,8 +52,9 @@ typedef struct {
 
 /* miditempo opcode: returns the current tempo of MIDI file */
 
-extern int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
-extern int midiFileStatus(CSOUND *csound, MIDITEMPO *p);
+int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
+int midiFileStatus(CSOUND *csound, MIDITEMPO *p);
+void midifile_rewind_score(CSOUND *csound);
 
 #ifdef __cplusplus
 }

@@ -26,6 +26,7 @@
 #include <errno.h>
 #include "memalloc.h"
 #include "envvar_public.h"
+#include "text.h"
 #include "midirecv.h"
 
 static const char *midiFile_ID = "MThd";
