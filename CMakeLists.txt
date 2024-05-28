@@ -701,6 +701,7 @@ set(libcsound_SRCS
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
+    OOps/lpred.c
     OOps/lpred_public.c
     OOps/pffft.c
     OOps/goto_ops.c
