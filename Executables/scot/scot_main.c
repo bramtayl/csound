@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-extern int scot(FILE *inf, FILE *outf, char *fil);
+#include "scot.h"
 
 int main(int argc, char **argv)
 {

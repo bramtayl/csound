@@ -97,6 +97,8 @@ typedef struct tempo
 
 #include <stdlib.h>
 
+int scot(FILE *inf, FILE *outf, char *fil);
+
 static void readinstsec(Inst *,Nextp **,
                         Rat *,Rat *,Rat *,Rat *,Rat *,
                         Note **,Note **,Tempo **,
