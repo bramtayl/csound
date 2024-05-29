@@ -848,7 +848,6 @@ set(stdopcod_SRCS
     Opcodes/uggab.c
     Opcodes/ugmoss.c
     Opcodes/ugnorman.c
-    Opcodes/ugsc.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
@@ -930,6 +929,7 @@ if(INIT_STATIC_MODULES)
         Plugins/tabsum/tabsum.c 
         Plugins/ugakbari/ugakbari.c 
         Plugins/vaops/vaops.c 
+        Plugins/ugsc/ugsc.c
         Plugins/vbap/vbap.c
         Plugins/vbap/vbap1.c
         Plugins/vbap/vbap_n.c

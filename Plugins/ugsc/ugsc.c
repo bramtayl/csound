@@ -29,6 +29,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "text.h"
+#include "csdl.h"
 
 /* svfilter.c
  *
@@ -741,10 +742,6 @@ static OENTRY localops[] =
    { "phaser1", S(PHASER1), 0,3, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1, NULL, NULL}
 };
 
-int32_t ugsc_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
-}
+ADD_INIT_FUNCTION(ugsc_init_, localops)
+
 
