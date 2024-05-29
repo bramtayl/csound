@@ -22,3 +22,11 @@ int copyVarGeneric(CSOUND *csound, void *p) {
   typeR->copyValue(csound, typeR, assign->r, assign->a);
   return OK;
 }
+
+OENTRY csound_type_system_internal_localops[] = {
+  // VL: 9.3.22 this is causing a problem in parsing arrays
+  // I am modifying it to accept only i-time inputs
+  { "=.generic", sizeof(ASSIGN), 0,1, ".", ".", (SUBR)copyVarGeneric, NULL, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(csound_type_system_internal_localops)

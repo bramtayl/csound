@@ -3,6 +3,6 @@
 #include <stdint.h> // for int32_t
 
 #include "csound.h" // for CSOUND
+#include "csoundCore_common.h"
 
-/* GENERIC VARIABLE COPYING */
-int32_t copyVarGeneric(CSOUND *csound, void *p);
+OPCODE_INIT_FUNCTION(csound_type_system_internal_localops_init);
