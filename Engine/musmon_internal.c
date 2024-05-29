@@ -1110,3 +1110,15 @@ void musmon_rewind_score(CSOUND *csound)
     corfile_rewind(csound->scstr);
   else csoundWarning(csound, Str("cannot rewind score: no score in memory\n"));
 }
+
+static OENTRY musmon_internal_localops[] = {
+    {"tempo", sizeof(TEMPO), 0, 3, "", "ki", (SUBR)tempset, (SUBR)tempo, NULL,
+     NULL},
+    {"tempoval", sizeof(GTEMPO), 0, 2, "k", "", NULL, (SUBR)gettempo, NULL,
+     NULL},
+    {"turnon", sizeof(TURNON), 0, 1, "", "io", (SUBR)turnon, NULL, NULL, NULL},
+    {"turnon.S", sizeof(TURNON), 0, 1, "", "So", (SUBR)turnon_S, NULL, NULL,
+     NULL},
+};
+
+LINKAGE_BUILTIN(musmon_internal_localops)

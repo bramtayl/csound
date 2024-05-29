@@ -30,8 +30,5 @@ void delete_pending_rt_events(CSOUND *csound);
 void musmon_rewind_score(CSOUND *csound);
 void print_csound_version(CSOUND* csound);
 
-int32_t turnon(CSOUND *, TURNON *);
-int32_t turnon_S(CSOUND *, TURNON *);
-int32_t tempset(CSOUND *, TEMPO *), tempo(CSOUND *, TEMPO *);
-int32_t gettempo(CSOUND *, GTEMPO *); 
+OPCODE_INIT_FUNCTION(musmon_internal_localops_init);
 

@@ -30,7 +30,6 @@
 #include "ugens2.h"
 #include "pstream_internal.h"
 #include "schedule_internal.h"
-#include "musmon_internal.h"
 #include "pvsanal.h"
 #include "csoundCore_internal.h"         /*                      ENTRY1.H        */
 #include "aops.h"
@@ -67,7 +66,6 @@
 #include "ugtabs.h"
 #include "compile_ops.h"
 #include "lpred.h"
-#include "musmon_internal.h"
 #include "midiops_internal.h"
 #include "pvsanal.h"
 #include "schedule_internal.h"
@@ -160,8 +158,6 @@ OENTRY opcodlst_1[] = {
   { "ctrlprintpresets.S", S(PRINTPRESETS), 0,3, "", "S", (SUBR)printpresets_init1, (SUBR)printpresets_perf, NULL},
   { "massign",S(MASSIGN), 0,1,      "",  "iip",(SUBR)massign_p, NULL, NULL, NULL},
   { "massign.iS",S(MASSIGNS), 0,1,  "",  "iSp",(SUBR)massign_S, NULL, NULL, NULL},
-  { "turnon", S(TURNON),  0,1,      "",     "io", (SUBR)turnon, NULL, NULL, NULL},
-  { "turnon.S", S(TURNON),  0,1,    "",     "So", (SUBR)turnon_S, NULL, NULL, NULL},
   { "remoteport", S(REMOTEPORT), 0,1, "",  "i", (SUBR)remoteport, NULL, NULL, NULL},
   { "insremot",S(INSREMOT),0,1,     "",     "SSm",(SUBR)insremot, NULL, NULL, NULL},
   { "midremot",S(MIDREMOT),0,1,     "",     "SSm",(SUBR)midremot, NULL, NULL, NULL},
@@ -608,7 +604,6 @@ OENTRY opcodlst_1[] = {
   { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",(SUBR)xyinset,NULL, NULL, NULL},
   { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",(SUBR)xyinset,NULL, NULL, NULL},
   { "tempest",  S(TEMPEST),0, 3,    "k","kiiiiiiiiiop",(SUBR)tempeset,(SUBR)tempest, NULL, NULL},
-  { "tempo",    S(TEMPO),0,   3,    "",     "ki",   (SUBR)tempset,(SUBR)tempo, NULL, NULL},
   { "pow.i",    S(POW),0,   1,      "i",    "iip",  (SUBR)ipow,    NULL,  NULL, NULL},
   { "pow.k",    S(POW),0,   2,      "k",    "kkp",  NULL,    (SUBR)ipow,  NULL, NULL},
   { "pow.a",    S(POW),0,   2,      "a",    "akp",  NULL,  (SUBR)apow, NULL, NULL},
@@ -987,7 +982,6 @@ OENTRY opcodlst_1[] = {
   { "cngoto", S(CGOTO),0,   3,      "",     "Bl",   (SUBR)ingoto, (SUBR)kngoto, NULL, NULL},
   { "cnkgoto", S(CGOTO),0,   2,      "",     "Bl",   NULL,  (SUBR)kngoto, NULL, NULL},
   { "cingoto", S(CGOTO),0,   1,      "",     "Bl",   (SUBR)ingoto, NULL, NULL, NULL},
-  { "tempoval", S(GTEMPO),0, 2,  "k", "",      NULL, (SUBR)gettempo, NULL, NULL},
   { "downsamp",S(DOWNSAMP),0,3, "k", "ao",   (SUBR)downset,(SUBR)downsamp, NULL, NULL},
   { "upsamp", S(UPSAMP),0,  2,  "a", "k",    NULL,   (SUBR)upsamp, NULL, NULL},
   /* IV - Sep 5 2002 */
