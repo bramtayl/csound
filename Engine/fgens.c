@@ -46,6 +46,7 @@
 #include "libsnd_u.h"
 #include "text.h"
 #include "pvsanal.h"
+#include "interlocks.h"
 
 static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
@@ -3048,3 +3049,12 @@ int resize_table(CSOUND *csound, RESIZE *p)
     csound->flist[fno] = ftp;
     return OK;
 }
+
+static OENTRY fgens_localops[] = {
+    {"ftresize", sizeof(RESIZE), TB, 2, "k", "kk", NULL, (SUBR)resize_table,
+     NULL, NULL},
+    {"ftresizei", sizeof(RESIZE), TB, 1, "i", "ii", (SUBR)resize_table, NULL,
+     NULL, NULL},
+};
+
+LINKAGE_BUILTIN(fgens_localops)

@@ -32,7 +32,6 @@
 #include "schedule_internal.h"
 #include "musmon_internal.h"
 #include "pvsanal.h"
-#include "fgens.h"
 #include "csoundCore_internal.h"         /*                      ENTRY1.H        */
 #include "insert.h"
 #include "aops.h"
@@ -1274,8 +1273,6 @@ OENTRY opcodlst_1[] = {
   { "gaussi.i", S(PRANDI),0, 1,      "i",    "kxx",  (SUBR)igaussi, NULL,    NULL, NULL},
   { "gaussi.k", S(PRANDI),0, 3,      "k",    "kxx",  (SUBR)gaussiset, (SUBR)kgaussi, NULL, NULL},
   { "gaussi.a", S(PRANDI),0, 2,      "a",    "kxx",  (SUBR)gaussiset, (SUBR)agaussi, NULL, NULL},
-  { "ftresizei", S(RESIZE), TB, 1, "i", "ii", (SUBR) resize_table, NULL, NULL, NULL},
-  { "ftresize",  S(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL, NULL},
   { "compileorc",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_orc_i, NULL, NULL, NULL},
   { "compilecsd",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_csd_i, NULL, NULL, NULL},
   { "compilestr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_str_i, NULL, NULL, NULL},
