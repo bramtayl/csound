@@ -587,3 +587,24 @@ int instanceOpcode_S(CSOUND *csound, LINEVENT2 *p)
 {
     return instanceOpcode_(csound, p, 1);
 }
+
+static OENTRY linevent_localops[] = {
+    {"event", sizeof(LINEVENT), 0, 2, "", "Skz", NULL, (SUBR)eventOpcode, NULL,
+     NULL},
+    {"event.S", sizeof(LINEVENT), 0, 2, "", "SSz", NULL, (SUBR)eventOpcode_S,
+     NULL, NULL},
+    {"event_i", sizeof(LINEVENT), 0, 1, "", "Sim", (SUBR)eventOpcodeI, NULL,
+     NULL, NULL},
+    {"event_i.S", sizeof(LINEVENT), 0, 1, "", "SSm", (SUBR)eventOpcodeI_S, NULL,
+     NULL, NULL},
+    {"nstance", sizeof(LINEVENT2), 0, 2, "k", "kkz", NULL, (SUBR)instanceOpcode,
+     NULL, NULL},
+    {"nstance.i", sizeof(LINEVENT2), 0, 1, "i", "iiim", (SUBR)instanceOpcode,
+     NULL, NULL, NULL},
+    {"nstance.kS", sizeof(LINEVENT2), 0, 2, "k", "SSz", NULL,
+     (SUBR)instanceOpcode_S, NULL, NULL},
+    {"nstance.S", sizeof(LINEVENT2), 0, 1, "i", "Siim", (SUBR)instanceOpcode_S,
+     NULL, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(linevent_localops)

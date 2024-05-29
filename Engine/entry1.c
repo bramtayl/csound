@@ -58,7 +58,6 @@
 #include "oscils.h"
 #include "midifile.h"
 #include "midiinterop.h"
-#include "linevent.h"
 #include "str_ops.h"
 #include "bus.h"
 #include "pstream.h"
@@ -891,14 +890,6 @@ OENTRY opcodlst_1[] = {
   { "schedkwhennamed.S", S(TRIGINSTR),0, 3,"",
                                         "kkkSkz",(SUBR)triginset_S, (SUBR)ktriginstr_S, NULL, NULL},
   { "trigseq", S(TRIGSEQ),0, 3,     "",     "kkkkkz", (SUBR)trigseq_set, (SUBR)trigseq, NULL, NULL},
-  { "event", S(LINEVENT),0,  2,     "",     "Skz",  NULL, (SUBR)eventOpcode, NULL, NULL},
-  { "event_i", S(LINEVENT),0,1,     "",     "Sim",  (SUBR)eventOpcodeI, NULL, NULL, NULL},
-  { "event.S", S(LINEVENT),0,  2,     "",    "SSz",  NULL, (SUBR)eventOpcode_S, NULL, NULL},
-  { "event_i.S", S(LINEVENT),0,1,     "",    "SSm",  (SUBR)eventOpcodeI_S, NULL, NULL, NULL},
-  { "nstance", S(LINEVENT2),0,2,     "k",  "kkz",  NULL, (SUBR)instanceOpcode, NULL, NULL},
-  { "nstance.i", S(LINEVENT2),0,1,   "i",  "iiim",  (SUBR)instanceOpcode, NULL, NULL, NULL},
-  { "nstance.kS", S(LINEVENT2),0, 2, "k",  "SSz",  NULL, (SUBR)instanceOpcode_S, NULL, NULL},
-  { "nstance.S", S(LINEVENT2),0, 1,  "i",  "Siim",  (SUBR)instanceOpcode_S, NULL, NULL, NULL},
   { "lfo", S(LFO),0,         3,     "k",    "kko",  (SUBR)lfoset,   (SUBR)lfok,   NULL, NULL},
   { "lfo.a", S(LFO),0,         3,     "a",    "kko",  (SUBR)lfoset,   (SUBR)lfoa, NULL, NULL},
   { "oscils",   S(OSCILS),0, 3,     "a", "iiio",

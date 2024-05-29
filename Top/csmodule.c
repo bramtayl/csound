@@ -94,6 +94,7 @@
 #include "csound_type_system_internal.h"
 #include "fgens.h"
 #include "insert.h"
+#include "linevent.h"
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -1228,6 +1229,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  csound_type_system_internal_localops_init,
                                  fgens_localops_init,
                                  insert_localops_init,
+                                 linevent_localops_init,
   #ifdef INIT_STATIC_MODULES
     ambicode_localops_init,
     ambicode1_localops_init,
