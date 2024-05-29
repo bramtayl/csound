@@ -52,3 +52,4 @@ typedef struct {
 /* void daminit(DAM *p) ; */
 /* void dam(DAM *p) ; */
 
+int32_t dam_init_(CSOUND *csound);

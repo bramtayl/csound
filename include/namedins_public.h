@@ -48,6 +48,38 @@ PUBLIC int32 strarg2insno(CSOUND *, void *, int);
 
 PUBLIC char *strarg2name(CSOUND *, char *, void *, const char *, int);
 
+/**
+ * Allocate nbytes bytes of memory that can be accessed later by calling
+ * csoundQueryGlobalVariable() with the specified name; the space is
+ * cleared to zero.
+ * Returns CSOUND_SUCCESS on success, CSOUND_ERROR in case of invalid
+ * parameters (zero nbytes, invalid or already used name), or
+ * CSOUND_MEMORY if there is not enough memory.
+ */
+PUBLIC int csoundCreateGlobalVariable(CSOUND *, const char *name,
+                                      size_t nbytes);
+
+/**
+ * Get pointer to space allocated with the name "name".
+ * Returns NULL if the specified name is not defined.
+ */
+PUBLIC void *csoundQueryGlobalVariable(CSOUND *, const char *name);
+
+/**
+ * This function is the same as csoundQueryGlobalVariable(), except the
+ * variable is assumed to exist and no error checking is done.
+ * Faster, but may crash or return an invalid pointer if 'name' is
+ * not defined.
+ */
+PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *, const char *name);
+
+/**
+ * Free memory allocated for "name" and remove "name" from the database.
+ * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
+ * not defined.
+ */
+PUBLIC int csoundDestroyGlobalVariable(CSOUND *, const char *name);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

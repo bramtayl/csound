@@ -34,6 +34,7 @@ int mkstemp(char *);
 #include "csound_orc_semantics_public.h"
 #include "envvar_public.h"
 #include "text.h"
+#include "argdecode_internal.h"
 #include "one_file.h"
 
 #if defined(__gnu_linux__) || defined(__MACH__) || defined(_WIN32)

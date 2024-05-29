@@ -38,7 +38,12 @@
 #endif
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "threadsafe_public.h"
+#include "server.h"
 #include "bus_public.h"
+#include "csound_threads.h"
+#include "namedins_public.h"
+#include "text.h"
 
 typedef struct {
   int port;

@@ -136,3 +136,5 @@ typedef struct {
   MYFLT *in, *f0, *tau, *reinit;
   MYFLT x, y;
 } MVMFILT;
+
+int32_t biquad_init_(CSOUND *);

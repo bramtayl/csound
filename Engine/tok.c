@@ -39,6 +39,7 @@
 #include "find_opcode.h"
 #include "text.h"
 #include "csound_orc_compile.h"
+#include "csound_orclex.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
@@ -49,9 +50,6 @@
 #endif
 
 #define namedInstrFlag csound->parserNamedInstrFlag
-
-extern int csound_orcget_lineno(void*);
-extern ORCTOKEN *new_token(CSOUND *, int);
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {

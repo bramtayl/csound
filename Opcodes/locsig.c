@@ -34,6 +34,7 @@
 #include <math.h>
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {

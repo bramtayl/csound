@@ -37,6 +37,9 @@
 #include "zak.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "namedins_public.h"
+#include "text.h"
+#include "vbap_zak.h"
 
 int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
 int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);

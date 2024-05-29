@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
   int32_t    cnt, wsize, flag; /* , section; */
         MYFLT  ampincr, ampphs, offset;
@@ -52,3 +54,4 @@ typedef struct {
     int16   ampcode, timewarpcode, resamplecode;
 } SNDWARPST;
 
+int32_t sndwarp_init_(CSOUND *csound);

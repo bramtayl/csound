@@ -26,6 +26,7 @@
 /*              Copyright (c) May 1994.  All rights reserved            */
 
 #include "stdopcod.h"
+#include "butter.h"
 
 typedef struct  {
         OPDS    h;

@@ -37,6 +37,8 @@ Ville Pulkki heavily modified by John ffitch 2012
 #include "arrays.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "namedins_public.h"
+#include "vbap_n.h"
 
 int32_t vbap_moving_control(CSOUND *, VBAP_MOVE_DATA *, OPDS*, MYFLT,
                         MYFLT *, MYFLT*,MYFLT**);

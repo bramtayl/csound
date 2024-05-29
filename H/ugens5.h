@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
 #include "lpc.h"        /*                               UGENS5.H        */
 
 typedef struct {
@@ -145,3 +146,22 @@ int32_t kreson(CSOUND*,RESON *p);
 int32_t kareson(CSOUND*,RESON *p);
 int32_t klimit(CSOUND*,LIMIT *p);
 int32_t limit(CSOUND*,LIMIT *p);
+int32_t porset(CSOUND *, PORT *), port(CSOUND *, PORT *);
+int32_t tonset(CSOUND *, TONE *), tone(CSOUND *, TONE *);
+int32_t atone(CSOUND *, TONE *), rsnset(CSOUND *, RESON *);
+int32_t reson(CSOUND *, RESON *), areson(CSOUND *, RESON *);
+int32_t resonx(CSOUND *, RESONX *);
+int32_t rsnsetx(CSOUND *, RESONX *), tonex(CSOUND *, TONEX *);
+int32_t atonex(CSOUND *, TONEX *), tonsetx(CSOUND *, TONEX *);
+int32_t lprdset(CSOUND *, LPREAD *), lpread(CSOUND *, LPREAD *);
+int32_t lpformantset(CSOUND *, LPFORM *), lpformant(CSOUND *, LPFORM*);
+int32_t lprsnset(CSOUND *, LPRESON *), lpreson(CSOUND *, LPRESON *);
+int32_t lpfrsnset(CSOUND *, LPFRESON *), lpfreson(CSOUND *, LPFRESON *);
+int32_t lpslotset(CSOUND *, LPSLOT *), lpitpset(CSOUND *, LPINTERPOL *);
+int32_t lpinterpol(CSOUND *, LPINTERPOL *);
+int32_t rmsset(CSOUND *, RMS *), rms(CSOUND *, RMS *);
+int32_t gainset(CSOUND *, GAIN *), gain(CSOUND *, GAIN *);
+int32_t balnset(CSOUND *, BALANCE *), balance(CSOUND *, BALANCE *);
+int32_t lprdset_S(CSOUND *csound, LPREAD *p);
+int32_t balance2(CSOUND *, BALANCE *);
+

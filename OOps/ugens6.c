@@ -28,6 +28,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 #define log001 (-FL(6.9078))    /* log(.001) */
 

@@ -44,11 +44,14 @@
 #include "auxfd_internal.h"
 #include "insert_public.h"
 #include "fgens.h"
+#include "csound_threads.h"
+#include "text.h"
+#include "auxfd_internal.h"
 #include "csound_orc_compile.h"
+#include "csound_internal.h"
 
 static  void    showallocs(CSOUND *);
-static  void    deact(CSOUND *, INSDS *);
-static  void    schedofftim(CSOUND *, INSDS *);
+void    deact(CSOUND *, INSDS *);
 void    beatexpire(CSOUND *, double);
 void    timexpire(CSOUND *, double);
 static  void    instance(CSOUND *, int);
@@ -289,7 +292,7 @@ void putop(CSOUND *csound, TEXT *tp)
   csoundMessage(csound, "\n");
 }
 
-static void set_xtratim(CSOUND *csound, INSDS *ip)
+void set_xtratim(CSOUND *csound, INSDS *ip)
 {
   if (UNLIKELY(ip->relesing))
     return;
@@ -864,7 +867,7 @@ static void showallocs(CSOUND *csound)      /* debugging aid */
     }
 }
 
-static void schedofftim(CSOUND *csound, INSDS *ip)
+void schedofftim(CSOUND *csound, INSDS *ip)
 {                               /* put an active instr into offtime list  */
   INSDS *prvp, *nxtp;         /* called by insert() & midioff + xtratim */
 
@@ -907,10 +910,9 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
 }
 
 /* csound.c */
-extern  int     csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip);
 int     useropcd(CSOUND *, UOPCODE*);
 
-static void deact(CSOUND *csound, INSDS *ip)
+void deact(CSOUND *csound, INSDS *ip)
 {                               /* unlink single instr from activ chain */
   INSDS  *nxtp;               /*      and mark it inactive            */
   /*   close any files in fd chain        */
@@ -1034,9 +1036,6 @@ void xturnoff_now(CSOUND *csound, INSDS *ip)
   ip->relesing = 0;
   xturnoff(csound, ip);
 }
-
-extern void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);
-
 
 void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
   INSTRTXT* instrDef = ip->instr;
@@ -1706,42 +1705,6 @@ int nstrstr(CSOUND *csound, NSTRSTR *p)
     p->ans->data = cs_strdup(csound, ss);
     p->ans->size = strlen(ss);
     return OK;
-}
-
-/* unlink expired notes from activ chain */
-/*      and mark them inactive           */
-/*    close any files in each fdchain    */
-
-/* IV - Feb 05 2005: changed to double */
-
-void beatexpire(CSOUND *csound, double beat)
-{
-  INSDS  *ip;
- strt:
-  if ((ip = csound->frstoff) != NULL && ip->offbet <= beat) {
-    do {
-      if (!ip->relesing && ip->xtratim) {
-        /* IV - Nov 30 2002: */
-        /*   allow extra time for finite length (p3 > 0) score notes */
-        set_xtratim(csound, ip);      /* enter release stage */
-        csound->frstoff = ip->nxtoff; /* update turnoff list */
-#ifdef BETA
-        if (UNLIKELY(csound->oparms->odebug))
-          csoundMessage(csound, "Calling schedofftim line %d\n", __LINE__);
-#endif
-        schedofftim(csound, ip);
-        goto strt;                    /* and start again */
-      }
-      else
-        deact(csound, ip);    /* IV - Sep 5 2002: use deact() as it also */
-    }                         /* deactivates subinstrument instances */
-    while ((ip = ip->nxtoff) != NULL && ip->offbet <= beat);
-    csound->frstoff = ip;
-    if (UNLIKELY(csound->oparms->odebug)) {
-      csoundMessage(csound, "deactivated all notes to beat %7.3f\n", beat);
-      csoundMessage(csound, "frstoff = %p\n", (void*) csound->frstoff);
-    }
-  }
 }
 
 /* unlink expired notes from activ chain */

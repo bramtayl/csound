@@ -58,6 +58,7 @@ int closedir(DIR*);
 #endif
 
 #include "namedins.h"
+#include "text.h"
 
 #define CSSTRNGS_VERSION 0x2000
 #include <locale.h>

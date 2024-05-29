@@ -6,6 +6,7 @@
 #include "csound_data_structures.h"  // for cs_cons_free, cs_hash_table_free
 #include "memalloc.h"                // for mfree
 #include "prototyp.h"                // for csoundDeleteAllConfigurationVari...
+#include "cfgvar.h"
 
 static int destroy_entire_db(CSOUND *csound, CS_HASH_TABLE *db) {
   CONS_CELL *head, *current;

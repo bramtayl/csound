@@ -13,17 +13,10 @@
 #include "gtest/gtest.h"
 #include "memalloc.h"
 #include "find_opcode.h"
+#include "musmon.h"
+#include "argdecode.h"
 #include "envvar_public.h"
-
-extern "C" {
-    extern OENTRIES* find_opcode2 (CSOUND* csound, char* opname);
-    extern OENTRY* resolve_opcode (CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
-
-    extern bool check_in_arg (char* found, char* required);
-    extern bool check_in_args (CSOUND* csound, char* outArgsFound, char* opOutArgs);
-    extern bool check_out_arg (char* found, char* required);
-    extern bool check_out_args (CSOUND* csound, char* outArgsFound, char* opOutArgs);
-}
+#include "csound_orc_semantics.h"
 
 class OrcSemanticsTest : public ::testing::Test {
 public:

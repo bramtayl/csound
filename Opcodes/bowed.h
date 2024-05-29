@@ -50,8 +50,6 @@ typedef struct BowTabl {
     MYFLT       lastOutput;
 } BowTabl;
 
-MYFLT BowTabl_lookup(CSOUND *,BowTabl*, MYFLT sample);
-
 typedef struct BOWED {
     OPDS        h;
     MYFLT       *ar;                  /* Output */

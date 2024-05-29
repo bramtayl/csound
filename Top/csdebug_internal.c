@@ -9,6 +9,7 @@
 #include "csound_type_system.h"  // for CS_VAR_MEM, CS_VAR_POOL
 #include "sysdep.h"              // for strNcpy
 #include "memalloc.h"
+#include "text.h"
 
 debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound) {
   csdebug_data_t *data = (csdebug_data_t *)csound->csdebug_data;

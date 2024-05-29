@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *ain, *adel, *imaxd, *istod;

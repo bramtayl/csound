@@ -35,6 +35,10 @@
 #include "auxfd.h"
 #include "memfiles.h"
 #include "insert_public.h"
+#include "text.h"
+#include "pvs_ops.h"
+#include "pvinterp.h"
+#include "ugens8.h"
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */

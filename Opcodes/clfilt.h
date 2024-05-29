@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 #define CL_LIM 40  /* The limit on the number of biquadratic sections */
 
                                 /* Structure for biquadratic filter */
@@ -37,4 +39,6 @@ typedef struct {
       a0[CL_LIM], a1[CL_LIM], a2[CL_LIM], prvfreq;
       int32_t          ilohi, nsec, ikind;
 } CLFILT;
+
+int32_t clfilt_init_(CSOUND *csound);
 

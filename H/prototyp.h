@@ -28,62 +28,8 @@
 extern "C" {
 #endif
 
-char    *cs_strndup(CSOUND*, char*, size_t);
-CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
-void    csoundErrorMsgS(CSOUND *, int attr, const char *, ...);
-TEXT    *getoptxt(CSOUND *, int *);
-void    reverbinit(CSOUND *);
-int     init0(CSOUND *);
-void    scsort(CSOUND *, FILE *, FILE *);
-int     musmon(CSOUND *);
-PUBLIC int     argdecode(CSOUND *, int, const char **);
-void    xturnoff(CSOUND *, INSDS *);
-void    xturnoff_now(CSOUND *, INSDS *);
-//MEMFIL  *ldmemfile(CSOUND *, const char *);
-//MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
-void    rlsmemfiles(CSOUND *);
-int     csoundLoadOpcodeDB(CSOUND *, const char *);
-void    csoundDestroyOpcodeDB(CSOUND *);
-int     csoundCheckOpcodePluginFile(CSOUND *, const char *);
-//int     csoundLoadAllPluginOpcodes(CSOUND *);
-
-/**
- * Returns a binary value of which bit 0 is set if the first input
- * argument is a string, bit 1 is set if the second input argument is
- * a string, and so on.
- * Only the first 31 arguments are guaranteed to be reported correctly.
- */
-unsigned long csoundGetInputArgSMask(void *p);
-
-/**
- * Returns a binary value of which bit 0 is set if the first output
- * argument is a string, bit 1 is set if the second output argument is
- * a string, and so on.
- * Only the first 31 arguments are guaranteed to be reported correctly.
- */
-unsigned long csoundGetOutputArgSMask(void *p);
-
-/**
- * Set release time in control periods (1 / csound->ekr second units)
- * for opcode 'p' to 'n'. If the current release time is longer than
- * the specified value, it is not changed.
- * Returns the new release time.
- */
-int csoundSetReleaseLength(void *p, int n);
-
-/**
- * Set release time in seconds for opcode 'p' to 'n'.
- * If the current release time is longer than the specified value,
- * it is not changed.
- * Returns the new release time in seconds.
- */
-MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n);
-
-/**
- * Returns pointer to a string constant storing an error massage
- * for error code 'errcode'.
- */
-const char *csoundExternalMidiErrorString(CSOUND *, int errcode);
+#include "csound.h"
+#include "csoundCore_common.h"
 
 #ifdef __cplusplus
 }

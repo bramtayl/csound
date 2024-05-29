@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *kr, *asig, *ilen;
@@ -164,4 +166,3 @@ int32_t rvbset(CSOUND *, REVERB *p);
 int32_t reverb(CSOUND *, REVERB *p);
 int32_t panset(CSOUND *, PAN *p);
 int32_t pan(CSOUND *, PAN *p);
-

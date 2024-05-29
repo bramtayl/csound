@@ -26,6 +26,8 @@
 #include "pstream.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
+#include "pvsband.h"
 
 typedef struct {
     OPDS h;

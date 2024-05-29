@@ -74,6 +74,7 @@ kamp            ATSinterpread   kfreq
 #include "auxfd.h"
 #include "insert_public.h"
 #include "random.h"
+#include "text.h"
 
 #define ATSA_NOISE_VARIANCE 0.04
 

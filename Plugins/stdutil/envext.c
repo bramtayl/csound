@@ -35,6 +35,7 @@
 #include "memalloc.h"
 #include "libsnd_u.h"
 #include "utility.h"
+#include "envext.h"
 
 /* Constants */
 

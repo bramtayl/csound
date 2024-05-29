@@ -37,6 +37,9 @@ Ville Pulkki heavily modified by John ffitch 2012
 #include <stdlib.h>
 #include "auxfd.h"
 #include "insert_public.h"
+#include "namedins_public.h"
+#include "text.h"
+#include "vbap1.h"
 
 static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, OPDS *, MYFLT,
                                 MYFLT, MYFLT, MYFLT**);

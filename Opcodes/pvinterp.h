@@ -25,17 +25,8 @@
 
 #pragma once
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *ktimpnt, *ifilno;
-    int32   maxFr, frSiz, prFlg;
-    /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
-    MYFLT   frPktim, frPrtim, asr, scale;
-    float   *frPtr;
-    AUXCH   auxch;
-    MYFLT   *lastPhase, *fftBuf;  /* [PVFFTSIZE] FFT works on Real & Imag */
-    MYFLT   *buf;
-} PVBUFREAD;
+#include "csoundCore_common.h"
+#include "pvoc.h"
 
 typedef struct {
     OPDS    h;

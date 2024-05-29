@@ -37,6 +37,7 @@
 #if !defined(__Clarinet_h)
 #define __Clarinet_h
 
+#include "csound.h"
 #include "physutil.h"
 
 /**********************************************/
@@ -73,12 +74,6 @@ typedef struct OneZero {
     MYFLT zeroCoeff;
     MYFLT sgain;
 } OneZero;
-
-void make_OneZero(OneZero*);
-MYFLT OneZero_tick(OneZero*, MYFLT);
-void OneZero_setGain(OneZero*, MYFLT);
-void OneZero_setCoeff(OneZero*, MYFLT);
-void OneZero_print(CSOUND*, OneZero*);
 
 /* ********************************************************************** */
 typedef struct CLARIN {

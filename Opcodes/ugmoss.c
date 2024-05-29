@@ -29,6 +29,7 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>

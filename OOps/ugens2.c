@@ -26,6 +26,7 @@
 #include <math.h>
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
 /* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x                          */

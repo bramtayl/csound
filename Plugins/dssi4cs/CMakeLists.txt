@@ -1,4 +1,4 @@
-set(dssi_SRC load.c dssi4cs.c)
+set(dssi_SRC utils.c dssi4cs.c)
 make_plugin(dssi4cs "${dssi_SRC}" dl)
 
 if(USE_LIB64)

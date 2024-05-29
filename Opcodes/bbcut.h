@@ -38,6 +38,8 @@
 #if !defined(__bbcut_h__)
 #   define  __bbcut_h__
 
+#include "csoundCore_common.h"
+
 /* Csound ugen struct- can't use same struct for Mono and Stereo version */
 typedef struct {
       OPDS  h;                              /* defined in cs.h */
@@ -132,6 +134,8 @@ typedef struct {
       AUXCH repeatbuffer;
 
 } BBCUTSTEREO;
+
+int32_t bbcut_init_(CSOUND *csound);
 
 #endif /* !defined(__bbcut_h__) */
 

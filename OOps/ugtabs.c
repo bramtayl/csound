@@ -28,6 +28,7 @@
 #include "fgens.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 //(x >= FL(0.0) ? (int32_t)x : (int32_t)((double)x - 0.99999999))
 #define MYFLOOR(x) FLOOR(x)

@@ -26,6 +26,7 @@
 #include "remote.h"
 #include "memalloc.h"
 #include "insert_public.h"
+#include "text.h"
 
 /* Somewhat revised from the original.  Pete G. Nov 2012
    More correct, I think, but I could be wrong... (:-/)

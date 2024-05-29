@@ -24,6 +24,9 @@
 /*                                                              UGENS8.H    */
 #ifndef _UGENS8_H_
 #define _UGENS8_H_
+
+#include "csoundCore_common.h"
+
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */
 #define     PVFFTSIZE       (2*PVFRAMSIZE)      /* 2x for real + imag */
 #define     PVDATASIZE      (1+PVFRAMSIZE/2)    /* Need 1/2 channels + mid */
@@ -48,30 +51,6 @@
 #define     pvffsiz(p)      (2* p->frSiz)
 #define     pvdasiz(p)      ((uint32_t)(1 + (p->frSiz)/2)) /* as above, based on */
 #define     pvfdsiz(p)      (2 + p->frSiz)      /*  ACTUAL frameSize in use */
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno, *ispecwp, *imode;
-    MYFLT   *ifreqlim, *igatefun;
-    int32   mems;
-    int32   kcnt, baseFr, maxFr, frSiz, prFlg, opBpos;
-    /* RWD 8:2001 for pvocex: need these too */
-    int32   frInc, chans;
-
-    MYFLT   frPktim, frPrtim, scale, asr, lastPex;
-    MYFLT   PvMaxAmp;
-    float   *frPtr, *pvcopy;
-    FUNC    *AmpGateFunc;
-    AUXCH   auxch;
-    MYFLT   *lastPhase; /* [PVDATASIZE] Keep track of cum. phase */
-    MYFLT   *fftBuf;    /* [PVFFTSIZE]  FFT works on Real & Imag */
-    MYFLT   *dsBuf;     /* [PVFFTSIZE]  Output of downsampling may be 2x */
-    MYFLT   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
-    MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
-    MYFLT   *dsputil_env;
-    AUXCH   memenv;
-    PVOC_GLOBALS  *pp;
-} PVOC;
 
 #endif
 

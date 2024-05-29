@@ -32,16 +32,25 @@
 #include "csound_orc_semantics_public.h"
 #include "envvar_public.h"
 #include "libsnd_u.h"
+#include "cfgvar.h"
 #include "main.h"
 #include "csound_orc_compile.h"
-#include "one_file.h"
+#include "server.h"
+#include "threadsafe_public.h"
+#include "csound_threads.h"
+#include "namedins_public.h"
+#include "text.h"
 #include "scsort.h"
 #include "scxtract.h"
+#include "musmon_internal.h"
+#include "one_file.h"
+#include "linevent_public.h"
+#include "pvfileio_internal.h"
+#include "argdecode_internal.h"
+#include "threadsafe.h"
+#include "csound_internal.h"
 
-extern void allocate_message_queue(CSOUND *csound);
-CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     argdecode(CSOUND *, int, const char **);
-  int     init_pvsys(CSOUND *);
 //  char    *get_sconame(CSOUND *);
   void    print_benchmark_info(CSOUND *, const char *);
 //  int     read_unified_file(CSOUND *, char **, char **);
@@ -50,7 +59,6 @@ CS_NORETURN void    dieu(CSOUND *, char *, ...);
   uintptr_t  kperfThread(void * cs);
 //void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 //void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
- void csoundInputMessageInternal(CSOUND *csound, const char *message);
 
 static void checkOptions(CSOUND *csound)
 {
@@ -401,23 +409,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     }
     return CSOUND_SUCCESS;
 }
-
-extern int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
-extern void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
-extern int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
-extern int  rtrecord_dummy(CSOUND *, MYFLT *inBuf, int nbytes);
-extern void rtclose_dummy(CSOUND *);
-extern int  audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int);
-extern int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput);
-extern int DummyMidiInOpen(CSOUND *csound, void **userData,
-                           const char *devName);
-extern int DummyMidiRead(CSOUND *csound, void *userData,
-                         unsigned char *buf, int nbytes);
-extern int DummyMidiOutOpen(CSOUND *csound, void **userData,
-                     const char *devName);
-extern int DummyMidiWrite(CSOUND *csound, void *userData,
-                   const unsigned char *buf, int nbytes);
-
 
 PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 {

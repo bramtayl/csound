@@ -50,3 +50,4 @@ typedef struct {
     FUNC    *ftp;
 } SPDIST;
 
+int32_t space_init_(CSOUND *csound);

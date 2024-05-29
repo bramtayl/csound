@@ -33,6 +33,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 //#define ESR     (csound->esr/FL(1000.0))
 #define ESR     (csound->esr*FL(0.001))

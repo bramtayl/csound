@@ -24,7 +24,6 @@
 */
 
 #include "csoundCore_internal.h"
-#define CSOUND_STR_OPS_C    1
 #include "str_ops.h"
 #include <ctype.h>
 #ifdef HAVE_CURL
@@ -37,6 +36,7 @@
 #include "csound_orc_semantics_public.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 #include "libsnd_internal.h"
 
 #define STRSMAX 8
@@ -61,7 +61,7 @@ int32_t s_opcode(CSOUND *csound, STRGET_OP *p){
   return OK;
 }
 
-int32_t s_opcode_k(CSOUND *csound, STRGET_OP *p){
+int32_t s_opcode_k(CSOUND *csound, STRGET_OP *p) {
   snprintf(p->r->data, p->r->size, "%f", *p->indx);
   p->r->timestamp = csoundGetKcounter(csound);
   return OK;
@@ -210,7 +210,6 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
 /* this opcode is i-time only, so no need to make
    any adjustments regarding update counts 
 */
-extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
   if (isstrcod(*p->indx)) {

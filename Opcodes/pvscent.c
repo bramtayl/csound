@@ -28,6 +28,8 @@
 #include "fftlib.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
+#include "pvscent.h"
 
 typedef struct {
   OPDS    h;

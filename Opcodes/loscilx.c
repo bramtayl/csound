@@ -32,6 +32,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "memfiles.h"
+#include "text.h"
 
 typedef struct SNDLOAD_OPCODE_ {
     OPDS    h;

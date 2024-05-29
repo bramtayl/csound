@@ -4,8 +4,8 @@
 #include "text.h"
 #include "fgens.h"
 #include "insert_public.h"
+#include "rdscor_internal.h"
 
-#define FTAB_SEARCH_BASE (100)
 
 int isstrcod(MYFLT xx)
 {

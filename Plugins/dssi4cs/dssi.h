@@ -24,6 +24,7 @@
 #ifndef DSSI_INCLUDED
 #define DSSI_INCLUDED
 
+#include "sysdep.h"
 #include "ladspa.h"
 #include <alsa/seq_event.h>
 

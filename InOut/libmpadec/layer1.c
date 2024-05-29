@@ -22,11 +22,6 @@
 #include "mpadec_internal.h"
 #include "layer1.h"
 
-extern const uint32_t bitmask[17];
-
-extern unsigned mpa_getbits(mpadec_t mpadec, int n);
-extern uint16_t update_crc(uint16_t init, uint8_t *buf, int length);
-
 static void I_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
                               uint8_t *scalefac)
 {

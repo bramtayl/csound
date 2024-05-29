@@ -40,6 +40,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "bus_public.h"
+#include "csound_threads.h"
 
 /* For sensing opcodes */
 #if defined(__unix) || defined(__unix__) || defined(__MACH__)

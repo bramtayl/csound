@@ -36,10 +36,8 @@
 #if !defined(__SingWave_h)
 #define __SingWave_h
 
+#include "csound.h"
 
-
-extern MYFLT phonGains[32][2];
-extern MYFLT phonParams[32][4][3];
 extern char phonemes[32][4];
 
 /*******************************************/

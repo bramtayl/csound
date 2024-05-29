@@ -31,6 +31,7 @@
 #include "memalloc.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "fgens_public.h"
 
 #define CSOUND_SPAT3D_C 1
 

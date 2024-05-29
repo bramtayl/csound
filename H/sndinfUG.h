@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
     OPDS    h;
     MYFLT   *r1, *ifilno, *irawfiles;
@@ -37,3 +39,11 @@ typedef struct {
     OPDS  h;
     MYFLT *r1, *ifilno;
 } FILEVALID;
+
+int32_t filelen(CSOUND *, SNDINFO *), filenchnls(CSOUND *, SNDINFO *);
+int32_t filesr(CSOUND *, SNDINFO *), filepeak(CSOUND *, SNDINFOPEAK *);
+int32_t filevalid(CSOUND *, FILEVALID *);
+int32_t filelen_S(CSOUND *, SNDINFO *), filenchnls_S(CSOUND *, SNDINFO *);
+int32_t filesr_S(CSOUND *, SNDINFO *), filepeak_S(CSOUND *, SNDINFOPEAK *);
+int32_t filevalid_S(CSOUND *, FILEVALID *);
+int32_t filebit(CSOUND *, SNDINFO *); int32_t filebit_S(CSOUND *, SNDINFO *);

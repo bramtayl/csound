@@ -28,7 +28,9 @@
 #include "memalloc.h"
 #include "insert_public.h"
 #include "fgens_public.h"
-
+#include "csound_threads.h"
+#include "namedins_public.h"
+#include "text.h"
 
 #define POW2TABSIZI 4096
 

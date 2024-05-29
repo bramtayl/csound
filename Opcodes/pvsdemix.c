@@ -25,6 +25,7 @@
 #include "pvsdemix.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 {

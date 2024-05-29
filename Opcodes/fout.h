@@ -166,5 +166,7 @@ typedef struct {
     char    txtstring[8192];    /* Place to store the string printed */
 } FPRINTF;
 
+int32_t fout_init_(CSOUND *);
+
 #endif  /* FOUT_H */
 

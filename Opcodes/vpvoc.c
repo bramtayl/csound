@@ -36,6 +36,9 @@
 #include "auxfd.h"
 #include "memfiles.h"
 #include "insert_public.h"
+#include "text.h"
+#include "ugens8.h"
+#include "vpvoc.h"
 
 int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {

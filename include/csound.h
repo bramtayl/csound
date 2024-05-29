@@ -311,13 +311,11 @@
   %module csnd6
   %{
 #  include "sysdep.h"
-#  include "text.h"
 #  include <stdarg.h>
 #  include <stdio.h>
       %}
 #else
 #  include "sysdep.h"
-#  include "text.h"
 #  include <stdarg.h>
 #  include <stdio.h>
 #endif
@@ -969,67 +967,11 @@ typedef struct instr {
    */
   PUBLIC int csoundGetAPIVersion(void);
 
-
   /** @}*/
 
   /** @defgroup PERFORMANCE Performance
    *
    *  @{ */
-  /**
-   * Parse the given orchestra from an ASCII string into a TREE.
-   * This can be called during performance to parse new code.
-   */
-  PUBLIC TREE *csoundParseOrc(CSOUND *csound, const char *str);
-
-  /**
-   * Compile the given TREE node into structs for Csound to use
-   * this can be called during performance to compile a new TREE
-   */
-  PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
-
-  /**
-   * Asynchronous version of csoundCompileTree()
-   */
-  PUBLIC int csoundCompileTreeAsync(CSOUND *csound, TREE *root);
-
-
-  /**
-   * Free the resources associated with the TREE *tree
-   * This function should be called whenever the TREE was
-   * created with csoundParseOrc and memory can be deallocated.
-   **/
-  PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);
-
-  /**
-   * Parse, and compile the given orchestra from an ASCII string,
-   * also evaluating any global space code (i-time only)
-   * this can be called during performance to compile a new orchestra.
-   * /code
-   *       char *orc = "instr 1 \n a1 rand 0dbfs/4 \n out a1 \n";
-   *       csoundCompileOrc(csound, orc);
-   * /endcode
-   */
-  PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
-
-   /**
-   *  Async version of csoundCompileOrc(). The code is parsed and
-   *  compiled, then placed on a queue for
-   *  asynchronous merge into the running engine, and evaluation.
-   *  The function returns following parsing and compilation.
-   */
-  PUBLIC int csoundCompileOrcAsync(CSOUND *csound, const char *str);
-
-  /**
-   *   Parse and compile an orchestra given on an string,
-   *   evaluating any global space code (i-time only).
-   *   On SUCCESS it returns a value passed to the
-   *   'return' opcode in global space
-   * /code
-   *       char *code = "i1 = 2 + 2 \n return i1 \n";
-   *       MYFLT retval = csoundEvalCode(csound, code);
-   * /endcode
-   */
-  PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 
   /**
    * Senses input events and performs audio output until the end of score
@@ -1074,14 +1016,6 @@ typedef struct instr {
   PUBLIC void csoundStop(CSOUND *);
 
   /**
-   * Prints information about the end of a performance, and closes audio
-   * and MIDI devices.
-   * Note: after calling csoundCleanup(), the operation of the perform
-   * functions is undefined.
-   */
-  PUBLIC int csoundCleanup(CSOUND *);
-
-  /**
    * Resets all internal memory and state in preparation for a new performance.
    * Enables external software to run successive Csound performances
    * without reloading Csound. Implies csoundCleanup(), unless already called.
@@ -1089,45 +1023,6 @@ typedef struct instr {
   PUBLIC void csoundReset(CSOUND *);
 
    /** @}*/
-   /** @defgroup SERVER UDP server
-   *
-   *  @{ */
-
-  /**
-   * Starts the UDP server on a supplied port number
-   * returns CSOUND_SUCCESS if server has been started successfully,
-   * otherwise, CSOUND_ERROR.
-   */
-  PUBLIC int csoundUDPServerStart(CSOUND *csound, unsigned int port);
-
-  /** returns the port number on which the server is running, or
-   *  CSOUND_ERROR if the server is not running.
-   */
-  PUBLIC int csoundUDPServerStatus(CSOUND *csound);
-
-  /**
-   * Closes the UDP server, returning CSOUND_SUCCESS if the
-   * running server was successfully closed, CSOUND_ERROR otherwise.
-   */
-  PUBLIC int csoundUDPServerClose(CSOUND *csound);
-
-  /**
-   * Turns on the transmission of console messages to UDP on address addr
-   * port port. If mirror is one, the messages will continue to be
-   * sent to the usual destination (see csoundSetMessaggeCallback())
-   * as well as to UDP.
-   * returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
-   * could not be set up.
-   */
-  PUBLIC int csoundUDPConsole(CSOUND *csound, const char *addr,
-                              int port, int mirror);
-
-  /**
-   * Stop transmitting console messages via UDP
-   */
-  PUBLIC void csoundStopUDPConsole(CSOUND *csound);
-
-  /** @}*/
   /** @defgroup ATTRIBUTES Attributes
    *
    *  @{ */
@@ -1191,27 +1086,6 @@ typedef struct instr {
   PUBLIC void csoundSetHostData(CSOUND *, void *hostData);
 
   /**
-   * Set a single csound option (flag). Returns CSOUND_SUCCESS on success.
-   * NB: blank spaces are not allowed
-   */
-  PUBLIC int csoundSetOption(CSOUND *csound, const char *option);
-
-  /**
-   *  Configure Csound with a given set of parameters defined in
-   *  the CSOUND_PARAMS structure. These parameters are the part of the
-   *  OPARMS struct that are configurable through command line flags.
-   *  The CSOUND_PARAMS structure can be obtained using csoundGetParams().
-   *  These options should only be changed before performance has started.
-   */
-  PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
-
-  /**
-   *  Get the current set of parameters from a CSOUND instance in
-   *  a CSOUND_PARAMS structure. See csoundSetParams().
-   */
-  PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
-
-  /**
    * Returns whether Csound is set to print debug messages sent through the
    * DebugMsg() internal API function. Anything different to 0 means true.
    */
@@ -1247,55 +1121,6 @@ typedef struct instr {
    * Returns the audio input name (-i).
    */
   PUBLIC const char *csoundGetInputName(CSOUND *);
-
-  /**
-   *  Set output destination, type and format
-   *  type can be one of  "wav","aiff", "au","raw", "paf", "svx", "nist", "voc",
-   *  "ircam","w64","mat4", "mat5", "pvf","xi", "htk","sds","avr","wavex","sd2",
-   *  "flac", "caf","wve","ogg","mpc2k","rf64", or NULL (use default or
-   *  realtime IO).
-   *  format can be one of "alaw", "schar", "uchar", "float", "double", "long",
-   *  "short", "ulaw", "24bit", "vorbis", or NULL (use default or realtime IO).
-   *   For RT audio, use device_id from CS_AUDIODEVICE for a given audio device.
-   *
-   */
-  PUBLIC void csoundSetOutput(CSOUND *csound, const char *name,
-                              const char *type, const char *format);
-
-  /**
-   *  Get output type and format.
-   *  type should have space for at least 5 chars excluding termination,
-   *  and format should have space for at least 7 chars.
-   *  On return, these will hold the current values for
-   *  these parameters.
-   */
-  PUBLIC void csoundGetOutputFormat(CSOUND *csound,char *type,
-                                    char *format);
-
-  /**
-   *  Set input source
-   */
-  PUBLIC void csoundSetInput(CSOUND *csound, const char *name);
-
-  /**
-   *  Set MIDI input device name/number
-   */
-  PUBLIC void csoundSetMIDIInput(CSOUND *csound, const char *name);
-
-  /**
-   *  Set MIDI file input name
-   */
-  PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, const char *name);
-
-  /**
-   *  Set MIDI output device name/number
-   */
-  PUBLIC void csoundSetMIDIOutput(CSOUND *csound, const char *name);
-
-  /**
-   *  Set MIDI file utput name
-   */
-  PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, const char *name);
 
 #if !defined(SWIG)
   /**
@@ -1599,18 +1424,6 @@ typedef struct instr {
    *  @{ */
 
   /**
-   *  Read, preprocess, and load a score from an ASCII string
-   *  It can be called repeatedly, with the new score events
-   *  being added to the currently scheduled ones.
-   */
-  PUBLIC int csoundReadScore(CSOUND *csound, const char *str);
-
-   /**
-   *  Asynchronous version of csoundReadScore().
-   */
-  PUBLIC void csoundReadScoreAsync(CSOUND *csound, const char *str);
-
-  /**
    * Returns the current score time in seconds
    * since the beginning of performance.
    */
@@ -1663,24 +1476,6 @@ typedef struct instr {
    */
   PUBLIC void csoundSetCscoreCallback(CSOUND *,
                                       void (*cscoreCallback_)(CSOUND *));
-
-  /**
-   * Sorts score file 'inFile' and writes the result to 'outFile'.
-   * The Csound instance should be initialised
-   * before calling this function, and csoundReset() should be called
-   * after sorting the score to clean up. On success, zero is returned.
-   */
-  PUBLIC int csoundScoreSort(CSOUND *, FILE *inFile, FILE *outFile);
-
-  /**
-   * Extracts from 'inFile', controlled by 'extractFile', and writes
-   * the result to 'outFile'. The Csound instance should be initialised
-   * before calling this function, and csoundReset()
-   * should be called after score extraction to clean up.
-   * The return value is zero on success.
-   */
-  PUBLIC int csoundScoreExtract(CSOUND *,
-                                FILE *inFile, FILE *outFile, FILE *extractFile);
 
   /** @}*/
   /** @defgroup MESSAGES Messages and Text
@@ -1787,48 +1582,6 @@ typedef struct instr {
    *
    *  @{ */
 
-  /**
-   * retrieves the value of control channel identified by *name.
-   * If the err argument is not NULL, the error (or success) code
-   * finding or accessing the channel is stored in it.
-   */
-  PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name,
-                                       int *err);
-
-  /**
-   * sets the value of control channel identified by *name
-   */
-  PUBLIC void csoundSetControlChannel(CSOUND *csound,
-                                      const char *name, MYFLT val);
-
-  /**
-   * copies the audio channel identified by *name into array
-   * *samples which should contain enough memory for ksmps MYFLTs
-   */
-  PUBLIC void csoundGetAudioChannel(CSOUND *csound,
-                                    const char *name, MYFLT *samples);
-
-  /**
-   * sets the audio channel identified by *name with data from array
-   * *samples which should contain at least ksmps MYFLTs
-   */
-  PUBLIC void csoundSetAudioChannel(CSOUND *csound,
-                                    const char *name, MYFLT *samples);
-
-  /**
-   * copies the string channel identified by *name into *string
-   * which should contain enough memory for the string
-   * (see csoundGetChannelDatasize() below)
-   */
-  PUBLIC void csoundGetStringChannel(CSOUND *csound,
-                                     const char *name, char *string);
-
-  /**
-   * sets the string channel identified by *name with *string
-   */
-  PUBLIC  void csoundSetStringChannel(CSOUND *csound,
-                                      const char *name, char *string);
-
   /** Sets the function which will be called whenever the invalue opcode
    * is used. */
   PUBLIC void
@@ -1840,94 +1593,6 @@ typedef struct instr {
   PUBLIC void
   csoundSetOutputChannelCallback(CSOUND *csound,
                                  channelCallback_t outputChannelCalback);
-
-  /**
-   * Sends a PVSDATEX fin to the pvsin opcode (f-rate) for channel 'name'.
-   * Returns zero on success, CSOUND_ERROR if the index is invalid or
-   * fsig framesizes are incompatible.
-   * CSOUND_MEMORY if there is not enough memory to extend the bus.
-   */
-  PUBLIC int csoundSetPvsChannel(CSOUND *, const PVSDATEXT *fin,
-                                 const char *name);
-
-  /**
-   * Receives a PVSDAT fout from the pvsout opcode (f-rate) at channel 'name'
-   * Returns zero on success, CSOUND_ERROR if the index is invalid or
-   * if fsig framesizes are incompatible.
-   * CSOUND_MEMORY if there is not enough memory to extend the bus
-   */
-  PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
-                                 const char *name);
-
-  /**
-   * Send a new score event. 'type' is the score event type ('a', 'i', 'q',
-   * 'f', or 'e').
-   * 'numFields' is the size of the pFields array.  'pFields' is an array of
-   * floats with all the pfields for this event, starting with the p1 value
-   * specified in pFields[0].
-   */
-  PUBLIC int csoundScoreEvent(CSOUND *,
-                              char type, const MYFLT *pFields, long numFields);
-
-  /**
-   *  Asynchronous version of csoundScoreEvent().
-   */
-  PUBLIC void csoundScoreEventAsync(CSOUND *,
-                              char type, const MYFLT *pFields, long numFields);
-
-  /**
-   * Like csoundScoreEvent(), this function inserts a score event, but
-   * at absolute time with respect to the start of performance, or from an
-   * offset set with time_ofs
-   */
-  PUBLIC int csoundScoreEventAbsolute(CSOUND *,
-                 char type, const MYFLT *pfields, long numFields, double time_ofs);
-
-  /**
-   *  Asynchronous version of csoundScoreEventAbsolute().
-   */
-  PUBLIC void csoundScoreEventAbsoluteAsync(CSOUND *,
-                 char type, const MYFLT *pfields, long numFields, double time_ofs);
-  /**
-   * Input a NULL-terminated string (as if from a console),
-   * used for line events.
-   */
-  PUBLIC void csoundInputMessage(CSOUND *, const char *message);
-
-  /**
-   * Asynchronous version of csoundInputMessage().
-   */
-  PUBLIC void csoundInputMessageAsync(CSOUND *, const char *message);
-
-  /**
-   * Kills off one or more running instances of an instrument identified
-   * by instr (number) or instrName (name). If instrName is NULL, the
-   * instrument number is used.
-   * Mode is a sum of the following values:
-   * 0,1,2: kill all instances (1), oldest only (1), or newest (2)
-   * 4: only turnoff notes with exactly matching (fractional) instr number
-   * 8: only turnoff notes with indefinite duration (p3 < 0 or MIDI)
-   * allow_release, if non-zero, the killed instances are allowed to release.
-   */
-  PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr,
-                                char *instrName, int mode, int allow_release);
-
-
-  /**
-   * Register a function to be called once in every control period
-   * by sensevents(). Any number of functions may be registered,
-   * and will be called in the order of registration.
-   * The callback function takes two arguments: the Csound instance
-   * pointer, and the userData pointer as passed to this function.
-   * This facility can be used to ensure a function is called synchronously
-   * before every csound control buffer processing. It is important
-   * to make sure no blocking operations are performed in the callback.
-   * The callbacks are cleared on csoundCleanup().
-   * Returns zero on success.
-   */
-  PUBLIC int csoundRegisterSenseEventCallback(CSOUND *,
-                                              void (*func)(CSOUND *, void *),
-                                              void *userData);
 
   /**
    * Set the ASCII code of the most recent key pressed.
@@ -2001,68 +1666,6 @@ typedef struct instr {
    * The table number and index are assumed to be valid.
    */
   PUBLIC MYFLT csoundTableGet(CSOUND *, int table, int index);
-
-  /**
-   * Sets the value of a slot in a function table.
-   * The table number and index are assumed to be valid.
-   */
-  PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
-
-
-  /**
-   * Copy the contents of a function table into a supplied array *dest
-   * The table number is assumed to be valid, and the destination needs to
-   * have sufficient space to receive all the function table contents.
-   */
-  PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *dest);
-
-  /**
-   * Asynchronous version of csoundTableCopyOut()
-   */
-  PUBLIC void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *dest);
-  /**
-   * Copy the contents of an array *src into a given function table
-   * The table number is assumed to be valid, and the table needs to
-   * have sufficient space to receive all the array contents.
-   */
-  PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
-
-  /**
-   * Asynchronous version of csoundTableCopyIn()
-   */
-  PUBLIC void csoundTableCopyInAsync(CSOUND *csound, int table, MYFLT *src);
-
-  /**
-   * Stores pointer to function table 'tableNum' in *tablePtr,
-   * and returns the table length (not including the guard point).
-   * If the table does not exist, *tablePtr is set to NULL and
-   * -1 is returned.
-   */
-  PUBLIC int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
-
-  /**
-   * Stores pointer to the arguments used to generate
-   * function table 'tableNum' in *argsPtr,
-   * and returns the number of arguments used.
-   * If the table does not exist, *argsPtr is set to NULL and
-   * -1 is returned.
-   * NB: the argument list starts with the GEN number and is followed by
-   * its parameters. eg. f 1 0 1024 10 1 0.5  yields the list {10.0,1.0,0.5}
-   */
-  PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum);
-
-  /**
-   * Checks if a given GEN number num is a named GEN
-   * if so, it returns the string length (excluding terminating NULL char)
-   * Otherwise it returns 0.
-   */
-  PUBLIC int csoundIsNamedGEN(CSOUND *csound, int num);
-
-  /**
-   * Gets the GEN name from a number num, if this is a named GEN
-   * The final parameter is the max len of the string (excluding termination)
-   */
-  PUBLIC void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len);
 
   /** @}*/
   /** @defgroup TABLEDISPLAY Function table display
@@ -2142,217 +1745,7 @@ typedef struct instr {
    */
   PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback_)(CSOUND *));
 
-  /**
-   * Creates and starts a new thread of execution.
-   * Returns an opaque pointer that represents the thread on success,
-   * or NULL for failure.
-   * The userdata pointer is passed to the thread routine.
-   */
-  PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
-                                  void *userdata);
-
-  /**
-   * Creates and starts a new thread of execution
-   * with a user-defined stack size.
-   * Returns an opaque pointer that represents the thread on success,
-   * or NULL for failure.
-   * The userdata pointer is passed to the thread routine.
-   */
-  PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
-                                   unsigned int stack,
-                                   void *userdata);
-
-  /**
-   * Returns the ID of the currently executing thread,
-   * or NULL for failure.
-   *
-   * NOTE: The return value can be used as a pointer
-   * to a thread object, but it should not be compared
-   * as a pointer. The pointed to values should be compared,
-   * and the user must free the pointer after use.
-   */
-  PUBLIC void *csoundGetCurrentThreadId(void);
-
-  /**
-   * Waits until the indicated thread's routine has finished.
-   * Returns the value returned by the thread routine.
-   */
-  PUBLIC uintptr_t csoundJoinThread(void *thread);
-  /**
-   * Creates and returns a monitor object, or NULL if not successful.
-   * The object is initially in signaled (notified) state.
-   */
-  PUBLIC void *csoundCreateThreadLock(void);
-
-  /**
-   * Waits on the indicated monitor object for the indicated period.
-   * The function returns either when the monitor object is notified,
-   * or when the period has elapsed, whichever is sooner; in the first case,
-   * zero is returned.
-   * If 'milliseconds' is zero and the object is not notified, the function
-   * will return immediately with a non-zero status.
-   */
-  PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds);
-
-  /**
-   * Waits on the indicated monitor object until it is notified.
-   * This function is similar to csoundWaitThreadLock() with an infinite
-   * wait time, but may be more efficient.
-   */
-  PUBLIC void csoundWaitThreadLockNoTimeout(void *lock);
-
-  /**
-   * Notifies the indicated monitor object.
-   */
-  PUBLIC void csoundNotifyThreadLock(void *lock);
-
-  /**
-   * Destroys the indicated monitor object.
-   */
-  PUBLIC void csoundDestroyThreadLock(void *lock);
-
-  /**
-   * Creates and returns a mutex object, or NULL if not successful.
-   * Mutexes can be faster than the more general purpose monitor objects
-   * returned by csoundCreateThreadLock() on some platforms, and can also
-   * be recursive, but the result of unlocking a mutex that is owned by
-   * another thread or is not locked is undefined.
-   * If 'isRecursive' is non-zero, the mutex can be re-locked multiple
-   * times by the same thread, requiring an equal number of unlock calls;
-   * otherwise, attempting to re-lock the mutex results in undefined
-   * behavior.
-   * Note: the handles returned by csoundCreateThreadLock() and
-   * csoundCreateMutex() are not compatible.
-   */
-  PUBLIC void *csoundCreateMutex(int isRecursive);
-
-  /**
-   * Acquires the indicated mutex object; if it is already in use by
-   * another thread, the function waits until the mutex is released by
-   * the other thread.
-   */
-  PUBLIC void csoundLockMutex(void *mutex_);
-
-  /**
-   * Acquires the indicated mutex object and returns zero, unless it is
-   * already in use by another thread, in which case a non-zero value is
-   * returned immediately, rather than waiting until the mutex becomes
-   * available.
-   * Note: this function may be unimplemented on Windows.
-   */
-  PUBLIC int csoundLockMutexNoWait(void *mutex_);
-
-  /**
-   * Releases the indicated mutex object, which should be owned by
-   * the current thread, otherwise the operation of this function is
-   * undefined. A recursive mutex needs to be unlocked as many times
-   * as it was locked previously.
-   */
-  PUBLIC void csoundUnlockMutex(void *mutex_);
-
-  /**
-   * Destroys the indicated mutex object. Destroying a mutex that
-   * is currently owned by a thread results in undefined behavior.
-   */
-  PUBLIC void csoundDestroyMutex(void *mutex_);
-
-
-  /**
-   * Create a Thread Barrier. Max value parameter should be equal to
-   * number of child threads using the barrier plus one for the
-   * master thread */
-
-  PUBLIC void *csoundCreateBarrier(unsigned int max);
-
-  /**
-   * Destroy a Thread Barrier.
-   */
-  PUBLIC int csoundDestroyBarrier(void *barrier);
-
-  /**
-   * Wait on the thread barrier.
-   */
-  PUBLIC int csoundWaitBarrier(void *barrier);
-
-
-  /** Creates a conditional variable */
-  PUBLIC void* csoundCreateCondVar();
-
-  /** Waits up on a conditional variable and mutex */
-  PUBLIC void csoundCondWait(void* condVar, void* mutex);
-
-  /** Signals a conditional variable */
-  PUBLIC void csoundCondSignal(void* condVar);
-
-  /** Destroys a conditional variable */
-  PUBLIC void csoundDestroyCondVar(void* condVar);
-
-  /**
-   * Waits for at least the specified number of milliseconds,
-   * yielding the CPU to other threads.
-   */
-  PUBLIC void csoundSleep(size_t milliseconds);
-
-  /**
-   * If the spinlock is not locked, lock it and return;
-   * if is is locked, wait until it is unlocked, then lock it and return.
-   * Uses atomic compare and swap operations that are safe across processors
-   * and safe for out of order operations,
-   * and which are more efficient than operating system locks.
-   * Use spinlocks to protect access to shared data, especially in functions
-   * that do little more than read or write such data, for example:
-   *
-   * @code
-   * static spin_lock_t lock = SPINLOCK_INIT;
-   * csoundSpinLockInit(&lock);
-   * void write(size_t frames, int* signal)
-   * {
-   *   csoundSpinLock(&lock);
-   *   for (size_t frame = 0; i < frames; frame++) {
-   *     global_buffer[frame] += signal[frame];
-   *   }
-   *   csoundSpinUnlock(&lock);
-   * }
-   * @endcode
-   */
-  PUBLIC int csoundSpinLockInit(spin_lock_t *spinlock);
-
-  /**
-   * Locks the spinlock
-   */
-  PUBLIC void csoundSpinLock(spin_lock_t *spinlock);
-
-  /**
-   * Tries the lock, returns CSOUND_SUCCESS if lock could be acquired,
-      CSOUND_ERROR, otherwise.
-   */
-  PUBLIC int csoundSpinTryLock(spin_lock_t *spinlock);
-
-  /**
-   * Unlocks the spinlock
-   */
-  PUBLIC void csoundSpinUnLock(spin_lock_t *spinlock);
-
-
   /** @}*/
-  /** @defgroup MISCELLANEOUS Miscellaneous functions
-   *
-   *  @{ */
-
-  /**
-   * Runs an external command with the arguments specified in 'argv'.
-   * argv[0] is the name of the program to execute (if not a full path
-   * file name, it is searched in the directories defined by the PATH
-   * environment variable). The list of arguments should be terminated
-   * by a NULL pointer.
-   * If 'noWait' is zero, the function waits until the external program
-   * finishes, otherwise it returns immediately. In the first case, a
-   * non-negative return value is the exit status of the command (0 to
-   * 255), otherwise it is the PID of the newly created process.
-   * On error, a negative value is returned.
-   */
-  PUBLIC long csoundRunCommand(const char * const *argv, int noWait);
-
   /**
    * Initialise a timer structure.
    */
@@ -2375,153 +1768,13 @@ typedef struct instr {
    */
   PUBLIC uint32_t csoundGetRandomSeedFromTime(void);
 
-  /**
-   * Set language to 'lang_code' (lang_code can be for example
-   * CSLANGUAGE_ENGLISH_UK or CSLANGUAGE_FRENCH or many others,
-   * see n_getstr.h for the list of languages). This affects all
-   * Csound instances running in the address space of the current
-   * process. The special language code CSLANGUAGE_DEFAULT can be
-   * used to disable translation of messages and free all memory
-   * allocated by a previous call to csoundSetLanguage().
-   * csoundSetLanguage() loads all files for the selected language
-   * from the directory specified by the CSSTRNGS environment
-   * variable.
-   */
-  PUBLIC void csoundSetLanguage(cslanguage_t lang_code);
-
-  /**
-   * Allocate nbytes bytes of memory that can be accessed later by calling
-   * csoundQueryGlobalVariable() with the specified name; the space is
-   * cleared to zero.
-   * Returns CSOUND_SUCCESS on success, CSOUND_ERROR in case of invalid
-   * parameters (zero nbytes, invalid or already used name), or
-   * CSOUND_MEMORY if there is not enough memory.
-   */
-  PUBLIC int csoundCreateGlobalVariable(CSOUND *,
-                                        const char *name, size_t nbytes);
-
-  /**
-   * Get pointer to space allocated with the name "name".
-   * Returns NULL if the specified name is not defined.
-   */
-  PUBLIC void *csoundQueryGlobalVariable(CSOUND *, const char *name);
-
-  /**
-   * This function is the same as csoundQueryGlobalVariable(), except the
-   * variable is assumed to exist and no error checking is done.
-   * Faster, but may crash or return an invalid pointer if 'name' is
-   * not defined.
-   */
-  PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *, const char *name);
-
-  /**
-   * Free memory allocated for "name" and remove "name" from the database.
-   * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
-   * not defined.
-   */
-  PUBLIC int csoundDestroyGlobalVariable(CSOUND *, const char *name);
-
-  /**
-   * Run utility with the specified name and command line arguments.
-   * Should be called after loading utility plugins.
-   * Use csoundReset() to clean up after calling this function.
-   * Returns zero if the utility was run successfully.
-   */
-  PUBLIC int csoundRunUtility(CSOUND *, const char *name,
-                              int argc, char **argv);
-
-  /**
-   * Returns a NULL terminated list of registered utility names.
-   * The caller is responsible for freeing the returned array with
-   * csoundDeleteUtilityList(), however, the names should not be
-   * changed or freed.
-   * The return value may be NULL in case of an error.
-   */
-  PUBLIC char **csoundListUtilities(CSOUND *);
-
-  /**
-   * Releases an utility list previously returned by csoundListUtilities().
-   */
-  PUBLIC void csoundDeleteUtilityList(CSOUND *, char **lst);
-
-  /**
-   * Get utility description.
-   * Returns NULL if the utility was not found, or it has no description,
-   * or an error occured.
-   */
-  PUBLIC const char *csoundGetUtilityDescription(CSOUND *,
-                                                 const char *utilName);
-
 #endif  /* !CSOUND_CSDL_H */
 
   /* typedefs, macros, and interface functions for configuration variables */
-#include "cfgvar.h"
   /* message attribute definitions for csoundMessageS() and csoundMessageV() */
 #include "msg_attr.h"
   /* macro definitions for Csound release, and API version */
 #include "version.h"
-
-  /**
-   * Create circular buffer with numelem number of elements. The
-   * element's size is set from elemsize. It should be used like:
-   *@code
-   * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
-   *@endcode
-   */
-  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound,
-                                          int numelem, int elemsize);
-
-  /**
-   * Read from circular buffer
-   * @param csound This value is currently ignored.
-   * @param circular_buffer pointer to an existing circular buffer
-   * @param out preallocated buffer with at least items number of elements, where
-   *              buffer contents will be read into
-   * @param items number of samples to be read
-   * @returns the actual number of items read (0 <= n <= items)
-   */
-  PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
-                                      void *out, int items);
-
-  /**
-   * Read from circular buffer without removing them from the buffer.
-   * @param circular_buffer pointer to an existing circular buffer
-   * @param out preallocated buffer with at least items number of elements, where
-   *              buffer contents will be read into
-   * @param items number of samples to be read
-   * @returns the actual number of items read (0 <= n <= items)
-   */
-  PUBLIC int csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
-                                      void *out, int items);
-
-  /**
-   * Write to circular buffer
-   * @param csound This value is currently ignored.
-   * @param p pointer to an existing circular buffer
-   * @param inp buffer with at least items number of elements to be written into
-   *              circular buffer
-   * @param items number of samples to write
-   * @returns the actual number of items written (0 <= n <= items)
-   */
-  PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
-                                       const void *inp, int items);
-  /**
-   * Empty circular buffer of any remaining data. This function should only be
-   * used if there is no reader actively getting data from the buffer.
-   * @param csound This value is currently ignored.
-   * @param p pointer to an existing circular buffer
-   */
-  PUBLIC void csoundFlushCircularBuffer(CSOUND *csound, void *p);
-
-  /**
-   * Free circular buffer
-   */
-  PUBLIC void csoundDestroyCircularBuffer(CSOUND *csound, void *circularbuffer);
-
-  /**
-   * Platform-independent function to get a symbol address in a shared library.
-   */
-  PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
   /** Get number of control blocks elapsed */
   PUBLIC uint64_t csoundGetKcounter(CSOUND *csound);

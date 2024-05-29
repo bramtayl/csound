@@ -30,8 +30,9 @@
 
 #include "csoundCore_internal.h"                                                          
 #include "winEPS.h"
-#include "find_opcode.h"                           
-#include "winascii.h"
+#include "text.h"
+#include "find_opcode.h"
+#include "winascii.h"                     
 
 /* somewhere to invoke for no display */
 

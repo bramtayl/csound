@@ -25,6 +25,8 @@
 #ifndef CSOUND_STR_OPS_H
 #define CSOUND_STR_OPS_H
 
+#include "csoundCore_common.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -144,40 +146,41 @@ typedef struct {
     MYFLT   *inVar;
 } PRINT_TYPE_OP;
 
-#ifndef CSOUND_STR_OPS_C
+void strset_option(CSOUND *csound, char *s);
 
-int     strset_init(CSOUND *, void *);
-int     strget_init(CSOUND *, void *);
-int     strcpy_opcode_p(CSOUND *, void *);
-int     strcpy_opcode_S(CSOUND *, void *);
-int     strassign_k(CSOUND *, void *);
-int     strcat_opcode(CSOUND *, void *);
-int     strcmp_opcode(CSOUND *, void *);
-int     sprintf_opcode(CSOUND *, void *);
-int     printf_opcode_init(CSOUND *, void *);
-int     printf_opcode_set(CSOUND *, void *);
-int     printf_opcode_perf(CSOUND *, void *);
-int     puts_opcode_init(CSOUND *, void *);
-int     puts_opcode_perf(CSOUND *, void *);
-int     strtod_opcode_p(CSOUND *, void *);
-int     strtod_opcode_S(CSOUND *, void *);
-int     strtol_opcode_p(CSOUND *, void *);
-int     strtol_opcode_S(CSOUND *, void *);
-int     strsub_opcode(CSOUND *, void *);
-int     strchar_opcode(CSOUND *, void *);
-int     strlen_opcode(CSOUND *, void *);
-int     strupper_opcode(CSOUND *, void *);
-int     strlower_opcode(CSOUND *, void *);
-int     getcfg_opcode(CSOUND *, void *);
-int     strindex_opcode(CSOUND *, void *);
-int     strrindex_opcode(CSOUND *, void *);
+int32_t strset_init(CSOUND *csound, STRSET_OP *p);
+int32_t strget_init(CSOUND *csound, STRGET_OP *p);
+int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p);
+int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p);
+int32_t strassign_k(CSOUND *csound, STRCPY_OP *p);
+int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p);
+int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p);
+int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p);
+int32_t printf_opcode_init(CSOUND *csound, PRINTF_OP *p);
+int32_t printf_opcode_set(CSOUND *csound, PRINTF_OP *p);
+int32_t printf_opcode_perf(CSOUND *csound, PRINTF_OP *p);
+int32_t puts_opcode_init(CSOUND *csound, PUTS_OP *p);
+int32_t puts_opcode_perf(CSOUND *csound, PUTS_OP *p);
+int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p);
+int32_t strtod_opcode_S(CSOUND *csound, STRSET_OP *p);
+int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p);
+int32_t strtol_opcode_S(CSOUND *csound, STRSET_OP *p);
+int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p);
+int32_t strchar_opcode(CSOUND *csound, STRCHAR_OP *p);
+int32_t strlen_opcode(CSOUND *csound, STRLEN_OP *p);
+int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p);
+int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p);
+int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p);
+int32_t strindex_opcode(CSOUND *csound, STRINDEX_OP *p);
+int32_t strrindex_opcode(CSOUND *csound, STRINDEX_OP *p);
 int     str_changed(CSOUND *csound, STRCHGD *p);
 int     str_changed_k(CSOUND *csound, STRCHGD *p);
+#ifdef HAVE_CURL
 int     str_from_url(CSOUND *csound, STRCPY_OP *p);
-int     print_type_opcode(CSOUND*, void*);
-  int     s_opcode(CSOUND *csound, void *p);
-  int     s_opcode_k(CSOUND *csound, void *p);
-#endif      /* CSOUND_STR_OPS_C */
+#endif
+int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p);
+int32_t s_opcode(CSOUND *csound, STRGET_OP *p);
+int32_t s_opcode_k(CSOUND *csound, STRGET_OP *p);
 
 #ifdef __cplusplus
 }

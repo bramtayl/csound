@@ -22,6 +22,10 @@
 */
 
 #include "pvoc.h"
+#include "text.h"
+#include "pvinterp.h"
+#include "ugens8.h"
+#include "vpvoc.h"
 
 int32_t     pvset(CSOUND *, void *), pvset_S(CSOUND *, void *);
 int32_t     pvoc(CSOUND *, void *);

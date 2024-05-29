@@ -24,6 +24,7 @@
 #pragma once
 
 #include "csoundCore_internal.h"
+#include "aops.h"
 
 typedef struct {                        /*       INSERT.H                */
     OPDS    h;
@@ -158,3 +159,32 @@ typedef struct {
 } DELETEIN;
 
 void putop(CSOUND *csound, TEXT *tp);
+void set_xtratim(CSOUND *csound, INSDS *ip);
+void    schedofftim(CSOUND *, INSDS *);
+void deact(CSOUND *csound, INSDS *ip);
+void    timexpire(CSOUND *, double);
+void print_amp_values(CSOUND *csound, int score_evt);
+int insert(CSOUND *csound, int insno, EVTBLK *newevtp);
+void infoff(CSOUND *csound, MYFLT p1);
+int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
+void orcompact(CSOUND *csound);
+
+int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
+                               int mode, int allow_release, int async);
+uintptr_t event_insert_thread(void *p);
+
+int     init0(CSOUND *);
+void    xturnoff(CSOUND *, INSDS *);
+void    xturnoff_now(CSOUND *, INSDS *);
+
+int32_t prealloc(CSOUND *, AOP *);
+int32_t prealloc_S(CSOUND *, AOP *);
+int32_t kill_instance(CSOUND *csound, KILLOP *p);
+int32_t subinstrset_S(CSOUND *, SUBINST *);
+int32_t subinstrset(CSOUND *, SUBINST *), subinstr(CSOUND *, SUBINST *);
+int32_t useropcdset(CSOUND *, UOPCODE *), useropcd(CSOUND *, UOPCODE *);
+int32_t setksmpsset(CSOUND *, SETKSMPS *);
+int32_t xinset(CSOUND *, XIN *), xoutset(CSOUND *, XOUT *);
+int32_t nstrnumset(CSOUND *, NSTRNUM *);
+int32_t nstrnumset_S(CSOUND *, NSTRNUM *), nstrstr(CSOUND *, NSTRSTR *);
+int32_t delete_instr(CSOUND *, DELETEIN *);

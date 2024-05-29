@@ -36,6 +36,7 @@
 #include "pvfileio.h"
 #include "memalloc.h"
 #include "utility.h"
+#include "pv_import.h"
 
 static void pv_import_usage(CSOUND *csound)
 {

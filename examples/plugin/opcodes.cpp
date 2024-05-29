@@ -378,7 +378,7 @@ struct GaussianP : csnd::Plugin<1, 3> {
 
 /** Library loading
  */
-#include <modload.h>
+#include <modload.hpp>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<Simplei>(csound, "simple", "i", "i", csnd::thread::i);
   csnd::plugin<Simplek>(csound, "simple", "k", "k", csnd::thread::k);

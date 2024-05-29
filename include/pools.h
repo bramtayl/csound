@@ -24,6 +24,8 @@
 #ifndef POOLS_H
 #define POOLS_H
 
+#include "csound.h"
+
 #define POOL_SIZE 256
 
 typedef struct myflt_pool {

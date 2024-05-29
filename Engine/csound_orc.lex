@@ -32,6 +32,10 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "tok.h"
+#include "parse_param.h"
+#include "text.h"
+#include "csound_orclex.h"
+
 #include "envvar.h"
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
@@ -51,7 +55,6 @@ ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
 #define namedInstrFlag csound->parserNamedInstrFlag
-#include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PARSE_PARM *
 #define PARM    yyget_extra(yyscanner)

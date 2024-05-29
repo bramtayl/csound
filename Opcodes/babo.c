@@ -130,6 +130,7 @@ input  |    |------>|
 #include "interlocks.h"
 #include "auxfd.h"
 #include "fgens_public.h"
+#include "text.h"
 
 #if !defined(FLT_MAX)
 #define FLT_MAX         (1.0e38)

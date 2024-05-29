@@ -29,6 +29,7 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "envvar_public.h"
+#include "text.h"
 #include "envvar.h"
 
 CORFIL *copy_url_corefile(CSOUND *, const char *, int);

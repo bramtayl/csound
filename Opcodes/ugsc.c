@@ -28,6 +28,7 @@
 #include "memalloc.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 /* svfilter.c
  *

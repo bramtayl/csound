@@ -31,6 +31,7 @@
 #include "csoundCore_internal.h"
 #include "midiout.h"
 #include "insert_public.h"
+#include "text.h"
 
 #define MGLOB(x) (((CSOUND*)csound)->midiGlobals->x)
 

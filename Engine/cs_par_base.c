@@ -29,6 +29,8 @@
 #include "cs_par_base.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "csound_threads.h"
+#include "text.h"
 
 static int csp_set_exists(struct set_t *set, void *data);
 

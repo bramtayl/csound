@@ -90,3 +90,5 @@ typedef struct {
   FUNC *fvel;
 
 } SCANTABLE;
+
+int32_t wave_terrain_init_(CSOUND *csound);

@@ -42,6 +42,7 @@
 #include "cs_par_orc_semantics.h"
 #include <stdbool.h>
 #include "memalloc.h"
+#include "text.h"
 
 #if defined(_MSC_VER)
 /* For InterlockedCompareExchange */

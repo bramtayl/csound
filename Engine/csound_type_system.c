@@ -28,6 +28,7 @@
 #include "aops.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "text.h"
 
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;

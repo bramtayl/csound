@@ -27,6 +27,8 @@
 #include "memalloc.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "csound_threads.h"
+#include "text.h"
 
 typedef struct {
     OPDS    h;

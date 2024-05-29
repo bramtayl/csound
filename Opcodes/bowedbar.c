@@ -34,6 +34,8 @@
 #include "bowedbar.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
+#include "physmod.h"
 
 /* Number of banded waveguide modes */
 

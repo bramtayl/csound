@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
   OPDS                  h;
   MYFLT                 *ar, *ain, *isize, *ifn;
@@ -49,5 +51,7 @@ typedef struct {
   MYFLT                 ftndx;
   uint32_t              len;
 } FTMORF;
+
+int32_t ugmoss_init_(CSOUND *csound);
 
 /* end ugmoss.h */

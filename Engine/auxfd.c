@@ -28,6 +28,7 @@
 #include "csoundCore_internal.h"                         /*      AUXFD.C         */
 #include "memalloc.h"
 #include "envvar_public.h"
+#include "csound_threads.h"
 #include "text.h"
 
 /* allocate an auxds, or expand an old one */

@@ -57,6 +57,7 @@
 
 #ifdef GNU_GETTEXT
 # include "csound.h" // for Str
+#include "text.h"
 #else
 # define Str(x)  (x)
 #endif

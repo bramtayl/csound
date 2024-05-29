@@ -259,7 +259,6 @@ int32_t peaka(CSOUND*,PEAK *p);
 int32_t peakk(CSOUND*,PEAK *p);
 int32_t printk(CSOUND*,PRINTK *p);
 int32_t printk2(CSOUND*,PRINTK2 *p);
-int32_t printk4(CSOUND*,PRINTK2 *p);
 int32_t printk2set(CSOUND*,PRINTK2 *p);
 int32_t printks(CSOUND*,PRINTKS *p);
 int32_t printkset(CSOUND*,PRINTK *p);

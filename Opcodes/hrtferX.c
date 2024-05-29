@@ -59,6 +59,7 @@
 #include "hrtferx.h"
 #include "fftlib.h"
 #include "insert_public.h"
+#include "text.h"
 
 /* This array transferred here so as to be declared once.  Belongs to
    the structure of the HRTF data really in 3Dug.h */

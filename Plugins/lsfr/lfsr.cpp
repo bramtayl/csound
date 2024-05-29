@@ -133,7 +133,7 @@ struct LFSR : csnd::Plugin<1, 3> {
     }
 };
 
-#include <modload.h>
+#include <modload.hpp>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<LFSR>(csound, "lfsr", "k", "iij", csnd::thread::ik);
 }

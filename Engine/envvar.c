@@ -31,6 +31,8 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "libsnd_u.h"
+#include "csound_threads.h"
+#include "circularbuffer.h"
 #include "text.h"
 
 #if defined(MSVC) || defined(__wasi__)

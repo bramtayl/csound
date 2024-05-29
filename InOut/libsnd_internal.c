@@ -30,6 +30,7 @@
 #include "memalloc.h"
 #include "envvar_public.h"
 #include "libsnd_internal.h"
+#include "text.h"
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>

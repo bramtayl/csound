@@ -21,6 +21,8 @@
 #ifndef GAB_VECTORIAL_H
 #define GAB_VECTORIAL_H
 
+#include "csoundCore_common.h"
+
 /* The follwoing from CsoundAV/newopcodes.h */
 typedef struct {
     OPDS    h;
@@ -212,6 +214,8 @@ typedef struct {
      & 0x7fffffff) * oneUp31Bit)
 #define BiRandGab (MYFLT) ((double)     \
     (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)*/
+
+int32_t gab_vectorial_init_(CSOUND *);
 
 #endif
 

@@ -27,11 +27,9 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "csound_orc_semantics.h"
+#include "csound_orclex.h"
 #include "aops.h"
 #include "csound_orc_optimize.h"
-
-extern void print_tree(CSOUND *csound, char*, TREE *l);
-extern void delete_tree(CSOUND *csound, TREE *l);
 
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
 {

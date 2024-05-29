@@ -32,6 +32,7 @@
 #include "insert_public.h"
 #include "text.h"
 #include "goto_ops.h"
+#include "musmon_internal.h"
 
 int32_t igoto(CSOUND *csound, GOTO *p)
 {
@@ -284,7 +285,6 @@ int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
   return turnoff2(csound, p, 0);
 }
 
-extern void delete_selected_rt_events(CSOUND*, MYFLT);
 int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
   MYFLT p1;

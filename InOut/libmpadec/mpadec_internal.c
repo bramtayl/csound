@@ -44,7 +44,7 @@ const int16_t mpa_bitrate_table[2][3][16] = {
     { 0,  8, 16, 24, 32, 40, 48,  56,  64,  80,  96, 112, 128, 144, 160, 192 } }
 };
 
-extern void init_tables(mpadec_t mpadec, MYFLT scale, int32_t sblimit);
+void init_tables(mpadec_t mpadec, MYFLT scale, int32_t sblimit);
 
 uint32_t mpa_getbits(mpadec_t mpadec, unsigned n)
 {

@@ -24,6 +24,8 @@
                         /* Structure for Dobson/Fitch nonlinear filter */
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct  {
         OPDS    h;
         MYFLT   *ar, *in, *a, *b, *d, *C, *L;   /* The parameter */
@@ -31,3 +33,4 @@ typedef struct  {
         int32_t     point;          /* Pointer to old values */
 } NLFILT;
 
+int32_t nlfilt_init_(CSOUND *csound);

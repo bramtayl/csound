@@ -27,6 +27,7 @@
 #include "lowpassr.h"
 #include <math.h>
 #include "insert_public.h"
+#include "text.h"
 
 static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 {

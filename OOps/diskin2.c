@@ -33,6 +33,8 @@
 #include "fgens_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "csound_threads.h"
+#include "circularbuffer.h"
 #include "text.h"
 
 typedef struct DISKIN_INST_ {

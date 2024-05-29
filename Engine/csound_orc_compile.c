@@ -43,10 +43,13 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "find_opcode.h"
+#include "new_orc_parser.h"
+#include "csound_threads.h"
 #include "text.h"
 #include "auxfd_internal.h"
 #include "csmodule.h"
 #include "tok.h"
+#include "cs_par_orc_semantics.h"
 #include "aops.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
@@ -68,8 +71,6 @@ int check_instr_name(char *s);
 void free_instr_var_memory(CSOUND *, INSDS *);
 void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                         OPDS *ids);
-
-extern const char *SYNTHESIZED_ARG;
 
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE

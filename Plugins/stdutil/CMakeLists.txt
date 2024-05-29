@@ -22,7 +22,6 @@ set(stdutil_SRCS
     std_util.c
     xtrct.c
     ${Csound_SOURCE_DIR}/Executables/sdif2ad/sdif.c
-    ${Csound_SOURCE_DIR}/InOut/soundfile.c
 )
 
 make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY})

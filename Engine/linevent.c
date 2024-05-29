@@ -37,6 +37,7 @@
 #include "insert_public.h"
 #include "musmon.h"
 #include "text.h"
+#include "threadsafe_public.h"
 
 #ifdef PIPES
 # if defined(SGI) || defined(__gnu_linux__) || defined(NeXT) || defined(__MACH__)

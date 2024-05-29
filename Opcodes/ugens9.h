@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
     OPDS    h;
     MYFLT   *ar1,*ar2,*ar3,*ar4,*ain,*ifilno,*channel;
@@ -68,3 +70,4 @@ typedef struct {
     void    *fwdsetup, *invsetup;   /* setup for FFT */
 } PCONVOLVE;
 
+int32_t ugens9_init_(CSOUND *csound);

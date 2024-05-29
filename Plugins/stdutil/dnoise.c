@@ -84,6 +84,7 @@
 #include "fftlib.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "dnoise.h"
 
 #define ERR(x)                          \
 {                                       \

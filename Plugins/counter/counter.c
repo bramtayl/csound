@@ -25,6 +25,7 @@
 #include "interlocks.h"
 #include "memalloc.h"
 #include "insert_public.h"
+#include "namedins_public.h"
 
 /* Structure of a counter */
 typedef struct {

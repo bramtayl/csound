@@ -70,5 +70,7 @@ static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p);
 static int32_t
 pvsdemix_process(CSOUND *csound, PVSDEMIX *p);
 
+int32_t pvsdemix_init_(CSOUND *);
+
 #endif
 

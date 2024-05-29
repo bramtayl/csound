@@ -8,6 +8,9 @@
 #include "csound.h"
 #include "csdebug.h"
 #include "main.h"
+#include "threadsafe_public.h"
+#include "musmon.h"
+#include "argdecode.h"
 #include "envvar_public.h"
 
 class DebuggerTests : public ::testing::Test {

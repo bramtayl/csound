@@ -39,6 +39,9 @@
 #include "moog1.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "physmod.h"
+#include "fm4op.h"
 
 void OneZero_setCoeff(OneZero*, MYFLT);
 MYFLT Wave_tick(MYFLT *, int32_t len, MYFLT *, MYFLT, MYFLT);

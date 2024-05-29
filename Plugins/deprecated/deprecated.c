@@ -26,6 +26,7 @@
 #include "csound_orc_semantics_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "namedins_public.h"
 
 /**    
  stackops: copyright (C) 2006 Istvan Varga

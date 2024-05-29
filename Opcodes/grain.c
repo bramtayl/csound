@@ -33,6 +33,7 @@
 #include "insert_public.h"
 #include "fgens_public.h"
 #include "random.h"
+#include "text.h"
 
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 {

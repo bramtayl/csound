@@ -24,6 +24,7 @@
 
 #include "csoundCore_internal.h"                 /*              MEMALLOC.C      */
 #include "memalloc.h"
+#include "csound_threads.h"
 #include "text.h"
 #include "memalloc_internal.h"
 

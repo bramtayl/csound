@@ -26,6 +26,8 @@
 #include "corfile.h"
 #include "memalloc.h"
 #include "utility.h"
+#include "text.h"
+#include "csmodule.h"
 #include "scsort.h"
 #include "scxtract.h"
 #include "csmodule.h"

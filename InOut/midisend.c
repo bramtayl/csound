@@ -28,6 +28,7 @@
 #include "envvar_public.h"
 #include "text.h"
 #include "midisend.h"
+#include "csound_internal.h"
 
 typedef struct midiOutFile_s {
     FILE            *f;

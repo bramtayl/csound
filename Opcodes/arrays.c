@@ -33,6 +33,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "fgens.h"
+#include "mxfft.h"
 
 typedef struct {
   OPDS    h;

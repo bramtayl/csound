@@ -108,6 +108,7 @@
 #include "text.h"
 #include "insert.h"
 #include "midirecv.h"
+#include "csound_internal.h"
 #include "midisend.h"
 
 #define MGLOB(x) (csound->midiGlobals->x)

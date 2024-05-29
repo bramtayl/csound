@@ -32,6 +32,9 @@
 #include "libsnd.h"
 #include "text.h"
 #include "libsnd_internal.h"
+#include "libsnd.h"
+#include "text.h"
+#include "libsnd_internal.h"
 
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>

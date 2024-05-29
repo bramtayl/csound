@@ -35,6 +35,7 @@
 #include "lpc.h"
 #include "memalloc.h"
 #include "utility.h"
+#include "lpc_import.h"
 
 void lpc_import_usage(CSOUND *csound)
 {

@@ -24,6 +24,9 @@
 #ifndef CSOUND_OLOAD_H
 #define CSOUND_OLOAD_H
 
+#include "sysdep.h"
+#include "csoundCore_common.h"
+
 #define NCONSTS 256    /* gbl */                /*      OLOAD.H         */
 //#define NLABELS 5      /* lcl */
 //#define NGOTOS  40

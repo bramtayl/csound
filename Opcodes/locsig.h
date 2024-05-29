@@ -46,3 +46,4 @@ typedef struct {
     LOCSIG  *locsig;
 } LOCSEND;
 
+int32_t locsig_init_(CSOUND *csound);

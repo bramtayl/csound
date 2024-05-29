@@ -136,5 +136,7 @@ typedef struct {                /* opcode args */
         AUXCH   del;                    /* delay buffer                   */
 } SPAT3D;
 
+int32_t spat3d_init_(CSOUND *csound);
+
 #endif          /* CSOUND_SPAT3D_H */
 

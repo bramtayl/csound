@@ -22,7 +22,9 @@
 */
  
 #if !defined(_SF_H)
+
 #include "sftype.h"
+
 #ifdef          __GNUC__
 #  ifndef       PACKED
 #    define     PACKED  __attribute__((packed))
@@ -97,7 +99,7 @@ typedef struct _presetType presetType;
 struct _CHUNK {
   BYTE  ckID[4]; /* A chunk ID identifies the type of data within the chunk. */
   DWORD ckSize;  /* The size of the chunk data in bytes, excluding any pad byte. */
-  BYTE  *ckDATA; /* The actual data plus a pad byte if req’d to word align. */
+  BYTE  *ckDATA; /* The actual data plus a pad byte if reqï¿½d to word align. */
 } PACKED;
 typedef struct _CHUNK CHUNK;
 

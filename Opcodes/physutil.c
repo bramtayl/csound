@@ -31,6 +31,7 @@
 #include "physutil.h"
 #include "auxfd.h"
 #include "random.h"
+#include "text.h"
 
 /*******************************************/
 /*  Noise Generator Class,                 */

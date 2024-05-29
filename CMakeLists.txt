@@ -641,11 +641,13 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 # The csound library
 set(libcsound_SRCS
     Top/csound.c
+    Top/csound_internal.c
     Engine/auxfd.c
     Engine/auxfd_internal.c
     Engine/cfgvar.c
     Engine/cfgvar_internal.c
     Engine/corfiles.c
+    Engine/csound_orc_compile.c
     Engine/entry1.c
     Engine/envvar.c
     Engine/envvar_public.c
@@ -662,6 +664,7 @@ set(libcsound_SRCS
     Engine/memfiles.c
     Engine/memfiles_internal.c
     Engine/musmon.c
+    Engine/musmon_internal.c
     Engine/namedins.c
     Engine/namedins_public.c
     Engine/parse_param.c
@@ -712,6 +715,7 @@ set(libcsound_SRCS
     OOps/oscils.c
     OOps/pstream_internal.c
     OOps/pvfileio.c
+    OOps/pvfileio_internal.c
     OOps/pvsanal.c
     OOps/random.c
     OOps/random_internal.c
@@ -786,6 +790,7 @@ set(libcsound_SRCS
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
     Top/argdecode.c
+    Top/argdecode_internal.c
     Top/csdebug.c
     Top/csdebug_internal.c
     Top/cscore_internal.c
@@ -793,15 +798,16 @@ set(libcsound_SRCS
     Top/csmodule.c
     Top/csmodule_public.c
     Top/csoundCore_internal.c
-    Top/getstring.c
     Top/main.c
     Top/new_opts.c
     Top/one_file.c
     Top/opcode.c
     Top/opcode_internal.c
-    Top/threads.c
+    Top/text.c
+    Top/csound_threads.c
     Top/utility.c
     Top/threadsafe.c
+    Top/threadsafe_public.c
     Top/server.c)
 
 if(WIN32 AND NOT MSVC)
@@ -883,7 +889,7 @@ set(mp3in_SRCS
     InOut/libmpadec/layer3.c
     InOut/libmpadec/synth.c
     InOut/libmpadec/tables.c
-    InOut/libmpadec/mpadec.c
+    InOut/libmpadec/mpadec_internal.c
     InOut/libmpadec/mp3dec.c)
 
 list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})

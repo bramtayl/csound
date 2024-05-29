@@ -2,6 +2,7 @@
 
 #include "csound_orc_semantics.h"
 #include "insert.h"
+#include "text.h"
 
 int csoundInitError(CSOUND *csound, const char *s, ...) {
   va_list args;

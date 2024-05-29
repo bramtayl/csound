@@ -74,21 +74,6 @@ PUBLIC bool ugen_set_output(UGEN* ugen, int index, void* arg);
  * */
 PUBLIC bool ugen_set_input(UGEN* ugen, int index, void* arg);
 
-/** Set value for output argument for opcode's data struct by index. Assumes UGEN arguments are not set by reference. 
- * 
- * TODO - consider using CS_VARIABLE instead of void* so that 
- * type check can happen here. Also, would provide hook to use
- * CS_TYPE's copyValue function.
- */
-PUBLIC bool ugen_set_output_value(UGEN* ugen, int index, void* arg);
-
-/** Set value for input argument for opcode's data struct by index. Assumes UGEN arguments are not set by reference. 
- *
- * TODO - consider using CS_VARIABLE instead of void* so that 
- * type check can happen here.
- * */
-PUBLIC bool ugen_set_input_value(UGEN* ugen, int index, void* arg);
-
 /** Run the init-pass for the opcode instance held in UGEN. */
 PUBLIC int ugen_init(UGEN* ugen);
 

@@ -30,6 +30,8 @@
 #include "auxfd.h"
 #include "memfiles.h"
 #include "insert_public.h"
+#include "text.h"
+#include "ugens8.h"
 
 /* RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"

@@ -38,6 +38,7 @@
 #include "libsnd_u.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "cvanal.h"
 
 static int32_t takeFFT(CSOUND *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                        int64_t Hlenpadded, SNDFILE *infd, FILE *ofd, int32_t nf);

@@ -27,9 +27,6 @@
 
 #define dv127   (FL(1.0)/FL(127.0))
 
-/* aops.c, table for CPSOCTL */
-/* extern  MYFLT   cpsocfrc[]; */
-
 int32_t midinoteoff(CSOUND *csound, MIDINOTEON *p)
 {
     IGN(csound);

@@ -28,6 +28,7 @@
 #include "envvar_public.h"
 #include "text.h"
 #include "rdscor_internal.h"
+#include "musmon_internal.h"
 
 #define TYP_FREE   0
 #define TYP_EVENT  1
@@ -35,8 +36,6 @@
 #define TYP_SPACE  3
 #define NSLOTS     100      /* default slots in cscoreListCreate list   */
 #define MAXALLOC   32768L
-
-extern int lplay(CSOUND *, EVLIST *);
 
 typedef struct space {
         CSHDR  h;

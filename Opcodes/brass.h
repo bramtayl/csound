@@ -71,11 +71,6 @@ typedef struct DLineA {
     MYFLT       lastIn;
 } DLineA;
 
-void make_DLineA(CSOUND *,DLineA *, int32 max_length);
-/* void DLineA_clear(DLineA *); */
-int32_t DLineA_setDelay(CSOUND *,DLineA *, MYFLT length);
-MYFLT DLineA_tick(DLineA *, MYFLT sample);
-
 /***********************************************/
 /*  Lip Filter Object by Perry R. Cook, 1995-96*/
 /*  The lip of the brass player has dynamics   */
@@ -88,12 +83,6 @@ MYFLT DLineA_tick(DLineA *, MYFLT sample);
 /***********************************************/
 
 typedef BiQuad LipFilt;
-
-void make_LipFilt(LipFilt*);
-void LipFilt_clear(LipFilt*);
-void LipFilt_setFreq(CSOUND*,LipFilt*, MYFLT frequency);
-MYFLT LipFilt_tick(LipFilt*, MYFLT mouthSample,MYFLT boreSample);
-MYFLT LipFilt_lastOut(LipFilt*);
 
 /* ---------------------------------------------------------------------- */
 typedef struct BRASS {

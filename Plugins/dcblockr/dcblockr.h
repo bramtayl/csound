@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct DCBlocker {
     OPDS        h;
     MYFLT       *ar, *in, *gg;

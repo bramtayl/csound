@@ -93,3 +93,15 @@ typedef struct {
 } RANDC;
 
 extern MYFLT intpow1(MYFLT x, int32_t n); /* Binary positive power function */
+int32 randint31(int32 seed31);
+
+int32_t bzzset(CSOUND *, BUZZ *), buzz(CSOUND *, BUZZ *);
+int32_t gbzset(CSOUND *, GBUZZ *), gbuzz(CSOUND *, GBUZZ *);
+int32_t plukset(CSOUND *, PLUCK *), pluck(CSOUND *, PLUCK *);
+int32_t rndset(CSOUND *, RAND *), krand(CSOUND *, RAND *);
+int32_t arand(CSOUND *, RAND *), rhset(CSOUND *, RANDH *);
+int32_t krandh(CSOUND *, RANDH *), randh(CSOUND *, RANDH *);
+int32_t riset(CSOUND *, RANDI *), krandi(CSOUND *, RANDI *);
+int32_t rcset(CSOUND *, RANDC *), randc(CSOUND *, RANDC *);
+int32_t krandc(CSOUND *, RANDC *);
+int32_t randi(CSOUND *, RANDI *);

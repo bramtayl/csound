@@ -36,6 +36,7 @@
 #include "fgens_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 {

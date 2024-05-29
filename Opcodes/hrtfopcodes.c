@@ -26,6 +26,7 @@
 #include "fftlib.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 #include <math.h>
 /* definitions */

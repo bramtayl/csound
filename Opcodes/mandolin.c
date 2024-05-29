@@ -44,6 +44,8 @@
 #include "mandolin.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "physmod.h"
 
 static inline int32_t infoTick(MANDOL *p)
 {

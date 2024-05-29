@@ -30,6 +30,7 @@
 #include "fgens_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {

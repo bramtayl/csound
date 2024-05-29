@@ -28,6 +28,7 @@
 #endif
 #endif
 
+#include "csound_threads.h"
 #include "csoundCore_internal.h"
 
 #if 0

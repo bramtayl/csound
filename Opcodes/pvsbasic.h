@@ -222,5 +222,7 @@ static int32_t pvstencilset(CSOUND *, PVSTENCIL *p);
 static int32_t
 pvstencil(CSOUND *, PVSTENCIL *p);
 
+int32_t pvsbasic_init_(CSOUND *);
+
 #endif
 

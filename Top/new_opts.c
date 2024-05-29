@@ -37,6 +37,8 @@
 #include "csound.h"
 #include "new_opts.h"
 #include "memalloc.h"
+#include "cfgvar.h"
+#include "text.h"
 
 /* list command line usage of all registered configuration variables */
 

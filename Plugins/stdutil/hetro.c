@@ -29,6 +29,7 @@
 #include "libsnd_u.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "hetro.h"
 
 //#define DEBUG 1
 

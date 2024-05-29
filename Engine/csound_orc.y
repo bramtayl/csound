@@ -121,6 +121,10 @@
 %parse-param { CSOUND * csound }
 %parse-param { TREE ** astTree }
 
+%code requires {
+#include "parse_param.h"
+}
+
 
 /* NOTE: Perhaps should use %union feature of bison */
 
@@ -139,6 +143,10 @@
 
 #include "csound_orc.h"
 #include "parse_param.h"
+#include "text.h"
+#include "csound_orc_semantics.h"
+#include "csound_orclex.h"
+#include "csound_orc_optimize.h"
 
 #ifdef PARCS
 #include "cs_par_base.h"
@@ -157,19 +165,8 @@
 
 #define namedInstrFlag csound->parserNamedInstrFlag
 
-    extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-    extern int csound_orclex(TREE**, CSOUND *, void *);
-    extern void print_tree(CSOUND *, char *msg, TREE *);
-    extern TREE* constant_fold(CSOUND *, TREE *);
-    extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *,
-                                TREE**, const char*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
-    extern uint64_t csound_orcget_locn(void *);
-    extern int csound_orcget_lineno(void *);
-    extern ORCTOKEN *make_string(CSOUND *, char *);
-    extern char* UNARY_PLUS;
-    extern TREE* make_opcall_from_func_start(CSOUND*, int, int, int, TREE*, TREE*);
 %}
 %%
 

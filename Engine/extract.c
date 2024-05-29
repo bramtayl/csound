@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"
 #include "sysdep.h"                                 /*    EXTRACT.C   */
 #include "extract.h"
+#include "text.h"
 #include "twarp.h"
 
 static  void    include(EXTRACT_STATICS*, SRTBLK *);

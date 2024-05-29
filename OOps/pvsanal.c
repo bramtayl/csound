@@ -33,6 +33,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "mxfft.h"
 #include "text.h"
 #include "pvsanal.h"
 

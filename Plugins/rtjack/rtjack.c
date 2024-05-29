@@ -40,7 +40,10 @@
 #include <sched.h>
 #endif
 #include "memalloc.h"
-
+#include "cfgvar.h"
+#include "csound_threads.h"
+#include "namedins_public.h"
+#include "circularbuffer.h"
 
 /* Modified from BSD sources for strlcpy */
 /*
@@ -51,33 +54,8 @@
  * copyright notice and this permission notice appear in all copies.
  */
 /* modifed for speed -- JPff */
-char *
-strNcpy(char *dst, const char *src, size_t siz)
-{
-    char *d = dst;
-    const char *s = src;
-    size_t n = siz;
 
-    /* Copy as many bytes as will fit or until NULL */
-    if (n != 0) {
-      while (--n != 0) {
-        if ((*d++ = *s++) == '\0')
-          break;
-      }
-    }
-
-    /* Not enough room in dst, add NUL */
-    if (n == 0) {
-      if (siz != 0)
-        *d = '\0';                /* NUL-terminate dst */
-
-      //while (*s++) ;
-    }
-    return dst;        /* count does not include NUL */
-}
-
-
-#include "cs_jack.h"
+#include "rtjack.h"
 static int listDevices(CSOUND *csound,
                        CS_AUDIODEVICE *list,
                        int isOutput);

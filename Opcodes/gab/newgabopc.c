@@ -20,6 +20,8 @@
 #include "interlocks.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "newgabopc.h"
 
 /* (Shouldn't there be global decl's for these?) */
 #define INCR (0.001f)

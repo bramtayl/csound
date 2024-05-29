@@ -36,6 +36,7 @@
 #include "envvar_public.h"
 #include "utility.h"
 #include "lpred_public.h"
+#include "lpanal.h"
 
 /* LPC analysis, modified by BV 8'92 for linkage to audio files via soundin.c.
  * Currently set for maximum of 50 poles, & max anal segment of 1000 samples,

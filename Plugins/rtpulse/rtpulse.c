@@ -26,6 +26,8 @@
 #include <pulse/error.h>
 #include <string.h>
 #include "memalloc.h"
+#include "cfgvar.h"
+#include "namedins_public.h"
 
 typedef struct _pulse_params {
   pa_simple *ps;

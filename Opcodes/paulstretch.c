@@ -38,6 +38,8 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "mxfft.h"
+#include "text.h"
 
 #ifdef ANDROID
 float crealf(_Complex float);

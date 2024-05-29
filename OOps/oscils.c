@@ -28,6 +28,7 @@
 #include "oscils.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 /* ------------- set up fast sine generator ------------- */
 /* Input args:                                            */

@@ -12,6 +12,8 @@
 #include "threadsafe.h"       // for message_dequeue
 #include "memalloc.h"
 #include "memfiles.h"
+#include "csound_threads.h"
+#include "circularbuffer.h"
 
 /* return 1 if the current op thread is init-time,
    zero if not.

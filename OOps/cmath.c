@@ -29,6 +29,7 @@
 #include <math.h>
 #include "insert_public.h"
 #include "random.h"
+#include "text.h"
 
 int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 {

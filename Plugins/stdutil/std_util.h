@@ -24,26 +24,25 @@
 
 #include "csdl.h"
 #include <inttypes.h>
-
-extern int32_t atsa_init_(CSOUND *);
-extern int32_t cvanal_init_(CSOUND *);
-extern int32_t dnoise_init_(CSOUND *);
-extern int32_t envext_init_(CSOUND *);
-extern int32_t het_export_init_(CSOUND *);
-extern int32_t het_import_init_(CSOUND *);
-extern int32_t hetro_init_(CSOUND *);
-extern int32_t lpanal_init_(CSOUND *);
-extern int32_t lpc_export_init_(CSOUND *);
-extern int32_t lpc_import_init_(CSOUND *);
-extern int32_t mixer_init_(CSOUND *);
-extern int32_t pvanal_init_(CSOUND *);
-extern int32_t pvlook_init_(CSOUND *);
-extern int32_t pv_export_init_(CSOUND *);
-extern int32_t pv_import_init_(CSOUND *);
-extern int32_t scale_init_(CSOUND *);
-extern int32_t sndinfo_init_(CSOUND *);
-extern int32_t srconv_init_(CSOUND *);
-extern int32_t xtrct_init_(CSOUND *);
+#include "atsa.h"
+#include "cvanal.h"
+#include "dnoise.h"
+#include "envext.h"
+#include "het_export.h"
+#include "het_import.h"
+#include "hetro.h"
+#include "lpanal.h"
+#include "lpc_export.h"
+#include "lpc_import.h"
+#include "mixer.h"
+#include "pv_export.h"
+#include "pv_import.h"
+#include "pvanal.h"
+#include "pvlook.h"
+#include "scale.h"
+#include "sndinfo.h"
+#include "srconv.h"
+#include "xtrct.h"
 
 #endif  /* CSOUND_STD_UTIL_H */
 

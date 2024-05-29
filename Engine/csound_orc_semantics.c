@@ -38,29 +38,15 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "find_opcode.h"
+#include "text.h"
+#include "csound_orclex.h"
 #include "csound_orc_compile.h"
 #include "tok.h"
 
-extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);
 
-extern uint64_t csound_orcget_locn(void *);
-extern  char argtyp2(char*);
-extern  int tree_arg_list_count(TREE *);
-void print_tree(CSOUND *, char *, TREE *);
-
-/* from csound_orc_compile.c */
-extern int pnum(char*);
-
-char* resolve_opcode_get_outarg(CSOUND* csound,
-                                OENTRIES* entries, char* inArgTypes);
-int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
-char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                               TYPE_TABLE* typeTable);
 char* convert_internal_to_external(CSOUND* csound, char* arg);
-char* convert_external_to_internal(CSOUND* csound, char* arg);
 
-extern TREE * create_opcode_token(CSOUND *csound, char* op);
 int is_reserved(char*);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
@@ -1021,23 +1007,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
   }
   return NULL;
   //    return retVal;
-}
-
-OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
-                             char* outArgTypes, char* inArgTypes) {
-  IGN(csound);
-  OENTRY* retVal = NULL;
-  int i;
-
-  char* outTest = (!strcmp("0", outArgTypes)) ? "" : outArgTypes;
-  for (i = 0; i < entries->count; i++) {
-    OENTRY* temp = entries->entries[i];
-    if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
-        temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
-      retVal = temp;
-    }
-  }
-  return retVal;
 }
 
 /* used when creating T_FUNCTION's */
@@ -2574,8 +2543,6 @@ int csound_orcwrap(void* dummy)
 
 /* UTILITY FUNCTIONS */
 
-extern int csound_orcget_lineno(void*);
-extern char *csound_orcget_current_pointer(void *);
 /* BISON PARSER FUNCTION */
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE **astTree, const char *str)
@@ -2783,13 +2750,6 @@ void delete_tree(CSOUND *csound, TREE *l)
     mfree(csound, old);
   }
 }
-
-PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree)
-{
-  //printf("Tree %p\n", tree);
-  delete_tree(csound, tree);
-}
-
 
 /* DEBUGGING FUNCTIONS */
 void print_tree_i(CSOUND *csound, TREE *l, int n)

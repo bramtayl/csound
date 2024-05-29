@@ -31,13 +31,16 @@
 #include "corfile.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "text.h"
 #include "csound_orc_compile.h"
+#include "csound_prelex.h"
+#include "csound_prslex.h"
+
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
 static void do_new_include(CSOUND *, yyscan_t);
-extern int isDir(char *);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);

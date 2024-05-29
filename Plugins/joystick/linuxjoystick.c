@@ -38,6 +38,7 @@
 #include "linuxjoystick.h"
 #include <errno.h>
 #include "fgens_public.h"
+#include "text.h"
 
 static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 {

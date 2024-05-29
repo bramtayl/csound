@@ -23,6 +23,7 @@
 
 #include "csound.h"
 #include <stdarg.h>
+#include "utility.h"
 
 static void messageCallback_(CSOUND *csound, int attr,
                              const char *fmt, va_list args)

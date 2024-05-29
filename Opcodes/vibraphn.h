@@ -34,6 +34,9 @@
 #if !defined(__Vibraphn_h)
 #define __Vibraphn_h
 
+#include "csoundCore_common.h"
+#include "modal4.h"
+
 typedef struct Vibraphn {
     OPDS        h;
     MYFLT       *ar;                  /* Output */

@@ -28,6 +28,7 @@
 #include "libsnd_u.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "sndinfo.h"
 
 /* Some of the information is borrowed from libsndfile's sndfile-info code */
 

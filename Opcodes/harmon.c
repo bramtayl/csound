@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"
 #include "interlocks.h"
 #include "auxfd.h"
+#include "text.h"
 
 #include <math.h>
 

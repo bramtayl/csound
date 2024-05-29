@@ -37,6 +37,7 @@
 #include "stdopcod.h"
 #include "clfilt.h"
 #include "insert_public.h"
+#include "text.h"
 
 static int32_t clfiltset(CSOUND *csound, CLFILT *p)
 {

@@ -24,6 +24,8 @@
 #ifndef _CONVOLVE_H_
 #define _CONVOLVE_H_
 
+#include "sysdep.h"
+
 #define CONVOLVE_VERSION_STRING "CONVOLVE VERSION: V1.1\n"
 
 #ifndef NULL

@@ -28,7 +28,8 @@
 #include "csoundCore.h"        
 #include "cwindow.h"
 #include "windin.h"             
-#include "insert_public.h"                 
+#include "insert_public.h"       
+#include "text.h"          
 
 int xyinset(CSOUND *csound, XYIN *p)
 {

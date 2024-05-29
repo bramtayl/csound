@@ -24,6 +24,8 @@
                                                         /* repluck.h */
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct _DelayLine {
     MYFLT   *data;
     int32_t length;
@@ -57,3 +59,5 @@ typedef struct{
         AUXCH   aux;
         int32_t     wpointer, rpointer, size;
 } STRES;
+
+int32_t repluck_init_(CSOUND *);

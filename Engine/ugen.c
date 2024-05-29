@@ -44,8 +44,7 @@
 #include "csound_standard_types.h"
 #include "csound_orc.h"
 #include "memalloc.h"
-
-extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
+#include "csound_orc_semantics.h"
 
 // this value is chosen arbitrarily, feel free to modify
 //static const int MAX_VAR_ARGS = 8;

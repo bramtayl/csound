@@ -24,10 +24,12 @@
 #include <stdio.h>
 #include "memalloc.h"
 #include "insert_public.h"
-#include "csound_orc_compile.h"
+#include "threadsafe_public.h"
 #include "main.h"
-
-int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
+#include "threadsafe.h"
+#include "csound_orc_compile.h"
+#include "text.h"
+#include "csound_internal.h"
 
 int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
     FILE *fp;

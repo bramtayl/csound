@@ -32,6 +32,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "auxfd.h"
+#include "text.h"
 
 static const int32_t dumpf_format_table[9] = {
   0,

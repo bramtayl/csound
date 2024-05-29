@@ -66,6 +66,12 @@ static inline int sCmp(const char *x, const char *y)
     return (x[i] != y[i]);
 }
 
+/**
+ * Free entire global variable database. This function is for internal use
+ * only (e.g. by RESET routines).
+ */
+void csoundDeleteAllGlobalVariables(CSOUND *csound);
+
 /* ----------------------------------------------------------------------- */
 
 #ifdef __cplusplus

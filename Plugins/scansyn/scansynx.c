@@ -61,6 +61,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "memfiles.h"
+#include "scansynx.h"
 
 /* Order of interpolation of scanning */
 /* Either 1, 2 (linear), 3 (cubic) or 4 (quadratic) */

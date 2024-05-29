@@ -35,6 +35,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS h;
   MYFLT *low, *high, *band, *in, *kfco, *kq, *iscl, *iskip;
@@ -101,3 +103,5 @@ typedef struct {
         MYFLT *out, *in, *kfco, *kres, *istor;
         double ynm1, ynm2;
 } LP2;
+
+int32_t ugsc_init_(CSOUND *);

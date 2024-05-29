@@ -24,11 +24,6 @@
 #include "layer3.h"
 #include "tables.h"
 
-extern const uint32_t bitmask[17];
-
-extern uint32_t mpa_getbits(mpadec_t mpadec, unsigned n);
-extern uint16_t update_crc(uint16_t init, uint8_t *buf, int length);
-
 static int decode_layer3_sideinfo(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;

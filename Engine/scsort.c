@@ -26,12 +26,11 @@
 #include <ctype.h>
 #include "csound_orc_semantics_public.h"
 #include "scsort.h"
+#include "swritestr.h"
 #include "sread.h"
 #include "sort.h"
 #include "twarp.h"
 #include "swritestr.h"
-
-extern void sort(CSOUND*);
 
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */

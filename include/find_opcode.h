@@ -38,7 +38,7 @@ PUBLIC OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
                                char* outArgsFound, char* inArgsFound);
 /* find OENTRY with the specified name in opcode list */
 
-OENTRY* find_opcode(CSOUND *, char *);
+PUBLIC OENTRY* find_opcode(CSOUND *, char *);
 
 #ifdef __cplusplus
 }

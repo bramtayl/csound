@@ -37,6 +37,11 @@ Re-written to take flexible number of outputs by JPff 2012 */
 #include "interlocks.h"
 #include "memalloc.h"
 #include "insert_public.h"
+#include "namedins_public.h"
+#include "text.h"
+#include "vbap_n.h"
+#include "vbap1.h"
+#include "vbap_zak.h"
 
 #define MATSIZE (4)
 #define ATORAD  (TWOPI_F / FL(360.0))

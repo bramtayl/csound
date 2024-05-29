@@ -24,11 +24,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "beats.h"
+#include "beats.tab.h"
 #include "beats_main.h"
+#include "beatslex.yy.h"
 
 FILE *myout;
-extern FILE *yyin;
 int debug = 0;
 
 double pt[13] = { 8.1757989156,  8.6619572180,  9.1770239974,  9.7227182413,

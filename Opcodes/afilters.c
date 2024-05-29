@@ -24,8 +24,7 @@
 #include "csoundCore_internal.h"         /*                      AFILTERS.C        */
 #include "ugens5.h"
 #include <math.h>
-
-extern int32_t rsnset(CSOUND *csound, RESON *p);
+#include "ugens5.h"
 
 static int32_t aresonaa(CSOUND *csound, RESON *p)
 {
@@ -281,9 +280,6 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
     return OK;
 }
 
-extern int32_t tonset(CSOUND*, TONE*);
-extern int32_t tonsetx(CSOUND *csound, TONEX *p);
-
 static int32_t atonea(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
@@ -439,7 +435,16 @@ typedef struct  {
 
 //#define ROOT2 (1.4142135623730950488)
 
-extern int32_t butset(CSOUND *csound, BFIL *p);
+// since the afilter BFIL is different from the butter one, redefine
+static int32_t butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
+{
+     IGN(csound);
+    if (*p->istor==FL(0.0)) {
+      p->a[6] = p->a[7] = 0.0;
+      p->lkf = FL(0.0);
+    }
+    return OK;
+}
 
 static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {

@@ -37,6 +37,7 @@
 #include "memalloc.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "scale.h"
 
 /* Constants */
 

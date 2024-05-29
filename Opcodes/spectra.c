@@ -33,6 +33,7 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 #include "pitch0.h"
 
 #define LOGTWO  (0.69314718056)

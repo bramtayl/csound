@@ -258,3 +258,5 @@ typedef struct _atsinterpread {
     int32_t     overflowflag;
 } ATSINTERPREAD;
 
+int32_t ugnorman_init_(CSOUND *csound);
+

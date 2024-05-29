@@ -31,6 +31,7 @@
 #include "cfgvar.h"
 #include "namedins.h"
 #include "memalloc.h"
+#include "text.h"
 
 /* the global database */
 

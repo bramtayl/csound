@@ -88,6 +88,7 @@
 #include "sfont.h"
 #include "stdopcod.h"
 #include "pvs_ops.h"
+#include "gab/newgabopc.h"
 #include "fgens.h"
 
 #if defined(__MACH__)
@@ -1011,7 +1012,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
  * Return value is CSOUND_SUCCESS if there was no error, and
  * CSOUND_ERROR if some modules could not be de-initialised.
  */
-extern int sfont_ModuleDestroy(CSOUND *csound);
+
 int csoundDestroyModules(CSOUND *csound)
 {
     csoundModule_t  *m;
@@ -1142,12 +1143,6 @@ EXTERN_INIT_FUNCTION(select_localops_init);
 EXTERN_INIT_FUNCTION(sequencer_localops_init);
 EXTERN_INIT_FUNCTION(scugens_localops_init);
 EXTERN_INIT_FUNCTION(emugens_localops_init);
-
-extern int32_t stdopc_ModuleInit(CSOUND *csound);
-extern int32_t pvsopc_ModuleInit(CSOUND *csound);
-extern int32_t sfont_ModuleInit(CSOUND *csound);
-extern int32_t sfont_ModuleCreate(CSOUND *csound);
-extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
 #ifdef HAVE_SOCKETS
 EXTERN_INIT_FUNCTION(socksend_localops_init);

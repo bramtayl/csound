@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 #define LOWEST_ACCEPTABLE_WT FL(0.0)
 #define CHANNELS 128
 #define MIN_VOL_P_SIDE_LGTH FL(0.01)
@@ -233,11 +235,9 @@ void cross_prod(CART_VEC v1,CART_VEC v2,
 /*                                     int32_t connections[CHANNELS][CHANNELS]); */
 int32_t calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4]);
 
-extern void cart_to_angle(CART_VEC cvec, ANG_VEC *avec);
-extern void angle_to_cart(ANG_VEC avec, CART_VEC *cvec);
-extern void normalize_wts(OUT_WTS *wts);
-
-extern int32_t vbap_control(CSOUND*, VBAP_DATA *p, MYFLT*, MYFLT*, MYFLT*);
+void cart_to_angle(CART_VEC cvec, ANG_VEC *avec);
+void angle_to_cart(ANG_VEC avec, CART_VEC *cvec);
+void normalize_wts(OUT_WTS *wts);
 
 void calc_vbap_gns(int32_t ls_set_am, int32_t dim, LS_SET *sets,
                    MYFLT *gains, int32_t ls_amount,
@@ -296,26 +296,4 @@ typedef struct {
   MYFLT     ele_vel;
 } VBAP_ZAK_MOVING;
 
-int32_t     vbap_init(CSOUND *, VBAP *);
-int32_t     vbap_init_a(CSOUND *, VBAPA *);
-int32_t     vbap(CSOUND *, VBAP *);
-int32_t     vbap_a(CSOUND *, VBAPA *);
-int32_t     vbap_zak_init(CSOUND *, VBAP_ZAK *);
-int32_t     vbap_zak(CSOUND *, VBAP_ZAK *);
 int32_t     vbap_ls_init(CSOUND *, VBAP_LS_INIT *);
-int32_t     vbap_moving_init(CSOUND *, VBAP_MOVING *);
-int32_t     vbap_moving(CSOUND *, VBAP_MOVING *);
-int32_t     vbap_moving_init_a(CSOUND *, VBAPA_MOVING *);
-int32_t     vbap_moving_a(CSOUND *, VBAPA_MOVING *);
-int32_t     vbap_zak_moving_init(CSOUND *, VBAP_ZAK_MOVING *);
-int32_t     vbap_zak_moving(CSOUND *, VBAP_ZAK_MOVING *);
-int32_t     vbap1_init(CSOUND *, VBAP1 *);
-int32_t     vbap1(CSOUND *, VBAP1 *);
-int32_t     vbap1_init_a(CSOUND *, VBAPA1 *);
-int32_t     vbap1a(CSOUND *, VBAPA1 *);
-int32_t     vbap1_moving_init(CSOUND *, VBAP1_MOVING *);
-int32_t     vbap1_moving(CSOUND *, VBAP1_MOVING *);
-int32_t     vbap1_moving_init_a(CSOUND *, VBAPA1_MOVING *);
-int32_t
-vbap1_moving_a(CSOUND *, VBAPA1_MOVING *);
-

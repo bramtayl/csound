@@ -30,6 +30,7 @@
 #include "memalloc.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
@@ -137,88 +138,6 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
 
 
 /* -------- IV - Jan 29 2005 -------- */
-
-
-/**
- * Allocate nbytes bytes of memory that can be accessed later by calling
- * csoundQueryGlobalVariable() with the specified name; the space is
- * cleared to zero.
- * Returns CSOUND_SUCCESS on success, CSOUND_ERROR in case of invalid
- * parameters (zero nbytes, invalid or already used name), or
- * CSOUND_MEMORY if there is not enough memory.
- */
-PUBLIC int csoundCreateGlobalVariable(CSOUND *csound,
-                                      const char *name, size_t nbytes)
-{
-    void* p;
-    /* create new empty database if it does not exist yet */
-    if (UNLIKELY(csound->namedGlobals == NULL)) {
-      csound->namedGlobals = cs_hash_table_create(csound);
-      if (UNLIKELY(csound->namedGlobals == NULL))
-        return CSOUND_MEMORY;
-    }
-    /* check for valid parameters */
-    if (UNLIKELY(name == NULL))
-      return CSOUND_ERROR;
-    if (UNLIKELY(name[0] == '\0'))
-      return CSOUND_ERROR;
-    if (UNLIKELY(nbytes < (size_t) 1 || nbytes >= (size_t) 0x7F000000L))
-      return CSOUND_ERROR;
-
-    if (cs_hash_table_get(csound, csound->namedGlobals, (char*)name) != NULL)
-      return CSOUND_ERROR;
-
-    p = mcalloc(csound, nbytes);
-    if (UNLIKELY(p == NULL))
-      return CSOUND_MEMORY;
-
-    cs_hash_table_put(csound, csound->namedGlobals, (char*)name, p);
-    return CSOUND_SUCCESS;
-}
-
-/**
- * Get pointer to space allocated with the name "name".
- * Returns NULL if the specified name is not defined.
- */
-PUBLIC void *csoundQueryGlobalVariable(CSOUND *csound, const char *name)
-{
-    /* check if there is an actual database to search */
-    if (csound->namedGlobals == NULL) return NULL;
-
-    /* check for a valid name */
-    if (UNLIKELY(name == NULL)) return NULL;
-    if (UNLIKELY(name[0] == '\0')) return NULL;
-
-    return cs_hash_table_get(csound, csound->namedGlobals, (char*) name);
-}
-
-/**
- * This function is the same as csoundQueryGlobalVariable(), except the
- * variable is assumed to exist and no error checking is done.
- * Faster, but may crash or return an invalid pointer if 'name' is
- * not defined.
- */
-PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csound, const char *name)
-{
-    return cs_hash_table_get(csound, csound->namedGlobals, (char*) name);
-}
-
-/**
- * Free memory allocated for "name" and remove "name" from the database.
- * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
- * not defined.
- */
-PUBLIC int csoundDestroyGlobalVariable(CSOUND *csound, const char *name)
-{
-    void *p = cs_hash_table_get(csound, csound->namedGlobals, (char*)name);
-    if (UNLIKELY(p == NULL))
-      return CSOUND_ERROR;
-
-    mfree(csound, p);
-    cs_hash_table_remove(csound, csound->namedGlobals, (char*) name);
-
-    return CSOUND_SUCCESS;
-}
 
 /**
  * Free entire global variable database. This function is for internal use

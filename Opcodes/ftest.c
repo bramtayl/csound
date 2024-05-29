@@ -28,6 +28,7 @@
 #include "memalloc.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
 {

@@ -42,6 +42,8 @@ imaxtracks - max number of tracks (<= number of analysis bins)
 #include "envvar_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
+#include "partials.h"
 
 typedef struct _parts {
     OPDS    h;

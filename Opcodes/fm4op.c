@@ -38,6 +38,7 @@
 #include "fm4op.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 /***********************************************************/
 /*  Two Zero Filter Class,                                 */

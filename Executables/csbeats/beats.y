@@ -1,3 +1,17 @@
+%code provides {
+  extern int last_note;
+  extern int last_integer;
+  extern double last_duration;
+  extern double bpm;
+  extern int permeasure;
+  extern int yydebug;
+  extern int instrument;
+  extern double last_float;
+  extern int pnum;
+
+  int yyparse(void);
+}
+
 %{
 /*
     beats.y:
@@ -24,8 +38,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "beats.h"
+#include "beats.tab.h"
 #include "beats_main.h"
+#include "beatslex.yy.h"
 
     int last_note;
     int last_integer;
@@ -49,14 +64,7 @@
     double pitch = -1.0;
     double last_pitch = -1.0;
 #define YYDEBUG 1
-    extern double pt[12];
     double int2pow(int);
-    extern int yyline;
-    extern FILE* myout;
-    extern int debug;
-    extern int yylex(void);
-    extern void yyerror (char *);
-
     
 %}
 %token  S_NL

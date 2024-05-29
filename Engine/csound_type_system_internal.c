@@ -3,6 +3,7 @@
 #include "aops.h"              // for ASSIGN
 #include "csound.h"            // for csoundGetTypeForArg, CS_TYPE, csoundW...
 #include "csoundCore_common.h" // for NOTOK, OK
+#include "text.h"
 
 /* GENERIC VARIABLE COPYING */
 int copyVarGeneric(CSOUND *csound, void *p) {

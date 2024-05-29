@@ -40,6 +40,7 @@
 #include <math.h>
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 #define        RNDMUL  15625L
 

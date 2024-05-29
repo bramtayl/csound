@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *iphs;
@@ -71,3 +73,20 @@ typedef struct {
         FUNC    *ftp;
         FUNC    FF;
 } OSC;
+
+int32_t phsset(CSOUND *, PHSOR *);
+int32_t ephsset(CSOUND *, EPHSOR *), ephsor(CSOUND *, EPHSOR *);
+int32_t kphsor(CSOUND *, PHSOR *), phsor(CSOUND *, PHSOR *);
+int32_t ko1set(CSOUND *, OSCIL1 *);
+int32_t kosc1(CSOUND *, OSCIL1 *), kosc1i(CSOUND *, OSCIL1 *);
+int32_t oscnset(CSOUND *, OSCILN *), osciln(CSOUND *, OSCILN *);
+int32_t oscset(CSOUND *, OSC *), koscil(CSOUND *, OSC *);
+int32_t oscsetA(CSOUND *, OSC *);
+int32_t osckk(CSOUND *, OSC *), oscka(CSOUND *, OSC *);
+int32_t oscak(CSOUND *, OSC *), oscaa(CSOUND *, OSC *);
+int32_t koscli(CSOUND *, OSC *), osckki(CSOUND *, OSC *);
+int32_t osckai(CSOUND *, OSC *), oscaki(CSOUND *, OSC *);
+int32_t oscaai(CSOUND *, OSC *);
+int32_t koscl3(CSOUND *, OSC *);
+int32_t osckk3(CSOUND *, OSC *), oscka3(CSOUND *, OSC *);
+int32_t oscak3(CSOUND *, OSC *), oscaa3(CSOUND *, OSC *);

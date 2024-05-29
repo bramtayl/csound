@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 #define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct overlap {
@@ -56,3 +58,5 @@ typedef struct {
         FUNC    *ftp;
 } JMC;
 */
+
+int32_t ugensa_init_(CSOUND *csound);

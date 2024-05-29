@@ -67,7 +67,4 @@ void    cs_init_omacros(CSOUND*, NAMES*);
 
 uint64_t make_location(PRE_PARM *);
 
-extern void csound_orcput_ilocn(void *, uint64_t, uint64_t);
-extern uint64_t csound_orcget_iline(void *);
-extern uint64_t csound_orcget_ilocn(void *);
 #endif

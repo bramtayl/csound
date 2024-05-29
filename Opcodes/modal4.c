@@ -38,6 +38,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "random.h"
+#include "text.h"
 
 static int32_t make_Modal4(CSOUND *csound,
                        Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)

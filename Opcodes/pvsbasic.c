@@ -35,6 +35,10 @@
 #include "fgens_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "csound_threads.h"
+#include "circularbuffer.h"
+#include "mxfft.h"
+#include "text.h"
 
 #define MAXOUTS 16
 
