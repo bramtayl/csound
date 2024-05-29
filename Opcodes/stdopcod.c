@@ -48,7 +48,6 @@
 #include "reverbsc.h"
 #include "sndloop.h"
 #include "sndwarp.h"
-#include "space.h"
 #include "ugens7.h"
 #include "uggab.h"
 
@@ -102,7 +101,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= reverbsc_init_(csound);
     err |= sndloop_init_(csound);
     err |= sndwarp_init_(csound);
-    err |= space_init_(csound);
     err |= ugens7_init_(csound);
     err |= uggab_init_(csound);
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);

@@ -1212,6 +1212,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   #ifndef NO_SERIAL_OPCODES                                 
     EXTERN_INIT_FUNCTION(serial_localops_init);
   #endif
+  EXTERN_INIT_FUNCTION(space_init_);
   EXTERN_INIT_FUNCTION(spat3d_init_);
   EXTERN_INIT_FUNCTION(squinewave_localops_init);
   EXTERN_INIT_FUNCTION(sterrain_localops_init);
@@ -1329,6 +1330,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     #ifndef NO_SERIAL_OPCODES                                 
           serial_localops_init,
     #endif
+    space_init_,
     spat3d_init_,
     squinewave_localops_init,
     sterrain_localops_init,

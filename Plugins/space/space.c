@@ -34,6 +34,7 @@
 #include "insert_public.h"
 #include "fgens_public.h"
 #include "text.h"
+#include "csdl.h"
 
 #define RESOLUTION 100
 
@@ -277,10 +278,4 @@ static OENTRY localops[] =
    { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist, NULL, NULL}
 };
 
-int32_t space_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
-}
-
+ADD_INIT_FUNCTION(space_init_, localops)
