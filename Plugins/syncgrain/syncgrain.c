@@ -30,6 +30,7 @@
 #include "insert_public.h"
 #include "fgens_public.h"
 #include "text.h"
+#include "csdl.h"
 
 /*
 #ifdef HAVE_VALUES_H
@@ -736,9 +737,4 @@ static OENTRY localops[] =
 
 };
 
-int32_t syncgrain_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
-}
+ADD_INIT_FUNCTION(syncgrain_init_, localops)

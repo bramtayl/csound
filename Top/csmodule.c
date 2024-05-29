@@ -1214,6 +1214,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
     EXTERN_INIT_FUNCTION(serial_localops_init);
   #endif
   EXTERN_INIT_FUNCTION(sterrain_localops_init);
+  EXTERN_INIT_FUNCTION(syncgrain_init_);
   EXTERN_INIT_FUNCTION(system_call_localops_init);
   EXTERN_INIT_FUNCTION(tabaudio_localops_init);
   EXTERN_INIT_FUNCTION(tabsum_localops_init);
@@ -1330,6 +1331,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
           serial_localops_init,
     #endif
     sterrain_localops_init,
+    syncgrain_init_,
     system_call_localops_init,
     tabaudio_localops_init,
     tabsum_localops_init,
