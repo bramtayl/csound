@@ -118,14 +118,8 @@ typedef struct {
   int  async;
 } DISKIN2_ARRAY;
 
-int32_t diskin2_init(CSOUND *csound, DISKIN2 *p);
-int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p);
+OPCODE_INIT_FUNCTION(diskin2_localops_init);
 int32_t diskin2_perf(CSOUND *csound, DISKIN2 *p);
-int32_t diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
 
 typedef struct {
     OPDS    h;
@@ -163,13 +157,5 @@ typedef struct {
     MYFLT   *asig1, *asig2, *ifilcod, *iformat;
     SNDCOM  c;
 } SNDOUTS;
-
-int32_t sndinset(CSOUND *, DISKIN2 *), sndinset_S(CSOUND *, DISKIN2 *),
-        soundin(CSOUND *, DISKIN2 *);
-int32_t sndoutset(CSOUND *, SNDOUT *), sndoutset_S(CSOUND *, SNDOUT *),
-        soundout(CSOUND *, SNDOUT *);
-int32_t soundouts(CSOUND *, SNDOUTS *);
-int32_t diskin_init(CSOUND *csound, DISKIN2 *p);
-int32_t diskin_init_S(CSOUND *csound, DISKIN2 *p);
 
 #endif      /* CSOUND_DISKIN2_H */

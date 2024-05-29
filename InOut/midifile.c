@@ -817,3 +817,12 @@ int midiFileStatus(CSOUND *csound, MIDITEMPO *p){
   *p->kResult = csound->oparms->FMidiin;
   return OK;
 }
+
+static OENTRY midifile_localops[] = {
+    {"midifilestatus", sizeof(MIDITEMPO), 0, 2, "k", "", NULL,
+     (SUBR)midiFileStatus, NULL, NULL},
+    {"miditempo", sizeof(MIDITEMPO), 0, 3, "k", "", (SUBR)midiTempoOpcode,
+     (SUBR)midiTempoOpcode, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(midifile_localops)

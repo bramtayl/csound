@@ -37,6 +37,7 @@
 #include "memfiles.h"
 #include "insert_public.h"
 #include "text.h"
+#include "interlocks.h"
 
 #ifdef _DEBUG
 #include <assert.h>
@@ -855,3 +856,28 @@ int32_t pvsinfo(CSOUND *csound, PVSINFO *p)
     *p->iformat  = (MYFLT) p->fsrc->format;
     return OK;
 }
+
+static OENTRY pstream_internal_localops[] = {
+    {"=.f", sizeof(FASSIGN), 0, 3, "f", "f", (SUBR)fassign_set, (SUBR)fassign,
+     NULL, NULL},
+    {"init.f", sizeof(FASSIGN), 0, 1, "f", "f", (SUBR)fassign_set, NULL, NULL,
+     NULL},
+    {"pvsadsyn", sizeof(PVADS), 0, 3, "a", "fikopo", (SUBR)pvadsynset,
+     (SUBR)pvadsyn, NULL, NULL},
+    {"pvscross", sizeof(PVSCROSS), 0, 3, "f", "ffkk", (SUBR)pvscrosset,
+     (SUBR)pvscross, NULL, NULL},
+    {"pvsfread", sizeof(PVSFREAD), 0, 3, "f", "kSo", (SUBR)pvsfreadset_S,
+     (SUBR)pvsfread, NULL, NULL},
+    {"pvsfread.i", sizeof(PVSFREAD), 0, 3, "f", "kio", (SUBR)pvsfreadset,
+     (SUBR)pvsfread, NULL, NULL},
+    {"pvsftr", sizeof(PVSFTR), TR, 3, "", "fio", (SUBR)pvsftrset, (SUBR)pvsftr,
+     NULL, NULL},
+    {"pvsftw", sizeof(PVSFTW), TW, 3, "k", "fio", (SUBR)pvsftwset, (SUBR)pvsftw,
+     NULL, NULL},
+    {"pvsinfo", sizeof(PVSINFO), 0, 1, "iiii", "f", (SUBR)pvsinfo, NULL, NULL,
+     NULL},
+    {"pvsmaska", sizeof(PVSMASKA), 0, 3, "f", "fik", (SUBR)pvsmaskaset,
+     (SUBR)pvsmaska, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(pstream_internal_localops);

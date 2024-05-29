@@ -29,6 +29,7 @@
 #include "insert_public.h"
 #include "fgens_public.h"
 #include "text.h"
+#include "interlocks.h"
 
 /* ------------- set up fast sine generator ------------- */
 /* Input args:                                            */
@@ -420,3 +421,14 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     return OK;
 }
+
+static OENTRY oscils_localops[] = {
+    {"lphasor", sizeof(LPHASOR), 0, 3, "a", "xooooooo", (SUBR)lphasor_set,
+     (SUBR)lphasor, NULL, NULL},
+    {"oscils", sizeof(OSCILS), 0, 3, "a", "iiio", (SUBR)oscils_set,
+     (SUBR)oscils, NULL, NULL},
+    {"tablexkt", sizeof(TABLEXKT), TR, 3, "a", "xkkiooo", (SUBR)tablexkt_set,
+     (SUBR)tablexkt, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(oscils_localops)

@@ -61,24 +61,4 @@ typedef struct gauss{
   int flag;
 } GAUSS;
 
-int32_t ipow(CSOUND *, POW *), apow(CSOUND *, POW *);
-int32_t alinear(CSOUND *, PRAND *), iklinear(CSOUND *, PRAND *);
-int32_t atrian(CSOUND *, PRAND *), iktrian(CSOUND *, PRAND *);
-int32_t aexp(CSOUND *, PRAND *), ikexp(CSOUND *, PRAND *);
-int32_t abiexp(CSOUND *, PRAND *), ikbiexp(CSOUND *, PRAND *);
-int32_t agaus(CSOUND *, PRAND *), ikgaus(CSOUND *, PRAND *);
-int32_t acauchy(CSOUND *, PRAND *), ikcauchy(CSOUND *, PRAND *);
-int32_t apcauchy(CSOUND *, PRAND *), ikpcauchy(CSOUND *, PRAND *);
-int32_t abeta(CSOUND *, PRAND *), ikbeta(CSOUND *, PRAND *);
-int32_t aweib(CSOUND *, PRAND *), ikweib(CSOUND *, PRAND *);
-int32_t apoiss(CSOUND *, PRAND *), ikpoiss(CSOUND *, PRAND *);
-int32_t seedrand(CSOUND *, PRAND *), getseed(CSOUND *, GETSEED *);
-int32_t auniform(CSOUND *, PRAND *), ikuniform(CSOUND *, PRAND *);
-int32_t iexprndi(CSOUND *, PRANDI *), exprndiset(CSOUND *, PRANDI *);
-int32_t kexprndi(CSOUND *, PRANDI *), aexprndi(CSOUND *, PRANDI *);
-int32_t icauchyi(CSOUND *, PRANDI *), cauchyiset(CSOUND *, PRANDI *);
-int32_t kcauchyi(CSOUND *, PRANDI *), acauchyi(CSOUND *, PRANDI *);
-int32_t igaussi(CSOUND *, PRANDI *), gaussiset(CSOUND *, PRANDI *);
-int32_t kgaussi(CSOUND *, PRANDI *), agaussi(CSOUND *, PRANDI *);
-int32_t gauss_scalar(CSOUND *csound, GAUSS *p);
-int32_t gauss_vector(CSOUND *csound, GAUSS *p);
+OPCODE_INIT_FUNCTION(cmath_localops_init);

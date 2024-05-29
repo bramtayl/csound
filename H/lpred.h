@@ -155,25 +155,7 @@ typedef struct LPCparam_ {
   int32_t N, M, FN;
 } LPCparam;
 
-int32_t lpfil_init(CSOUND *csound, LPCFIL *p);
-int32_t lpfil_perf(CSOUND *csound, LPCFIL *p);
-int32_t lpfil2_init(CSOUND *csound, LPCFIL2 *p);
-int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p);
-int32_t lpred_run(CSOUND *csound, LPREDA *p);
-int32_t lpred_alloc(CSOUND *csound, LPREDA *p);
-int32_t lpred_i(CSOUND *csound, LPREDA *p);
-int32_t lpfil3_init(CSOUND *csound, LPCFIL3 *p);
-int32_t lpfil3_perf(CSOUND *csound, LPCFIL3 *p);
-int32_t lpred_run2(CSOUND *csound, LPREDA2 *p);
-int32_t lpred_alloc2(CSOUND *csound, LPREDA2 *p);
-int32_t lpcpvs(CSOUND *csound, LPCPVS *p);
-int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p);
-int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p);
-int32_t pvscoefs(CSOUND *csound, PVSCFS *p);
-int32_t coef2parm_init(CSOUND *csound, CF2P *p);
-int32_t coef2parm(CSOUND *csound, CF2P *p);
-int32_t resonbnk_init(CSOUND *csound, RESONB *p);
-int32_t resonbnk(CSOUND *csound, RESONB *p);
+OPCODE_INIT_FUNCTION(lpred_localops_init);
 
 #ifdef __cplusplus
 }

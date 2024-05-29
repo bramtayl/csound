@@ -50,11 +50,9 @@ typedef struct {
     MYFLT   *kResult;
 } MIDITEMPO;
 
-/* miditempo opcode: returns the current tempo of MIDI file */
-
-int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
-int midiFileStatus(CSOUND *csound, MIDITEMPO *p);
 void midifile_rewind_score(CSOUND *csound);
+
+OPCODE_INIT_FUNCTION(midifile_localops_init);
 
 #ifdef __cplusplus
 }

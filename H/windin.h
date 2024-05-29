@@ -37,4 +37,4 @@ typedef struct
     XYINDAT w;          /* window specific data structure */
     } XYIN;
 
-int32_t xyinset(CSOUND *, XYIN *);
+OPCODE_INIT_FUNCTION(windin_localops_init);

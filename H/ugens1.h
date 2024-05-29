@@ -132,33 +132,4 @@ typedef struct {
         AUXCH   auxch;
 } EXPSEG2;                         /*gab-A1*/
 
-int32_t linset(CSOUND *, LINE *);
-int32_t kline(CSOUND *, LINE *), aline(CSOUND *, LINE *);
-int32_t expset(CSOUND *, EXPON *), kexpon(CSOUND *, EXPON *);
-int32_t expon(CSOUND *, EXPON *), lsgset(CSOUND *, LINSEG *);
-int32_t klnseg(CSOUND *, LINSEG *), linseg(CSOUND *, LINSEG *);
-int32_t csgset(CSOUND *, COSSEG *), kosseg(CSOUND *, COSSEG *);
-int32_t csgset_bkpt(CSOUND *, COSSEG *), cosseg(CSOUND *, COSSEG *);
-int32_t csgrset(CSOUND *, COSSEG *);
-int32_t kcssegr(CSOUND *, COSSEG *), cossegr(CSOUND *, COSSEG *);
-int32_t madsrset(CSOUND *, LINSEG *), adsrset(CSOUND *, LINSEG *);
-int32_t xdsrset(CSOUND *, EXXPSEG *), mxdsrset(CSOUND *, EXPSEG *);
-int32_t expseg2(CSOUND *, EXPSEG2 *), xsgset(CSOUND *, EXXPSEG *);
-int32_t kxpseg(CSOUND *, EXXPSEG *), expseg(CSOUND *, EXXPSEG *);
-int32_t xsgset2(CSOUND *, EXPSEG2 *), lsgrset(CSOUND *, LINSEG *);
-int32_t klnsegr(CSOUND *, LINSEG *), linsegr(CSOUND *, LINSEG *);
-int32_t xsgrset(CSOUND *, EXPSEG *), kxpsegr(CSOUND *, EXPSEG *);
-int32_t expsegr(CSOUND *, EXPSEG *), lnnset(CSOUND *, LINEN *);
-int32_t klinen(CSOUND *, LINEN *), linen(CSOUND *, LINEN *);
-int32_t lnrset(CSOUND *, LINENR *), klinenr(CSOUND *, LINENR *);
-int32_t linenr(CSOUND *, LINENR *), evxset(CSOUND *, ENVLPX *);
-int32_t knvlpx(CSOUND *, ENVLPX *), envlpx(CSOUND *, ENVLPX *);
-int32_t evrset(CSOUND *, ENVLPR *), knvlpxr(CSOUND *, ENVLPR *);
-int32_t envlpxr(CSOUND *, ENVLPR *);
-int32_t lsgset_bkpt(CSOUND *csound, LINSEG *p);
-int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p);
-int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p), xsgset2b(CSOUND *, EXPSEG2 *);
-int32_t alnnset(CSOUND *csound, LINEN *p);
-int32_t alnrset(CSOUND *csound, LINENR *p);
-int32_t aevxset(CSOUND *csound, ENVLPX *p);
-int32_t aevrset(CSOUND *csound, ENVLPR *p);
+OPCODE_INIT_FUNCTION(ugens1_localops_init);

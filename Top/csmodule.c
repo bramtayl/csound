@@ -93,11 +93,39 @@
 
 #include "aops.h"
 #include "bus.h"
+#include "cmath.h"
+#include "compile_ops.h"
 #include "csound_type_system_internal.h"
+#include "diskin2.h"
+#include "disprep.h"
+#include "dumpf.h"
 #include "fgens.h"
+#include "goto_ops.h"
 #include "insert.h"
 #include "linevent.h"
+#include "lpred.h"
+#include "midifile.h"
+#include "midiinterop.h"
+#include "midiops_internal.h"
+#include "midiout.h"
 #include "musmon_internal.h"
+#include "oscils.h"
+#include "pstream_internal.h"
+#include "pvsanal.h"
+#include "remote.h"
+#include "schedule_internal.h"
+#include "sndinfUG.h"
+#include "str_ops.h"
+#include "ugens1.h"
+#include "ugens2.h"
+#include "ugens3.h"
+#include "ugens4.h"
+#include "ugens5.h"
+#include "ugens6.h"
+#include "ugrw1.h"
+#include "ugtabs.h"
+#include "vdelay.h"
+#include "windin.h"
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -1231,11 +1259,39 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
                                  aops_localops_init,
                                  bus_localops_init,
+                                 cmath_localops_init,
+                                 compile_ops_localops_init,
                                  csound_type_system_internal_localops_init,
+                                 diskin2_localops_init,
+                                 disprep_localops_init,
+                                 dumpf_localops_init,
                                  fgens_localops_init,
+                                 goto_ops_localops_init,
                                  insert_localops_init,
                                  linevent_localops_init,
+                                 lpred_localops_init,
+                                 midifile_localops_init,
+                                 midiinterop_localops_init,
+                                 midiops_internal_localops_init,
+                                 midiout_localops_init,
                                  musmon_internal_localops_init,
+                                 oscils_localops_init,
+                                 pstream_internal_localops_init,
+                                 pvsanal_localops_init,
+                                 remote_localops_init,
+                                 schedule_internal_localops_init,
+                                 sndinfUG_localops_init,
+                                 str_ops_localops_init,
+                                 ugens1_localops_init,
+                                 ugens2_localops_init,
+                                 ugens3_localops_init,
+                                 ugens4_localops_init,
+                                 ugens5_localops_init,
+                                 ugens6_localops_init,
+                                 ugrw1_localops_init,
+                                 ugtabs_localops_init,
+                                 vdelay_localops_init,
+                                 windin_localops_init,
   #ifdef INIT_STATIC_MODULES
     ambicode_localops_init,
     ambicode1_localops_init,

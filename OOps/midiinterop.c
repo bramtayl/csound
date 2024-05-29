@@ -165,3 +165,29 @@ int32_t mididefault(CSOUND *csound, MIDIDEFAULT *p)
     return OK;
 }
 
+static OENTRY midiinterop_localops[] = {
+    {"midichannelaftertouch", sizeof(MIDICHANNELAFTERTOUCH), 0, 3, "", "xoh",
+     (SUBR)midichannelaftertouch, (SUBR)midichannelaftertouch, NULL, NULL},
+    {"midicontrolchange", sizeof(MIDICONTROLCHANGE), 0, 3, "", "xxoh",
+     (SUBR)midicontrolchange, (SUBR)midicontrolchange, NULL, NULL},
+    {"mididefault", sizeof(MIDIDEFAULT), 0, 3, "", "xx", (SUBR)mididefault,
+     (SUBR)mididefault, NULL, NULL},
+    {"midinoteoff", sizeof(MIDINOTEON), 0, 3, "", "xx", (SUBR)midinoteoff,
+     (SUBR)midinoteoff, NULL, NULL},
+    {"midinoteoncps", sizeof(MIDINOTEON), 0, 3, "", "xx", (SUBR)midinoteoncps,
+     (SUBR)midinoteoncps, NULL, NULL},
+    {"midinoteonkey", sizeof(MIDINOTEON), 0, 3, "", "xx", (SUBR)midinoteonkey,
+     (SUBR)midinoteonkey, NULL, NULL},
+    {"midinoteonoct", sizeof(MIDINOTEON), 0, 3, "", "xx", (SUBR)midinoteonoct,
+     (SUBR)midinoteonoct, NULL, NULL},
+    {"midinoteonpch", sizeof(MIDINOTEON), 0, 3, "", "xx", (SUBR)midinoteonpch,
+     (SUBR)midinoteonpch, NULL, NULL},
+    {"midipitchbend", sizeof(MIDIPITCHBEND), 0, 3, "", "xoh",
+     (SUBR)midipitchbend, (SUBR)midipitchbend, NULL, NULL},
+    {"midipolyaftertouch", sizeof(MIDIPOLYAFTERTOUCH), 0, 3, "", "xxoh",
+     (SUBR)midipolyaftertouch, (SUBR)midipolyaftertouch, NULL, NULL},
+    {"midiprogramchange", sizeof(MIDIPROGRAMCHANGE), 0, 3, "", "x",
+     (SUBR)midiprogramchange, (SUBR)midiprogramchange, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(midiinterop_localops)

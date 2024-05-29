@@ -31,7 +31,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "text.h"
-
+#include "interlocks.h"
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */
 # define hypot _hypot
@@ -747,3 +747,21 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
     return csoundPerfError(csound, &(p->h),
                                Str("tempest: not initialised"));
 }
+
+static OENTRY disprep_localops[] = {
+    {"dispfft.a", sizeof(DSPFFT), 0, 3, "", "aiiooooo", (SUBR)fftset,
+     (SUBR)dspfft, NULL, NULL},
+    {"dispfft.k", sizeof(DSPFFT), 0, 3, "", "kiiooooo", (SUBR)fftset,
+     (SUBR)kdspfft, NULL, NULL},
+    {"display.a", sizeof(DSPLAY), 0, 3, "", "aioo", (SUBR)dspset, (SUBR)dsplay,
+     NULL, NULL},
+    {"display.k", sizeof(DSPLAY), 0, 3, "", "kioo", (SUBR)dspset, (SUBR)kdsplay,
+     NULL, NULL},
+    {"print", sizeof(PRINTV), WR, 1, "", "m", (SUBR)printv, NULL, NULL, NULL},
+    {"pvsdisp", sizeof(FSIGDISP), 0, 3, "", "foo", (SUBR)fdspset, (SUBR)fdsplay,
+     NULL, NULL},
+    {"tempest", sizeof(TEMPEST), 0, 3, "k", "kiiiiiiiiiop", (SUBR)tempeset,
+     (SUBR)tempest, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(disprep_localops)

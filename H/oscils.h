@@ -63,13 +63,6 @@ typedef struct {
 /*  double  wsized2_d, pidwsize_d; */           /* for oscils_hann.c */
 } TABLEXKT;
 
-/* these functions are exported to entry*.c */
-int oscils_set (CSOUND *, OSCILS*);
-int oscils (CSOUND *, OSCILS*);
-int lphasor_set (CSOUND *, LPHASOR*);
-int lphasor (CSOUND *, LPHASOR*);
-int tablexkt_set (CSOUND *, TABLEXKT*);
-int tablexkt (CSOUND *, TABLEXKT*);
-
+OPCODE_INIT_FUNCTION(oscils_localops_init);
 #endif              /* CSOUND_OSCILS_H */
 

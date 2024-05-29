@@ -36,6 +36,7 @@
 #include "csound_threads.h"
 #include "circularbuffer.h"
 #include "text.h"
+#include "interlocks.h"
 
 typedef struct DISKIN_INST_ {
   CSOUND *csound;
@@ -2311,3 +2312,42 @@ int32_t soundin(CSOUND *csound, SOUNDIN_ *p)
     return OK;
 }
 #endif
+
+static OENTRY diskin2_localops[] = {
+    {"diskin2", sizeof(DISKIN2), 0, 3,
+     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "SPooooooo",
+     (SUBR)diskin2_init_S, (SUBR)diskin2_perf, NULL, NULL},
+    {"diskin2", sizeof(DISKIN2_ARRAY), 0, 3, "a[]", "SPooooooo",
+     (SUBR)diskin2_init_array_S, (SUBR)diskin2_perf_array, NULL, NULL},
+    {"diskin2.i", sizeof(DISKIN2), 0, 3,
+     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "iPooooooo",
+     (SUBR)diskin2_init, (SUBR)diskin2_perf, NULL, NULL},
+    {"diskin", sizeof(DISKIN2_ARRAY), 0, 3, "a[]", "SPooooooo",
+     (SUBR)diskin_init_array_S, (SUBR)diskin2_perf_array, NULL, NULL},
+    {"diskin2.i", sizeof(DISKIN2_ARRAY), 0, 3, "a[]", "iPooooooo",
+     (SUBR)diskin2_init_array_I, (SUBR)diskin2_perf_array, NULL, NULL},
+    {"diskin", sizeof(DISKIN2), 0, 3,
+     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "SPooooooo",
+     (SUBR)diskin_init_S, (SUBR)diskin2_perf, NULL, NULL},
+    {"diskin.i", sizeof(DISKIN2), 0, 3,
+     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "iPooooooo", (SUBR)diskin_init,
+     (SUBR)diskin2_perf, NULL, NULL},
+    {"diskin.i", sizeof(DISKIN2_ARRAY), 0, 3, "a[]", "iPooooooo",
+     (SUBR)diskin_init_array_I, (SUBR)diskin2_perf_array, NULL, NULL},
+    {"soundin", sizeof(DISKIN2), 0, 3,
+     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "Soooo", (SUBR)sndinset_S,
+     (SUBR)soundin, NULL, NULL},
+    {"soundin.i", sizeof(DISKIN2), 0, 3,
+     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", "ioooo", (SUBR)sndinset,
+     (SUBR)soundin, NULL, NULL},
+    {"soundout", sizeof(SNDOUT), _QQ, 3, "", "aSo", (SUBR)sndoutset_S,
+     (SUBR)soundout, NULL, NULL},
+    {"soundout.i", sizeof(SNDOUT), _QQ, 3, "", "aio", (SUBR)sndoutset,
+     (SUBR)soundout, NULL, NULL},
+    {"soundouts", sizeof(SNDOUTS), _QQ, 3, "", "aaSo", (SUBR)sndoutset_S,
+     (SUBR)soundouts, NULL, NULL},
+    {"soundouts.i", sizeof(SNDOUTS), _QQ, 3, "", "aaio", (SUBR)sndoutset,
+     (SUBR)soundouts, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(diskin2_localops)

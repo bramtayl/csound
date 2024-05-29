@@ -606,3 +606,46 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
     }
     return OK;
 }
+
+static OENTRY schedule_internal_localops[] = {
+    {"lfo", sizeof(LFO), 0, 3, "k", "kko", (SUBR)lfoset, (SUBR)lfok, NULL,
+     NULL},
+    {"lfo.a", sizeof(LFO), 0, 3, "a", "kko", (SUBR)lfoset, (SUBR)lfoa, NULL,
+     NULL},
+    {"schedkwhen", sizeof(TRIGINSTR), 0, 3, "", "kkkkkz", (SUBR)triginset,
+     (SUBR)ktriginstr, NULL, NULL},
+    {"schedkwhen.S", sizeof(TRIGINSTR), 0, 3, "", "kkkSkz", (SUBR)triginset_S,
+     (SUBR)ktriginstr_S, NULL, NULL},
+    {"schedkwhennamed", sizeof(TRIGINSTR), 0, 3, "", "kkkkkz", (SUBR)triginset,
+     (SUBR)ktriginstr, NULL},
+    {"schedkwhennamed.S", sizeof(TRIGINSTR), 0, 3, "", "kkkSkz",
+     (SUBR)triginset_S, (SUBR)ktriginstr_S, NULL, NULL},
+    {"schedule", sizeof(SCHED), 0, 1, "", "iiim", (SUBR)schedule, NULL, NULL,
+     NULL},
+    {"schedule.array", sizeof(SCHED), 0, 1, "", "i[]", (SUBR)schedule_array,
+     NULL, NULL, NULL},
+    {"schedule.N", sizeof(SCHED), 0, 1, "", "iiiN", (SUBR)schedule_N, NULL,
+     NULL, NULL},
+    {"schedule.S", sizeof(SCHED), 0, 1, "", "Siim", (SUBR)schedule_S, NULL,
+     NULL, NULL},
+    {"schedule.SN", sizeof(SCHED), 0, 1, "", "SiiN", (SUBR)schedule_SN, NULL,
+     NULL, NULL},
+    {"schedulek", sizeof(SCHED), 0, 2, "", "kkkM", NULL, (SUBR)schedule, NULL,
+     NULL},
+    {"schedulek.array", sizeof(SCHED), 0, 2, "", "k[]", NULL,
+     (SUBR)schedule_array, NULL, NULL},
+    {"schedulek.N", sizeof(SCHED), 0, 2, "", "kkkN", NULL, (SUBR)schedule_N,
+     NULL, NULL},
+    {"schedulek.S", sizeof(SCHED), 0, 2, "", "SkkM", NULL, (SUBR)schedule_S,
+     NULL, NULL},
+    {"schedulek.SN", sizeof(SCHED), 0, 2, "", "SkkN", NULL, (SUBR)schedule_SN,
+     NULL, NULL},
+    {"schedwhen", sizeof(WSCHED), 0, 3, "", "kkkkm", (SUBR)ifschedule,
+     (SUBR)kschedule, NULL, NULL},
+    {"schedwhen", sizeof(WSCHED), 0, 3, "", "kSkkm", (SUBR)ifschedule,
+     (SUBR)kschedule, NULL, NULL},
+    {"trigseq", sizeof(TRIGSEQ), 0, 3, "", "kkkkkz", (SUBR)trigseq_set,
+     (SUBR)trigseq, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(schedule_internal_localops)

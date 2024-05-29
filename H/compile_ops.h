@@ -37,11 +37,4 @@ typedef struct _retval {
   MYFLT *ret;
 } RETVAL;
 
-int32_t compile_orc_i(CSOUND *csound, COMPILE *c);
-int32_t compile_str_i(CSOUND *csound, COMPILE *c);
-int32_t compile_csd_i(CSOUND *csound, COMPILE *c);
-int32_t read_score_i(CSOUND *csound, COMPILE *c);
-int32_t eval_str_i(CSOUND *csound, COMPILE *p);
-int32_t eval_str_k(CSOUND *csound, COMPILE *p);
-int32_t retval_i(CSOUND *csound, RETVAL *p);
-int32_t eval_str_k(CSOUND *csound, COMPILE *p);
+OPCODE_INIT_FUNCTION(compile_ops_localops_init);

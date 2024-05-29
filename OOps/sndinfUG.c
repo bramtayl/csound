@@ -381,3 +381,36 @@ int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
       *p->r1 = 1;
     return OK;
 }
+
+static OENTRY sndinfUG_localops[] = {
+    {"filebit", sizeof(SNDINFO), 0, 1, "i", "Sp", (SUBR)filebit_S, NULL, NULL,
+     NULL},
+    {"filebit.i", sizeof(SNDINFO), 0, 1, "i", "ip", (SUBR)filebit, NULL, NULL,
+     NULL},
+    {"filelen", sizeof(SNDINFO), 0, 1, "i", "Sp", (SUBR)filelen_S, NULL, NULL,
+     NULL},
+    {"filelen.i", sizeof(SNDINFO), 0, 1, "i", "ip", (SUBR)filelen, NULL, NULL,
+     NULL},
+    {"filenchnls", sizeof(SNDINFO), 0, 1, "i", "Sp", (SUBR)filenchnls_S, NULL,
+     NULL, NULL},
+    {"filenchnls.i", sizeof(SNDINFO), 0, 1, "i", "ip", (SUBR)filenchnls, NULL,
+     NULL, NULL},
+    {"filepeak", sizeof(SNDINFOPEAK), 0, 1, "i", "So", (SUBR)filepeak_S, NULL,
+     NULL, NULL},
+    {"filepeak.i", sizeof(SNDINFOPEAK), 0, 1, "i", "io", (SUBR)filepeak, NULL,
+     NULL, NULL},
+    {"filesr", sizeof(SNDINFO), 0, 1, "i", "Sp", (SUBR)filesr_S, NULL, NULL,
+     NULL},
+    {"filesr.i", sizeof(SNDINFO), 0, 1, "i", "ip", (SUBR)filesr, NULL, NULL,
+     NULL},
+    {"filevalid", sizeof(FILEVALID), 0, 1, "i", "S", (SUBR)filevalid_S, NULL,
+     NULL, NULL},
+    {"filevalid.i", sizeof(FILEVALID), 0, 1, "i", "i", (SUBR)filevalid, NULL,
+     NULL, NULL},
+    {"filevalid.k", sizeof(FILEVALID), 0, 2, "k", "i", NULL, (SUBR)filevalid,
+     NULL, NULL},
+    {"filevalid.k", sizeof(FILEVALID), 0, 2, "k", "S", NULL, (SUBR)filevalid_S,
+     NULL, NULL},
+};
+
+LINKAGE_BUILTIN(sndinfUG_localops)

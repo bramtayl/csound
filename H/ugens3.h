@@ -84,12 +84,4 @@ typedef struct {
         AUXCH   aux;            /* PTLPTR  ptlptrs[MAXPTLS + 1]; make dynamic */
 } ADSYN;
 
-int32_t foscset(CSOUND *, FOSC *);
-int32_t foscil(CSOUND *, FOSC *), foscili(CSOUND *, FOSC *);
-int32_t losset(CSOUND *, LOSC *), loscil(CSOUND *, LOSC *);
-int32_t loscil3(CSOUND *, LOSC *);
-int32_t adset(CSOUND *, ADSYN *), adsyn(CSOUND *, ADSYN *);
-int32_t adset_S(CSOUND *csound, ADSYN *p);
-int32_t losset_phs(CSOUND *, LOSCPHS *);
-int32_t loscil_phs(CSOUND *, LOSCPHS *);
-int32_t loscil3_phs(CSOUND *, LOSCPHS *);
+OPCODE_INIT_FUNCTION(ugens3_localops_init);

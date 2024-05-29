@@ -108,3 +108,20 @@ int32_t retval_i(CSOUND *csound, RETVAL *p){
     return OK;
 }
 
+static OENTRY compile_ops_localops[] = {
+    {"compilecsd", sizeof(COMPILE), 0, 1, "i", "S", (SUBR)compile_csd_i, NULL,
+     NULL, NULL},
+    {"compileorc", sizeof(COMPILE), 0, 1, "i", "S", (SUBR)compile_orc_i, NULL,
+     NULL, NULL},
+    {"compilestr", sizeof(COMPILE), 0, 1, "i", "S", (SUBR)compile_str_i, NULL,
+     NULL, NULL},
+    {"evalstr", sizeof(COMPILE), 0, 1, "i", "S", (SUBR)eval_str_i, NULL, NULL,
+     NULL},
+    {"evalstr", sizeof(COMPILE), 0, 2, "k", "Sk", NULL, (SUBR)eval_str_k, NULL,
+     NULL},
+    {"readscore", sizeof(COMPILE), 0, 1, "i", "S", (SUBR)read_score_i, NULL,
+     NULL, NULL},
+    {"return", sizeof(RETVAL), 0, 1, "", "i", (SUBR)retval_i, NULL, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(compile_ops_localops)

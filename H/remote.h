@@ -169,8 +169,5 @@ int32_t getRemoteInsRfdCount(CSOUND *csound);
 /* musmon: determine whether MIDI channel accepts remove events */
 int32_t getRemoteChnRfd(CSOUND *csound, int32_t chan);
 
-int32_t insremot(CSOUND *, INSREMOT *), insglobal(CSOUND *, INSGLOBAL *);
-int32_t midremot(CSOUND *, MIDREMOT *), midglobal(CSOUND *, MIDGLOBAL *);
-int32_t remoteport(CSOUND *, REMOTEPORT *);
-
+OPCODE_INIT_FUNCTION(remote_localops_init);
 #endif      /* CSOUND_REMOTE_H */

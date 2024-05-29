@@ -812,3 +812,18 @@ int32_t* getRemoteSocksIn(CSOUND *csound)
 }
 
 #endif /* HAVE_SOCKETS */
+
+static OENTRY remote_localops[] = {
+    {"insglobal", sizeof(INSGLOBAL), 0, 1, "", "Sm", (SUBR)insglobal, NULL,
+     NULL, NULL},
+    {"insremot", sizeof(INSREMOT), 0, 1, "", "SSm", (SUBR)insremot, NULL, NULL,
+     NULL},
+    {"midglobal", sizeof(MIDGLOBAL), 0, 1, "", "Sm", (SUBR)midglobal, NULL,
+     NULL, NULL},
+    {"midremot", sizeof(MIDREMOT), 0, 1, "", "SSm", (SUBR)midremot, NULL, NULL,
+     NULL},
+    {"remoteport", sizeof(REMOTEPORT), 0, 1, "", "i", (SUBR)remoteport, NULL,
+     NULL, NULL},
+};
+
+LINKAGE_BUILTIN(remote_localops)

@@ -1034,3 +1034,28 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
   p->kcnt = kcnt;
   return OK;
 }
+
+static OENTRY lpred_localops[] = {
+    {"allpole", sizeof(LPCFIL3), 0, 3, "a", "ak[]", (SUBR)lpfil3_init,
+     (SUBR)lpfil3_perf, NULL, NULL},
+    {"apoleparams", sizeof(CF2P), 0, 3, "k[]", "k[]", (SUBR)coef2parm_init,
+     (SUBR)coef2parm, NULL, NULL},
+    {"lpcanal", sizeof(LPREDA2), 0, 3, "k[]kkk", "akkiio", (SUBR)lpred_alloc2,
+     (SUBR)lpred_run2, NULL, NULL},
+    {"lpcanal", sizeof(LPREDA), 0, 1, "i[]iii", "iiii", (SUBR)lpred_i, NULL,
+     NULL, NULL},
+    {"lpcanal", sizeof(LPREDA), 0, 3, "k[]kkk", "kkiiio", (SUBR)lpred_alloc,
+     (SUBR)lpred_run, NULL, NULL},
+    {"lpcfilter", sizeof(LPCFIL2), 0, 3, "a", "aakkiio", (SUBR)lpfil2_init,
+     (SUBR)lpfil2_perf, NULL, NULL},
+    {"lpcfilter", sizeof(LPCFIL), 0, 3, "a", "akkiiio", (SUBR)lpfil_init,
+     (SUBR)lpfil_perf, NULL, NULL},
+    {"pvscfs", sizeof(PVSCFS), 0, 3, "k[]kk", "fip", (SUBR)pvscoefs_init,
+     (SUBR)pvscoefs, NULL, NULL},
+    {"pvslpc", sizeof(LPCPVS), 0, 3, "f", "aiiio", (SUBR)lpcpvs_init,
+     (SUBR)lpcpvs, NULL, NULL},
+    {"resonbnk", sizeof(RESONB), 0, 3, "a", "ak[]kkipoo", (SUBR)resonbnk_init,
+     (SUBR)resonbnk, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(lpred_localops)
