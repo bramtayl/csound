@@ -30,6 +30,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "text.h"
+#include "csdl.h"
 
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>
@@ -921,9 +922,4 @@ static OENTRY localops[] =
    { "##shr.aa", S(AOP), 0,2, "a", "aa", NULL, (SUBR) shift_right_aa, NULL, NULL}
 };
 
-int32_t ugmoss_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
-}
+ADD_INIT_FUNCTION(ugmoss_init_, localops)

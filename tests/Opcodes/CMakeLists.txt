@@ -79,6 +79,5 @@ add_subdirectory(ugens7)
 add_subdirectory(ugens9)
 add_subdirectory(ugensa)
 add_subdirectory(uggab)
-add_subdirectory(ugmoss)
 add_subdirectory(vectorial)
 
