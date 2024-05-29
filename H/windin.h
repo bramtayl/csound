@@ -25,6 +25,9 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+#include "cwindow.h"
+
 typedef struct
     {
     OPDS h;
@@ -34,3 +37,4 @@ typedef struct
     XYINDAT w;          /* window specific data structure */
     } XYIN;
 
+int32_t xyinset(CSOUND *, XYIN *);

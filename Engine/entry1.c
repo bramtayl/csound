@@ -583,7 +583,7 @@ OENTRY opcodlst_1[] = {
   { "readk4.i", S(KREAD4),0,  3,      "kkkk", "iii",   (SUBR)krd4set_p, (SUBR)kread4, NULL, NULL},
   { "readks", S(KREADS),0,  3,      "S",    "Si",    (SUBR)krdsset_S, (SUBR)kreads, NULL, NULL},
   { "readks.i", S(KREADS),0,  3,      "S",    "ii",    (SUBR)krdsset_p, (SUBR)kreads, NULL, NULL},
-  { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",xyinset,NULL, NULL, NULL},
+  { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",(SUBR)xyinset,NULL, NULL, NULL},
   { "tempest",  S(TEMPEST),0, 3,    "k","kiiiiiiiiiop",(SUBR)tempeset,(SUBR)tempest, NULL, NULL},
   { "tempo",    S(TEMPO),0,   3,    "",     "ki",   tempset,tempo, NULL, NULL},
   { "pow.i",    S(POW),0,   1,      "i",    "iip",  (SUBR)ipow,    NULL,  NULL, NULL},

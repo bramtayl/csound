@@ -143,7 +143,6 @@ int32_t lpinterpol(CSOUND *, void *);
 int32_t rmsset(CSOUND *, void *), rms(CSOUND *, void *);
 int32_t gainset(CSOUND *, void *), gain(CSOUND *, void *);
 int32_t outq1(CSOUND *, void *), outq2(CSOUND *, void *);
-int32_t xyinset(CSOUND *, void *);
 int32_t tempset(CSOUND *, void *), tempo(CSOUND *, void *);
 int32_t old_kdmpset(CSOUND *, void *), old_kdmp2set(CSOUND *, void *);
 int32_t old_kdmp3set(CSOUND *, void *), old_kdmp4set(CSOUND *, void *);
