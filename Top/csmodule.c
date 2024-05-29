@@ -1164,7 +1164,6 @@ EXTERN_INIT_FUNCTION(afilts_localops_init);
 EXTERN_INIT_FUNCTION(pinker_localops_init);
 EXTERN_INIT_FUNCTION(paulstretch_localops_init);
 EXTERN_INIT_FUNCTION(wpfilters_localops_init);
-EXTERN_INIT_FUNCTION(zak_localops_init);
 EXTERN_INIT_FUNCTION(lufs_localops_init);
 EXTERN_INIT_FUNCTION(sterrain_localops_init);
 EXTERN_INIT_FUNCTION(date_localops_init);
@@ -1223,6 +1222,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   EXTERN_INIT_FUNCTION(ugakbari_localops_init);
   EXTERN_INIT_FUNCTION(vaops_localops_init);
   EXTERN_INIT_FUNCTION(wterrain2_localops_init);
+  EXTERN_INIT_FUNCTION(zak_localops_init);
 #endif
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
@@ -1254,7 +1254,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #endif
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init, gendy_localops_init,
-                                 wpfilters_localops_init, zak_localops_init,
+                                 wpfilters_localops_init,
                                  scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
                                  aops_localops_init,
@@ -1331,6 +1331,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     system_call_localops_init,
     vaops_localops_init,
     wterrain2_localops_init,
+    zak_localops_init,
   #endif
                                  NULL };
 

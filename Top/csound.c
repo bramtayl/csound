@@ -73,6 +73,7 @@
 #include "memfiles_internal.h"
 #include "memalloc_internal.h"
 #include "random_internal.h"
+#include "zak.h"
 
 #if defined(linux)||defined(__HAIKU__)|| defined(__EMSCRIPTEN__)||defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -194,7 +195,6 @@ int csoundGetDitherMode(CSOUND *csound) {
     return  csound->dither_output;
 }
 
-#include "Opcodes/zak.h"
 int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csoundQueryGlobalVariable(csound, "_zak_globals");

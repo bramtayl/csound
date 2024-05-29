@@ -57,6 +57,7 @@
 #include "insert_public.h"
 #include "namedins_public.h"
 #include "text.h"
+#include "csdl.h"
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -738,4 +739,4 @@ static OENTRY zak_localops[] = {
   { "zacl",   S(ZACL),   ZW, 3,   "",  "kJ",   (SUBR)zaset,  (SUBR)zacl, NULL, NULL}
 };
 
-LINKAGE_BUILTIN(zak_localops)
+ADD_INIT_FUNCTION(zak_localops_init, zak_localops)

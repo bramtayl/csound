@@ -783,7 +783,6 @@ set(libcsound_SRCS
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
     Opcodes/wpfilters.c
-    Opcodes/zak.c
     Opcodes/fareygen.c
     Opcodes/quadbezier.c
     Opcodes/sequencer.c
@@ -938,6 +937,7 @@ if(INIT_STATIC_MODULES)
         Plugins/tabsum/tabsum.c 
         Plugins/ugakbari/ugakbari.c 
         Plugins/vaops/vaops.c 
+        Plugins/zak/zak.c
         Plugins/wterrain2/wterrain2.c
     )
     if (NOT WIN32)

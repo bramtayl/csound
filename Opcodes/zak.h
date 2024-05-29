@@ -144,21 +144,4 @@ typedef struct {
         void    *zz;
 } ZACL;
 
-int32_t zacl(CSOUND*,ZACL *p);
-int32_t zakinit(CSOUND*,ZAKINIT *p);
-int32_t zamod(CSOUND*,ZAMOD *p);
-int32_t zar(CSOUND*,ZAR *p);
-int32_t zarg(CSOUND*,ZARG *p);
-int32_t zaset(CSOUND*,ZAR *p);
-int32_t zaw(CSOUND*,ZAW *p);
-int32_t zawm(CSOUND*,ZAWM *p);
-int32_t zir(CSOUND*,ZKR *p);
-int32_t ziw(CSOUND*,ZKW *p);
-int32_t ziwm(CSOUND*,ZKWM *p);
-int32_t zkcl(CSOUND*,ZKCL *p);
-int32_t zkmod(CSOUND*,ZKMOD *p);
-int32_t zkr(CSOUND*,ZKR *p);
-int32_t zkset(CSOUND*,ZKR *p);
-int32_t zkw(CSOUND*,ZKW *p);
-int32_t zkwm(CSOUND*,ZKWM *p);
 
