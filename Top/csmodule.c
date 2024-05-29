@@ -91,6 +91,7 @@
 #include "gab/newgabopc.h"
 #include "fgens.h"
 
+#include "aops.h"
 #include "csound_type_system_internal.h"
 #include "fgens.h"
 #include "insert.h"
@@ -1227,6 +1228,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  wpfilters_localops_init, zak_localops_init,
                                  scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
+                                 aops_localops_init,
                                  csound_type_system_internal_localops_init,
                                  fgens_localops_init,
                                  insert_localops_init,
