@@ -75,6 +75,7 @@ kamp            ATSinterpread   kfreq
 #include "insert_public.h"
 #include "random.h"
 #include "text.h"
+#include "csdl.h"
 
 #define ATSA_NOISE_VARIANCE 0.04
 
@@ -2993,9 +2994,4 @@ static OENTRY localops[] = {
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL, NULL}
 };
 
-int32_t ugnorman_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
-}
+ADD_INIT_FUNCTION(ugnorman_init_, localops)

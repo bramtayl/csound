@@ -56,7 +56,6 @@
 #include "ugensa.h"
 #include "uggab.h"
 #include "ugmoss.h"
-#include "ugnorman.h"
 
 /* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
@@ -116,7 +115,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= ugensa_init_(csound);
     err |= uggab_init_(csound);
     err |= ugmoss_init_(csound);
-    err |= ugnorman_init_(csound);
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 

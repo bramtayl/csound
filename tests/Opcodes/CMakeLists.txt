@@ -80,5 +80,5 @@ add_subdirectory(ugens9)
 add_subdirectory(ugensa)
 add_subdirectory(uggab)
 add_subdirectory(ugmoss)
-add_subdirectory(ugnorman)
 add_subdirectory(vectorial)
+
