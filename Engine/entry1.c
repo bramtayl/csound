@@ -33,7 +33,6 @@
 #include "musmon_internal.h"
 #include "pvsanal.h"
 #include "csoundCore_internal.h"         /*                      ENTRY1.H        */
-#include "insert.h"
 #include "aops.h"
 #include "midiops.h"
 #include "ugens1.h"
@@ -149,25 +148,7 @@ OENTRY opcodlst_1[] = {
   { "opcode",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   { "endop",   0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   { "declare", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
-  { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL },
   { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL },
-
-  /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
-  /* and setksmps */
-  { "##userOpcode", S(UOPCODE),0, 7, "", "", (SUBR)useropcdset, (SUBR)useropcd, (SUBR)useropcd, NULL },
-  /* IV - Sep 10 2002: removed perf time routines of xin and xout */
-  { "xin",  S(XIN_MAX),0,   1,  "****************", "",  (SUBR)xinset,  NULL, NULL, NULL },
-  /* { "xin.64",   S(XIN_HIGH),0,  1,
-    "****************************************************************", "",
-    xinset,  NULL, NULL },
-  { "##xin256",  S(XIN_MAX),0,   1,
-    "****************************************************************"
-    "****************************************************************"
-    "****************************************************************"
-    "****************************************************************", "",
-    xinset,  NULL, NULL },*/
-  { "xout", S(XOUT_MAX),0,  1,  "",         "*", (SUBR)xoutset, NULL, NULL, NULL },
-  { "setksmps", S(SETKSMPS),0,  1,  "",   "i", (SUBR)setksmpsset, NULL, NULL },
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", (SUBR)ctrlinit, NULL, NULL, NULL},
   { "ctrlinit.S",S(CTLINITS),0,1,      "",  "Sm", (SUBR)ctrlnameinit, NULL, NULL, NULL},
   { "ctrlsave",S(SAVECTRL),0,3,       "k[]","im", (SUBR)savectrl_init, (SUBR)savectrl_perf, NULL, NULL},
@@ -846,8 +827,6 @@ OENTRY opcodlst_1[] = {
   { "limit.i", S(LIMIT),0,  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL, NULL},
   { "limit.k",  S(LIMIT),0, 2, "k",     "kkk",  NULL,          (SUBR)klimit, NULL, NULL},
   { "limit.a",  S(LIMIT),0, 2, "a",     "akk",  NULL,  (SUBR)limit, NULL, NULL},
-  { "prealloc", S(AOP),0,   1, "",      "iio",  (SUBR)prealloc, NULL, NULL, NULL},
-  { "prealloc.S", S(AOP),0, 1, "",      "Sio",  (SUBR)prealloc_S, NULL, NULL, NULL},
   /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
   { "inh",    S(INH),0,     2,      "aaaaaa","",    NULL,   (SUBR)inh, NULL, NULL},
   { "ino",    S(INO),0,     2,      "aaaaaaaa","",  NULL,   (SUBR)ino, NULL, NULL},
@@ -920,8 +899,6 @@ OENTRY opcodlst_1[] = {
   { "nstance.i", S(LINEVENT2),0,1,   "i",  "iiim",  (SUBR)instanceOpcode, NULL, NULL, NULL},
   { "nstance.kS", S(LINEVENT2),0, 2, "k",  "SSz",  NULL, (SUBR)instanceOpcode_S, NULL, NULL},
   { "nstance.S", S(LINEVENT2),0, 1,  "i",  "Siim",  (SUBR)instanceOpcode_S, NULL, NULL, NULL},
-  { "turnoff.i", S(KILLOP),0,1,     "",     "i", (SUBR)kill_instance, NULL, NULL, NULL},
-  { "turnoff.k", S(KILLOP),0,2,     "",     "k", NULL, (SUBR)kill_instance, NULL, NULL},
   { "lfo", S(LFO),0,         3,     "k",    "kko",  (SUBR)lfoset,   (SUBR)lfok,   NULL, NULL},
   { "lfo.a", S(LFO),0,         3,     "a",    "kko",  (SUBR)lfoset,   (SUBR)lfoa, NULL, NULL},
   { "oscils",   S(OSCILS),0, 3,     "a", "iiio",
@@ -1003,15 +980,6 @@ OENTRY opcodlst_1[] = {
                                      (SUBR) outvalset_string, (SUBR)koutvalS, NULL, NULL},
   { "outvalue.SS", S(OUTVAL), _CW, 3, "", "SS",
                                    (SUBR) outvalset_string_S, (SUBR)koutvalS, NULL, NULL},
-  /* IV - Oct 20 2002 */
-  { "subinstr", S(SUBINST),0, 3, "mmmmmmmm", "SN",  (SUBR)subinstrset_S, (SUBR)subinstr, NULL, NULL},
-  { "subinstrinit", S(SUBINST),0, 1, "",    "SN",   (SUBR)subinstrset_S, NULL, NULL, NULL},
-  { "subinstr.i", S(SUBINST),0, 3, "mmmmmmmm", "iN",  (SUBR)subinstrset, (SUBR)subinstr, NULL, NULL},
-  { "subinstrinit.i", S(SUBINST),0, 1, "",    "iN",   (SUBR)subinstrset, NULL, NULL, NULL},
-  { "nstrnum", S(NSTRNUM),0, 1,     "i",    "S",    (SUBR)nstrnumset_S, NULL, NULL, NULL},
-  { "nstrnum.i", S(NSTRNUM),0, 1,     "i",    "i",    (SUBR)nstrnumset, NULL, NULL, NULL},
-  { "nstrstr", S(NSTRSTR),0, 1,       "S",    "i",    (SUBR)nstrstr, NULL, NULL, NULL},
-  { "nstrstr.k", S(NSTRSTR),0, 2,     "S",    "k",    NULL, (SUBR)nstrstr, NULL, NULL},
   //{ "turnoff2",   0xFFFB,   _CW,    0, NULL,   NULL,   NULL, NULL, NULL          },
   { "turnoff2_i.S",S(TURNOFF2),_CW,1,     "",     "Soo",  (SUBR)turnoff2S, NULL, NULL, NULL},
   { "turnoff2_i.i",S(TURNOFF2),_CW,1,     "",     "ioo",  (SUBR)turnoff2k, NULL, NULL, NULL},
@@ -1257,8 +1225,6 @@ OENTRY opcodlst_1[] = {
     NULL, (SUBR) sensekey_perf, NULL, NULL},
   { "sensekey",    S(KSENSE),0,           2,      "kz",           "",
     NULL, (SUBR) sensekey_perf, NULL, NULL},
-  { "remove",      S(DELETEIN),0,         1,      "",             "T",
-    (SUBR) delete_instr, NULL, NULL, NULL},
   //  { "##globallock",   S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
   //    globallock,   globallock,   NULL},
   //  { "##globalunlock", S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",

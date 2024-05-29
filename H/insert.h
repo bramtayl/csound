@@ -177,14 +177,4 @@ int     init0(CSOUND *);
 void    xturnoff(CSOUND *, INSDS *);
 void    xturnoff_now(CSOUND *, INSDS *);
 
-int32_t prealloc(CSOUND *, AOP *);
-int32_t prealloc_S(CSOUND *, AOP *);
-int32_t kill_instance(CSOUND *csound, KILLOP *p);
-int32_t subinstrset_S(CSOUND *, SUBINST *);
-int32_t subinstrset(CSOUND *, SUBINST *), subinstr(CSOUND *, SUBINST *);
-int32_t useropcdset(CSOUND *, UOPCODE *), useropcd(CSOUND *, UOPCODE *);
-int32_t setksmpsset(CSOUND *, SETKSMPS *);
-int32_t xinset(CSOUND *, XIN *), xoutset(CSOUND *, XOUT *);
-int32_t nstrnumset(CSOUND *, NSTRNUM *);
-int32_t nstrnumset_S(CSOUND *, NSTRNUM *), nstrstr(CSOUND *, NSTRSTR *);
-int32_t delete_instr(CSOUND *, DELETEIN *);
+OPCODE_INIT_FUNCTION(insert_localops_init);
