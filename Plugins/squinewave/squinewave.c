@@ -28,6 +28,7 @@
 
 #include "csoundCore_internal.h"
 #include "text.h"
+#include "csdl.h"
 
 
 /* ================================================================== */
@@ -394,4 +395,4 @@ static OENTRY squinewave_localops[] =
      (SUBR)squinewave_init, (SUBR)squinewave_gen, NULL, NULL},
 };
 
-LINKAGE_BUILTIN(squinewave_localops)
+ADD_INIT_FUNCTION(squinewave_localops_init, squinewave_localops)

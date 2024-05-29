@@ -1148,7 +1148,6 @@ EXTERN_INIT_FUNCTION(gendy_localops_init);
 EXTERN_INIT_FUNCTION(vbap_localops_init);
 EXTERN_INIT_FUNCTION(harmon_localops_init);
 EXTERN_INIT_FUNCTION(pitchtrack_localops_init);
-EXTERN_INIT_FUNCTION(squinewave_localops_init);
 
 EXTERN_INIT_FUNCTION(partikkel_localops_init);
 EXTERN_INIT_FUNCTION(shape_localops_init);
@@ -1213,6 +1212,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   #ifndef NO_SERIAL_OPCODES                                 
     EXTERN_INIT_FUNCTION(serial_localops_init);
   #endif
+  EXTERN_INIT_FUNCTION(squinewave_localops_init);
   EXTERN_INIT_FUNCTION(sterrain_localops_init);
   EXTERN_INIT_FUNCTION(syncgrain_init_);
   EXTERN_INIT_FUNCTION(system_call_localops_init);
@@ -1250,8 +1250,6 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtfearly_localops_init,
                                  hrtfreverb_localops_init,
                                  paulstretch_localops_init,
-                                 squinewave_localops_init,
-
 #if !(defined(NACL)) && !(defined(__wasi__))
 #ifdef HAVE_SOCKETS
                                  sockrecv_localops_init,
@@ -1330,6 +1328,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     #ifndef NO_SERIAL_OPCODES                                 
           serial_localops_init,
     #endif
+    squinewave_localops_init,
     sterrain_localops_init,
     syncgrain_init_,
     system_call_localops_init,

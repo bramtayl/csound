@@ -738,7 +738,6 @@ set(libcsound_SRCS
     Opcodes/bilbar.c
     Opcodes/compress.c
     Opcodes/eqfil.c
-    Opcodes/squinewave.c
     Opcodes/pinker.c
     Opcodes/pitch.c
     Opcodes/pitch0.c
@@ -918,6 +917,7 @@ if(INIT_STATIC_MODULES)
         Plugins/select/select.c 
         Plugins/seqtime/seqtime.c
         Plugins/signalflowgraph/signalflowgraph.cpp
+        Plugins/squinewave/squinewave.c
         Plugins/sterrain/sterrain.c
         Plugins/syncgrain/syncgrain.c
         Plugins/system_call/system_call.c
