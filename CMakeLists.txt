@@ -838,7 +838,6 @@ set(stdopcod_SRCS
     Opcodes/sndloop.c
     Opcodes/sndwarp.c
     Opcodes/space.c
-    Opcodes/spat3d.c
     Opcodes/ugens7.c
     Opcodes/uggab.c
     Opcodes/stdopcod.c
@@ -917,6 +916,7 @@ if(INIT_STATIC_MODULES)
         Plugins/select/select.c 
         Plugins/seqtime/seqtime.c
         Plugins/signalflowgraph/signalflowgraph.cpp
+        Plugins/spat3d/spat3d.c
         Plugins/squinewave/squinewave.c
         Plugins/sterrain/sterrain.c
         Plugins/syncgrain/syncgrain.c

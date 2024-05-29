@@ -28,8 +28,6 @@
 
 #include "csdl.h"
 
-#ifdef CSOUND_SPAT3D_C  /* define these only when included from spat3d.c */
-
 #define SPAT3D_SNDSPEED         FL(340.0)       /* sound speed          */
 #define SPAT3D_MAXAMP           FL(10.0)        /* amplitude at dist=0  */
 
@@ -85,8 +83,6 @@ typedef struct {
 /* 30-37: back wall parameters                                  */
 /* 38-45: right wall parameters                                 */
 /* 46-53: left wall parameters                                  */
-
-#endif          /* CSOUND_SPAT3D_C */
 
 /* opcode struct for spat3d, spat3di, and spat3dt */
 

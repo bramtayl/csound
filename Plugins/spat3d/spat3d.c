@@ -33,9 +33,8 @@
 #include "insert_public.h"
 #include "fgens_public.h"
 
-#define CSOUND_SPAT3D_C 1
-
 #include "spat3d.h"
+#include "csdl.h"
 
 /* ----------------------- initialisation functions ------------------------ */
 
@@ -897,9 +896,4 @@ static OENTRY localops[] =
      (SUBR) spat3dt,     NULL,   NULL, NULL}
 };
 
-int32_t spat3d_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
-}
-
+ADD_INIT_FUNCTION(spat3d_init_, localops)
