@@ -301,9 +301,4 @@ static OENTRY localops[] = {
   { "scanhammer",S(SCANHAMMER),TB, 1,"", "iiii", (SUBR)scanhinit, NULL, NULL, NULL}
 };
 
-int32_t wave_terrain_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
-}
+ADD_INIT_FUNCTION(wave_terrain_init_, localops)

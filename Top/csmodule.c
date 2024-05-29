@@ -1220,6 +1220,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   EXTERN_INIT_FUNCTION(tabsum_localops_init);
   EXTERN_INIT_FUNCTION(ugakbari_localops_init);
   EXTERN_INIT_FUNCTION(vaops_localops_init);
+  EXTERN_INIT_FUNCTION(wave_terrain_init_);
   EXTERN_INIT_FUNCTION(wpfilters_localops_init);
   EXTERN_INIT_FUNCTION(wterrain2_localops_init);
   EXTERN_INIT_FUNCTION(zak_localops_init);
@@ -1329,6 +1330,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     ugakbari_localops_init,
     system_call_localops_init,
     vaops_localops_init,
+    wave_terrain_init_,
     wpfilters_localops_init,
     wterrain2_localops_init,
     zak_localops_init,

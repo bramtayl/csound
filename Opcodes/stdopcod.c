@@ -58,7 +58,6 @@
 #include "ugmoss.h"
 #include "ugnorman.h"
 #include "ugsc.h"
-#include "wave-terrain.h"
 
 /* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
@@ -120,7 +119,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= ugmoss_init_(csound);
     err |= ugnorman_init_(csound);
     err |= ugsc_init_(csound);
-    err |= wave_terrain_init_(csound);
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 

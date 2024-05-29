@@ -854,7 +854,6 @@ set(stdopcod_SRCS
     Opcodes/ugmoss.c
     Opcodes/ugnorman.c
     Opcodes/ugsc.c
-    Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
@@ -936,6 +935,7 @@ if(INIT_STATIC_MODULES)
         Plugins/tabsum/tabsum.c 
         Plugins/ugakbari/ugakbari.c 
         Plugins/vaops/vaops.c 
+        Plugins/wave-terrain.c
         Plugins/wpfilters/wpfilters.c
         Plugins/wterrain2/wterrain2.c
         Plugins/zak/zak.c
