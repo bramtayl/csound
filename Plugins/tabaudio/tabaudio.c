@@ -29,6 +29,7 @@
 #include "insert_public.h"
 #include "csound_threads.h"
 #include "text.h"
+#include "csdl.h"
 
 typedef struct {
     OPDS    h;
@@ -274,7 +275,6 @@ static OENTRY tabaudio_localops[] =
    { "ftaudio.k",     S(TABAUDIOK), TR, 2, "k", "kkSkpOO",  NULL, (SUBR)tabaudiok, NULL, NULL},
   };
 
-LINKAGE_BUILTIN(tabaudio_localops)
-
+ADD_INIT_FUNCTION(tabaudio_localops_init, tabaudio_localops)
 
 

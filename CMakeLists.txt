@@ -755,7 +755,6 @@ set(libcsound_SRCS
     Opcodes/pitchtrack.c
     Opcodes/partikkel.c
     Opcodes/shape.c
-    Opcodes/tabaudio.c
     Opcodes/crossfm.c
     Opcodes/pvlock.c
     Opcodes/modal4.c
@@ -922,6 +921,7 @@ if(INIT_STATIC_MODULES)
         Plugins/signalflowgraph/signalflowgraph.cpp
         Plugins/sterrain/sterrain.c
         Plugins/system_call/system_call.c
+        Plugins/tabaudio/tabaudio.c
         Plugins/tabsum/tabsum.c 
         Plugins/ugakbari/ugakbari.c 
         Plugins/ugensa/ugensa.c

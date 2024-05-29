@@ -1152,7 +1152,6 @@ EXTERN_INIT_FUNCTION(squinewave_localops_init);
 
 EXTERN_INIT_FUNCTION(partikkel_localops_init);
 EXTERN_INIT_FUNCTION(shape_localops_init);
-EXTERN_INIT_FUNCTION(tabaudio_localops_init);
 EXTERN_INIT_FUNCTION(crossfm_localops_init);
 EXTERN_INIT_FUNCTION(pvlock_localops_init);
 EXTERN_INIT_FUNCTION(scnoise_localops_init);
@@ -1216,6 +1215,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   #endif
   EXTERN_INIT_FUNCTION(sterrain_localops_init);
   EXTERN_INIT_FUNCTION(system_call_localops_init);
+  EXTERN_INIT_FUNCTION(tabaudio_localops_init);
   EXTERN_INIT_FUNCTION(tabsum_localops_init);
   EXTERN_INIT_FUNCTION(ugakbari_localops_init);
   EXTERN_INIT_FUNCTION(ugens9_init_);
@@ -1249,7 +1249,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtfearly_localops_init,
                                  hrtfreverb_localops_init,
                                  paulstretch_localops_init,
-                                 squinewave_localops_init, tabaudio_localops_init,
+                                 squinewave_localops_init,
 
 #if !(defined(NACL)) && !(defined(__wasi__))
 #ifdef HAVE_SOCKETS
@@ -1331,6 +1331,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     #endif
     sterrain_localops_init,
     system_call_localops_init,
+    tabaudio_localops_init,
     tabsum_localops_init,
     ugakbari_localops_init,
     ugens9_init_,
