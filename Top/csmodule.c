@@ -1130,7 +1130,6 @@ EXTERN_INIT_FUNCTION(babo_localops_init);
 EXTERN_INIT_FUNCTION(bilbar_localops_init);
 EXTERN_INIT_FUNCTION(compress_localops_init);
 EXTERN_INIT_FUNCTION(pvsbuffer_localops_init);
-EXTERN_INIT_FUNCTION(vosim_localops_init);
 EXTERN_INIT_FUNCTION(eqfil_localops_init);
 EXTERN_INIT_FUNCTION(modal4_localops_init);
 EXTERN_INIT_FUNCTION(physmod_localops_init);
@@ -1220,6 +1219,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   EXTERN_INIT_FUNCTION(tabsum_localops_init);
   EXTERN_INIT_FUNCTION(ugakbari_localops_init);
   EXTERN_INIT_FUNCTION(vaops_localops_init);
+  EXTERN_INIT_FUNCTION(vosim_localops_init);
   EXTERN_INIT_FUNCTION(wave_terrain_init_);
   EXTERN_INIT_FUNCTION(wpfilters_localops_init);
   EXTERN_INIT_FUNCTION(wterrain2_localops_init);
@@ -1227,7 +1227,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
 #endif
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
-                                 bilbar_localops_init, vosim_localops_init,
+                                 bilbar_localops_init,
                                  compress_localops_init, pvsbuffer_localops_init,
                                  eqfil_localops_init, modal4_localops_init,
                                  physmod_localops_init,
@@ -1330,6 +1330,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     ugakbari_localops_init,
     system_call_localops_init,
     vaops_localops_init,
+    vosim_localops_init,
     wave_terrain_init_,
     wpfilters_localops_init,
     wterrain2_localops_init,

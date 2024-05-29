@@ -45,6 +45,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "text.h"
+#include "csdl.h"
 
 typedef struct {
         OPDS h;
@@ -200,5 +201,4 @@ static OENTRY vosim_localops[] = {
   { "vosim", S(VOSIM), TR, 3, "a", "kkkkkkio", (SUBR)vosimset, (SUBR)vosim, NULL, NULL}
 };
 
-
-LINKAGE_BUILTIN(vosim_localops)
+ADD_INIT_FUNCTION(vosim_localops_init, vosim_localops)

@@ -738,7 +738,6 @@ set(libcsound_SRCS
     Opcodes/bilbar.c
     Opcodes/compress.c
     Opcodes/eqfil.c
-    Opcodes/Vosim.c
     Opcodes/squinewave.c
     Opcodes/pinker.c
     Opcodes/pitch.c
@@ -935,6 +934,7 @@ if(INIT_STATIC_MODULES)
         Plugins/tabsum/tabsum.c 
         Plugins/ugakbari/ugakbari.c 
         Plugins/vaops/vaops.c 
+        Plugins/Vosim/Vosim.c
         Plugins/wave-terrain.c
         Plugins/wpfilters/wpfilters.c
         Plugins/wterrain2/wterrain2.c
