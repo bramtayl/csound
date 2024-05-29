@@ -25,7 +25,6 @@
 
 #include "csoundCore_internal.h"
 #include <math.h>
-#define CSOUND_OSCILS_C 1
 #include "oscils.h"
 #include "insert_public.h"
 #include "fgens_public.h"
