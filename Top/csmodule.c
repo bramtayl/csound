@@ -1218,6 +1218,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   EXTERN_INIT_FUNCTION(system_call_localops_init);
   EXTERN_INIT_FUNCTION(tabsum_localops_init);
   EXTERN_INIT_FUNCTION(ugakbari_localops_init);
+  EXTERN_INIT_FUNCTION(ugensa_init_);
   EXTERN_INIT_FUNCTION(ugmoss_init_);
   EXTERN_INIT_FUNCTION(ugnorman_init_);
   EXTERN_INIT_FUNCTION(ugsc_init_)
@@ -1331,6 +1332,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     system_call_localops_init,
     tabsum_localops_init,
     ugakbari_localops_init,
+    ugensa_init_,
     ugmoss_init_,
     ugnorman_init_,
     ugsc_init_,

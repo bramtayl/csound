@@ -30,6 +30,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "text.h"
+#include "csdl.h"
 
 /* FOG generator */
 
@@ -236,9 +237,4 @@ static OENTRY localops[] = {
   { "fog",  S(FOGS), TR, 3, "a","xxxakkkkkiiiiooo",(SUBR)fogset,(SUBR)fog, NULL, NULL}
 };
 
-int32_t ugensa_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
-}
-
+ADD_INIT_FUNCTION(ugensa_init_, localops)

@@ -53,7 +53,6 @@
 #include "syncgrain.h"
 #include "ugens7.h"
 #include "ugens9.h"
-#include "ugensa.h"
 #include "uggab.h"
 
 /* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
@@ -111,7 +110,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= syncgrain_init_(csound);
     err |= ugens7_init_(csound);
     err |= ugens9_init_(csound);
-    err |= ugensa_init_(csound);
     err |= uggab_init_(csound);
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
