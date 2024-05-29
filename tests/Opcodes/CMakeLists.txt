@@ -76,7 +76,6 @@ add_subdirectory(syncgrain)
 add_subdirectory(tabaudio)
 add_subdirectory(tabmorph)
 add_subdirectory(ugens7)
-add_subdirectory(ugens9)
 add_subdirectory(uggab)
 add_subdirectory(vectorial)
 

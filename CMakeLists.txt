@@ -843,7 +843,6 @@ set(stdopcod_SRCS
     Opcodes/spat3d.c
     Opcodes/syncgrain.c
     Opcodes/ugens7.c
-    Opcodes/ugens9.c
     Opcodes/uggab.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
@@ -928,8 +927,9 @@ if(INIT_STATIC_MODULES)
         Plugins/ugensa/ugensa.c
         Plugins/ugmoss/ugmoss.c
         Plugins/ugnorman/ugnorman.c
-        Plugins/vaops/vaops.c 
+        Plugins/ugens9/ugens9.c
         Plugins/ugsc/ugsc.c
+        Plugins/vaops/vaops.c 
         Plugins/vbap/vbap.c
         Plugins/vbap/vbap1.c
         Plugins/vbap/vbap_n.c

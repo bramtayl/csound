@@ -37,6 +37,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "text.h"
+#include "csdl.h"
 
 static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 {
@@ -676,8 +677,5 @@ static OENTRY localops[] =
             (SUBR) pconvset,    (SUBR) pconvolve, NULL, NULL}
 };
 
-int32_t ugens9_init_(CSOUND *csound)
-{
-    return csoundAppendOpcodes(csound, &(localops[0]),
-                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
-}
+ADD_INIT_FUNCTION(ugens9_init_, localops)
+
