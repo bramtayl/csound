@@ -29,6 +29,8 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "envvar_public.h"
+#include "text.h"
+#include "envvar.h"
 
 CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 
@@ -216,8 +218,6 @@ char *corfile_current(CORFIL *f)
 }
 
 /* *** THIS NEEDS TO TAKE ACCOUNT OF SEARCH PATH *** */
-void *fopen_path(CSOUND *csound, FILE **fp, const char *name,
-                 const char *basename, char *env, int fromScore);
 CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
                          const char *env, int fromScore)
 {

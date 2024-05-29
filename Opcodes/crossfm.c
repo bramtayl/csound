@@ -27,6 +27,7 @@
 #include <math.h>
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {

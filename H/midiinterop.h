@@ -190,4 +190,6 @@ typedef struct MIDIDEFAULT_
 }
 MIDIDEFAULT;
 
+OPCODE_INIT_FUNCTION(midiinterop_localops_init);
+
 #endif

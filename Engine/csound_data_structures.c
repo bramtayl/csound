@@ -415,5 +415,5 @@ char *cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int n)
 
 
 #ifdef __cplusplus
-  extern "C" {
+}
 #endif

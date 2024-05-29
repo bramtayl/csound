@@ -24,6 +24,10 @@
 #ifndef __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 #define __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 
+#include "csound.h"
+#include "cs_par_base.h"
+#include "csound_orc.h"
+
 #ifdef PARCS
 /*
  * This module maintains a list of instruments that have been parsed
@@ -53,7 +57,9 @@ typedef struct instr_semantics_t {
     struct instr_semantics_t    *next;
 } INSTR_SEMANTICS;
 
-void csp_orc_sa_cleanup(CSOUND *csound);
+void sanitize(CSOUND*csound);
+
+// void csp_orc_sa_cleanup(CSOUND *csound);
 void csp_orc_sa_print_list(CSOUND *csound);
 
 /* maintain state about the current instrument we are parsing */

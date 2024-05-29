@@ -24,9 +24,12 @@
 #pragma once
 
 #include <stdio.h>                                 /*      SORT.H */
+
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
+#include "csound.h"
+
 #define SP ' '
 #define LF '\n'
 
@@ -45,3 +48,4 @@ typedef struct srtblk {
         char    text[9];
 } SRTBLK;
 
+void sort(CSOUND*);

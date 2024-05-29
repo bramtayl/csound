@@ -32,6 +32,8 @@
 #include "namedins_public.h"
 #include "fgens_public.h"
 #include "auxfd.h"
+#include "text.h"
+#include "pitch0.h"
 
 int32_t mute_inst(CSOUND *csound, MUTE *p)
 {

@@ -26,10 +26,6 @@
 #include "moog1.h"
 #include "fgens_public.h"
 
-extern void make_TwoZero(TwoZero *);
-extern void TwoZero_setZeroCoeffs(TwoZero *, MYFLT*);
-extern MYFLT TwoZero_tick(TwoZero *, MYFLT);
-
 /********************************************/
 /*  Sweepable Formant (2-pole)              */
 /*  Filter Class, by Perry R. Cook, 1995-96 */

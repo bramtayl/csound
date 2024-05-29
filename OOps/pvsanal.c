@@ -32,8 +32,11 @@
 #include "fftlib.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "fgens_public.h"
+#include "mxfft.h"
+#include "text.h"
+#include "pvsanal.h"
 
-        double  besseli(double x);
 static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);
 static  void    vonhann(MYFLT *win, int32_t winLen, int32_t even);
 
@@ -1139,3 +1142,12 @@ static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
         win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
     }
 }
+
+static OENTRY pvsanal_localops[] = {
+    {"pvsanal", sizeof(PVSANAL), 0, 3, "f", "aiiiioo", (SUBR)pvsanalset,
+     (SUBR)pvsanal, NULL, NULL},
+    {"pvsynth", sizeof(PVSYNTH), 0, 3, "a", "fo", (SUBR)pvsynthset,
+     (SUBR)pvsynth, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(pvsanal_localops)

@@ -10,6 +10,15 @@
 #include "csoundCore_internal.h"
 #include "gtest/gtest.h"
 #include "memalloc.h"
+#include "new_orc_parser.h"
+#include "main.h"
+#include "threadsafe_public.h"
+#include "musmon.h"
+#include "argdecode.h"
+#include "envvar_public.h"
+#include "csound_orc_compile.h"
+#include "main.h"
+#include "envvar_public.h"
 
 class OrcCompileTests : public ::testing::Test {
 public:
@@ -39,11 +48,6 @@ public:
 
     CSOUND* csound {nullptr};
 };
-
-extern "C" {
-    extern int argsRequired (char* arrayName);
-    extern char** splitArgs (CSOUND* csound, char* argString);
-}
 
 TEST_F (OrcCompileTests, testArgsRequired)
 {

@@ -23,6 +23,7 @@
 #pragma once
 
 #include "csdl.h"
+#include "namedins_public.h"
 
 typedef struct SCANSYN_GLOBALS_ SCANSYN_GLOBALS;
 
@@ -132,8 +133,6 @@ struct SCANSYN_GLOBALS_ {
     MYFLT       *ewinx;
     void        *scsnx_list;
 };
-
-extern int32_t scansynx_init_(CSOUND *);
 
 static CS_NOINLINE SCANSYN_GLOBALS * scansyn_allocGlobals(CSOUND *csound)
 {

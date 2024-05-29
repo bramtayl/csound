@@ -32,6 +32,7 @@
 #include "fgens_public.h"
 #include "insert_public.h"
 #include "auxfd.h"
+#include "text.h"
 
 static const int32_t dumpf_format_table[9] = {
   0,
@@ -837,3 +838,44 @@ int32_t kreads(CSOUND *csound, KREADS *p)
     strNcpy((char*) p->str->data, p->lasts, INITSIZE);
     return OK;
 }
+
+static OENTRY dumpf_localops[] = {
+    {"dumpk2", sizeof(KDUMP2), 0, 3, "", "kkSii", (SUBR)kdmp2set_S,
+     (SUBR)kdump2, NULL, NULL},
+    {"dumpk2.i", sizeof(KDUMP2), 0, 3, "", "kkiii", (SUBR)kdmp2set_p,
+     (SUBR)kdump2, NULL, NULL},
+    {"dumpk3", sizeof(KDUMP3), 0, 3, "", "kkkSii", (SUBR)kdmp3set_S,
+     (SUBR)kdump3, NULL, NULL},
+    {"dumpk3.i", sizeof(KDUMP3), 0, 3, "", "kkkiii", (SUBR)kdmp3set_p,
+     (SUBR)kdump3, NULL, NULL},
+    {"dumpk4", sizeof(KDUMP4), 0, 3, "", "kkkkSii", (SUBR)kdmp4set_S,
+     (SUBR)kdump4, NULL, NULL},
+    {"dumpk4.i", sizeof(KDUMP4), 0, 3, "", "kkkkiii", (SUBR)kdmp4set_p,
+     (SUBR)kdump4, NULL, NULL},
+    {"dumpk", sizeof(KDUMP), 0, 3, "", "kSii", (SUBR)kdmpset_S, (SUBR)kdump,
+     NULL, NULL},
+    {"dumpk.i", sizeof(KDUMP), 0, 3, "", "kiii", (SUBR)kdmpset_p, (SUBR)kdump,
+     NULL, NULL},
+    {"readk2", sizeof(KREAD2), 0, 3, "kk", "Sii", (SUBR)krd2set_S, (SUBR)kread2,
+     NULL, NULL},
+    {"readk2.i", sizeof(KREAD2), 0, 3, "kk", "iii", (SUBR)krd2set_p,
+     (SUBR)kread2, NULL, NULL},
+    {"readk3", sizeof(KREAD3), 0, 3, "kkk", "Sii", (SUBR)krd3set_S,
+     (SUBR)kread3, NULL, NULL},
+    {"readk3.i", sizeof(KREAD3), 0, 3, "kkk", "iii", (SUBR)krd3set_p,
+     (SUBR)kread3, NULL, NULL},
+    {"readk4", sizeof(KREAD4), 0, 3, "kkkk", "Sii", (SUBR)krd4set_S,
+     (SUBR)kread4, NULL, NULL},
+    {"readk4.i", sizeof(KREAD4), 0, 3, "kkkk", "iii", (SUBR)krd4set_p,
+     (SUBR)kread4, NULL, NULL},
+    {"readk", sizeof(KREAD), 0, 3, "k", "Sii", (SUBR)krdset_S, (SUBR)kread,
+     NULL, NULL},
+    {"readk.i", sizeof(KREAD), 0, 3, "k", "iii", (SUBR)krdset_p, (SUBR)kread,
+     NULL, NULL},
+    {"readks", sizeof(KREADS), 0, 3, "S", "Si", (SUBR)krdsset_S, (SUBR)kreads,
+     NULL, NULL},
+    {"readks.i", sizeof(KREADS), 0, 3, "S", "ii", (SUBR)krdsset_p, (SUBR)kreads,
+     NULL, NULL},
+};
+
+LINKAGE_BUILTIN(dumpf_localops)

@@ -23,20 +23,8 @@
 
 #pragma once
 
-typedef struct {
-    FUNC    *function, *nxtfunction;
-    MYFLT   d;
-    int32   cnt;
-} TSEG;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *argums[VARGMAX];
-    TSEG    *cursegp;
-    FUNC    *outfunc;
-    int32   nsegs;
-    AUXCH   auxch;
-} TABLESEG;
+#include "csoundCore_common.h"
+#include "pvoc.h"
 
 typedef struct {
     OPDS    h;

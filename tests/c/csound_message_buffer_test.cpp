@@ -2,6 +2,10 @@
 #include <string.h>
 #include "csound.h"
 #include "gtest/gtest.h"
+#include "main.h"
+#include "threadsafe_public.h"
+#include "musmon.h"
+#include "envvar_public.h"
 
 class MessageBufferTests : public ::testing::Test {
 public:

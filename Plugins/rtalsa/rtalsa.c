@@ -55,6 +55,8 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
 #include "memalloc.h"
+#include "cfgvar.h"
+#include "namedins_public.h"
 
 
 #include "soundio.h"

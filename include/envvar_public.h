@@ -134,6 +134,24 @@ PUBLIC unsigned int csoundWriteAsync(CSOUND *csound, void *handle, MYFLT *buf,
 
 PUBLIC int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence);
 
+/**
+ * Get pointer to the value of environment variable 'name', searching
+ * in this order: local environment of 'csound' (if not NULL), variables
+ * set with csoundSetGlobalEnv(), and system environment variables.
+ * If 'csound' is not NULL, should be called after csoundCompile().
+ * Return value is NULL if the variable is not set.
+ */
+PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
+
+/**
+ * Set the global value of environment variable 'name' to 'value',
+ * or delete variable if 'value' is NULL.
+ * It is not safe to call this function while any Csound instances
+ * are active.
+ * Returns zero on success.
+ */
+PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

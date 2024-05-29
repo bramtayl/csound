@@ -38,6 +38,8 @@
 #include <math.h>
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
+#include "reverbsc.h"
 
 #define DEFAULT_SRATE   44100.0
 #define MIN_SRATE       5000.0

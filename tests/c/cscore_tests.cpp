@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include "gtest/gtest.h"
 #include "csound.h"
-extern "C" {
-  #include "cscore.h"
-}
+#include "musmon.h"
+#include "envvar_public.h"
+#include "cscore.h"
+#include "envvar_public.h"
+
 
 void cscore(CSOUND *cs)
 {

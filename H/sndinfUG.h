@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
     OPDS    h;
     MYFLT   *r1, *ifilno, *irawfiles;
@@ -37,3 +39,5 @@ typedef struct {
     OPDS  h;
     MYFLT *r1, *ifilno;
 } FILEVALID;
+
+OPCODE_INIT_FUNCTION(sndinfUG_localops_init);

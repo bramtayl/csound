@@ -26,6 +26,8 @@
 /* Various filters etc for Physical models */
 
 #include <math.h>
+#include "csound.h"
+#include "csoundCore_common.h"
 
 #define AMP_SCALE (csound->e0dbfs)
 #define AMP_RSCALE (csound->dbfs_to_float)
@@ -126,7 +128,9 @@ void make_OnePole(OnePole*);
 void OnePole_setPole(OnePole*, MYFLT aValue);
 void OnePole_setGain(OnePole*, MYFLT aValue);
 MYFLT OnePole_tick(OnePole*, MYFLT sample);
+#ifdef BETA
 void OnePole_print(CSOUND*, OnePole*);
+#endif
 
 /*******************************************/
 /*  DC Blocking Filter                     */
@@ -180,7 +184,6 @@ typedef struct ADSR {
 } ADSR;
 
 void make_ADSR(ADSR*);
-void dest_ADSR(ADSR*);
 void ADSR_keyOn(ADSR*);
 void ADSR_keyOff(ADSR*);
 void ADSR_setAttackRate(CSOUND *,ADSR*, MYFLT);
@@ -192,9 +195,6 @@ void ADSR_setAllTimes(CSOUND *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
 void ADSR_setTarget(CSOUND *,ADSR*, MYFLT);
 void ADSR_setValue(CSOUND *,ADSR*, MYFLT);
 MYFLT ADSR_tick(ADSR*);
-int32_t
-ADSR_informTick(ADSR*);
-MYFLT ADSR_lastOut(ADSR*);
 
 /*******************************************/
 /*  BiQuad (2-pole, 2-zero) Filter Class,  */
@@ -213,7 +213,6 @@ typedef struct BiQuad {
 } BiQuad;
 
 void make_BiQuad(BiQuad*);
-void dest_BiQuad(BiQuad*);
 void BiQuad_clear(BiQuad*);
 void BiQuad_setPoleCoeffs(BiQuad*, MYFLT *);
 void BiQuad_setZeroCoeffs(BiQuad*, MYFLT *);

@@ -25,6 +25,7 @@
 #define CSOUND_DISKIN2_H
 
 #include "soundio.h"
+#include "csoundCore_common.h"
 
 #define DISKIN2_MAXCHN  40              /* for consistency with soundin   */
 #define POS_FRAC_SHIFT  28              /* allows pitch accuracy of 2^-28 */
@@ -117,14 +118,8 @@ typedef struct {
   int  async;
 } DISKIN2_ARRAY;
 
-int32_t diskin2_init(CSOUND *csound, DISKIN2 *p);
-int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p);
+OPCODE_INIT_FUNCTION(diskin2_localops_init);
 int32_t diskin2_perf(CSOUND *csound, DISKIN2 *p);
-int32_t diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
 
 typedef struct {
     OPDS    h;

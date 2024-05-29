@@ -25,6 +25,7 @@
 #pragma once
 
 #include "pstream.h"
+#include "cwindow.h"
 
 typedef struct {
         OPDS    h;
@@ -81,3 +82,4 @@ typedef struct {
         AUXCH   auxch;
 } TEMPEST;
 
+OPCODE_INIT_FUNCTION(disprep_localops_init);

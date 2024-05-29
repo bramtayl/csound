@@ -28,17 +28,11 @@
 #include "csound_orc.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-#include "cs_par_dispatch.h"
 
 #include "cs_par_ops.h"
 #include "cs_par_structs.h"
 #include "memalloc.h"
-
-/***********************************************************************
- * external prototypes not in headers
- */
-extern ORCTOKEN *lookup_token(CSOUND *csound, char *);
-extern void print_tree(CSOUND *, char *, TREE *);
+#include "text.h"
 
 /***********************************************************************
  * Global Var Lock Inserts

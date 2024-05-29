@@ -465,7 +465,7 @@ struct TPrint : csnd::Plugin<0, 1> {
 };
 */
 
-#include <modload.h>
+#include <modload.hpp>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);

@@ -25,6 +25,8 @@
 #ifndef CSOUND_CSMODULE_H
 #define CSOUND_CSMODULE_H
 
+#include "csound.h"
+
 /******************************************************************************
  * NEW PLUGIN INTERFACE                                                       *
  * ====================                                                       *
@@ -107,10 +109,10 @@ extern "C" {
    */
   int csoundDestroyModules(CSOUND *csound);
 
-  /**
-   * Initialise opcodes not in entry1.c
-   */
-  int csoundInitSaticModules(CSOUND *csound);
+int     csoundLoadExternals(CSOUND *);
+void    print_opcodedir_warning(CSOUND *);
+
+CS_NOINLINE int csoundInitStaticModules(CSOUND *csound);
 
 #ifdef __cplusplus
 }

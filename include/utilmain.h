@@ -27,6 +27,7 @@
 /* main function for utility frontends */
 
 #include "csound.h"
+#include "utility.h"
 
 static int32_t csoundUtilMain(const char *name, int32_t argc, char **argv)
 {

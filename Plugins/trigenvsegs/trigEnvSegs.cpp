@@ -23,7 +23,7 @@
 #include <plugin.h>
 #include <vector>
 #include <numeric>
-#include <modload.h>
+#include <modload.hpp>
 
 
 // linseg type opcode with trigger mechanism

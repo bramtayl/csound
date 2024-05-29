@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct  {
         OPDS            h;
         MYFLT           *out, *in, *len;
@@ -41,3 +43,5 @@ typedef struct {
         MYFLT   *out, *in, *attack, *release;
         MYFLT   lastatt, lastrel, envelope, ga, gr;
 } ENV;
+
+int32_t follow_init_(CSOUND *);

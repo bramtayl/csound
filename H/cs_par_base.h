@@ -24,6 +24,8 @@
 #ifndef __CS_PAR_BASE_H__
 #define __CS_PAR_BASE_H__
 
+#include "csound.h"
+
 #ifdef PARCS
 // Semaphone.h only exists when using pthreads, doesn't apply to Windows
 #ifndef _WIN32
@@ -122,8 +124,8 @@ struct set_t {
 typedef int (set_element_data_eq)(struct set_element_t *, struct set_element_t *);
 int csp_set_element_string_eq(struct set_element_t *ele1,
                               struct set_element_t *ele2);
-int csp_set_element_ptr_eq(struct set_element_t *ele1,
-                           struct set_element_t *ele2);
+// int csp_set_element_ptr_eq(struct set_element_t *ele1,
+//                            struct set_element_t *ele2);
 
 /* function pointer types for set member printing */
 typedef void (set_element_data_print)(CSOUND *, struct set_element_t *);
@@ -157,51 +159,6 @@ struct set_t *csp_set_union(CSOUND *csound, struct set_t *first,
                    struct set_t *second);
 struct set_t *csp_set_intersection(CSOUND *csound, struct set_t *first,
                           struct set_t *second);
-
-/* spinlock */
-
-/* semaphore */
-/* struct semaphore_spin_t { */
-/*     char    hdr[HDR_LEN]; */
-/*     int     thread_count; */
-/*     int     max_threads; */
-/*     int     arrived; */
-/*     int     held; */
-/*     int     spinlock; */
-/*     int     count; */
-/*     int     lock; */
-/*     int     *key; */
-/*     int     locks[]; */
-/* }; */
-
-// Kludge to allow us to pass in HANDLE objects to be used as semaphore whilst
-// supporting the traditional pthread way for non Windows platforms
-// FIXME, does this even work? API's take ** versions of sem_t
-#ifdef _WIN32
-typedef HANDLE sem_t;
-#endif
-
-/* create a semaphore with a maximum number of threads
- * initially 1 thread is allowed in
- */
-void csp_semaphore_alloc(CSOUND *csound, sem_t **sem,
-                         int max_threads);
-void csp_semaphore_dealloc(CSOUND *csound, sem_t **sem);
-/* wait at the semaphore. if the number allowed in is greater than the
- * number arrived calling thread continues
- * otherwise thread blocks until semaphore is grown
- */
-void csp_semaphore_wait(CSOUND *csound, sem_t *sem);
-/* increase the number of threads allowed in by 1 */
-void csp_semaphore_grow(CSOUND *csound, sem_t *sem);
-/* reduce the number of threads allowed in and the arrive count by 1
- * call this when calling thread is finished with the semaphore. */
-void csp_semaphore_release(CSOUND *csound, sem_t *sem);
-/* call when all threads are done with the resource the semaphore is protecting.
- * releases all blocked threads. */
-void csp_semaphore_release_end(CSOUND *csound, sem_t *sem);
-/* print semaphore info */
-void csp_semaphore_release_print(CSOUND *csound, sem_t *sem);
 
 #endif
 

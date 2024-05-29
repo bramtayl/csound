@@ -41,6 +41,8 @@
 #include "csound_orc_semantics_public.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "csound_threads.h"
+#include "namedins_public.h"
 
 //#define OSC_DEBUG
 

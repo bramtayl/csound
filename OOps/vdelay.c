@@ -33,6 +33,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 //#define ESR     (csound->esr/FL(1000.0))
 #define ESR     (csound->esr*FL(0.001))
@@ -1241,3 +1242,29 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
                              Str("reverbx: not initialised"));
 }
 
+static OENTRY vdelay_localops[] = {
+    {"multitap", sizeof(MDEL), 0, 3, "a", "am", (SUBR)multitap_set,
+     (SUBR)multitap_play, NULL, NULL},
+    {"nreverb", sizeof(NREV2), 0, 3, "a", "akkoojoj", (SUBR)reverbx_set,
+     (SUBR)reverbx, NULL, NULL},
+    {"reverb2", sizeof(NREV2), 0, 3, "a", "akkoojoj", (SUBR)reverbx_set,
+     (SUBR)reverbx, NULL, NULL},
+    {"vdelay3", sizeof(VDEL), 0, 3, "a", "axio", (SUBR)vdelset, (SUBR)vdelay3,
+     NULL, NULL},
+    {"vdelay", sizeof(VDEL), 0, 3, "a", "axio", (SUBR)vdelset, (SUBR)vdelay,
+     NULL, NULL},
+    {"vdelayx", sizeof(VDELX), 0, 3, "a", "aaiio", (SUBR)vdelxset,
+     (SUBR)vdelayx, NULL, NULL},
+    {"vdelayxq", sizeof(VDELXQ), 0, 3, "aaaa", "aaaaaiio", (SUBR)vdelxqset,
+     (SUBR)vdelayxq, NULL, NULL},
+    {"vdelayxs", sizeof(VDELXS), 0, 3, "aa", "aaaiio", (SUBR)vdelxsset,
+     (SUBR)vdelayxs, NULL, NULL},
+    {"vdelayxw", sizeof(VDELX), 0, 3, "a", "aaiio", (SUBR)vdelxset,
+     (SUBR)vdelayxw, NULL, NULL},
+    {"vdelayxwq", sizeof(VDELXQ), 0, 3, "aaaa", "aaaaaiio", (SUBR)vdelxqset,
+     (SUBR)vdelayxwq, NULL, NULL},
+    {"vdelayxws", sizeof(VDELXS), 0, 3, "aa", "aaaiio", (SUBR)vdelxsset,
+     (SUBR)vdelayxws, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(vdelay_localops)

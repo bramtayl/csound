@@ -23,11 +23,22 @@
     02110-1301 USA
 */
 
+#include "new_orc_parser.h"
+
 #include "csoundCore_internal.h"
 #include "csound_orc.h"
 #include "corfile.h"
 #include "score_param.h"
 #include "memalloc.h"
+#include "csound_orc_semantics_public.h"
+#include "text.h"
+#include "csound_orc_semantics.h"
+#include "csound_orc_compile.h"
+#include "csound_orc_optimize.h"
+#include "cs_par_orc_semantics.h"
+#include "csound_orclex.h"
+#include "csound_prelex.h"
+#include "csound_orcparse.h"
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
@@ -44,29 +55,8 @@ int             closedir(DIR*);
 #  include <direct.h>
 #endif
 
-extern void csound_orcrestart(FILE*, void *);
-
-extern int csound_orcdebug;
-
-extern void print_csound_predata(void *);
-extern int csound_prelex_init(void *);
-extern void csound_preset_extra(void *, void *);
-
-extern int csound_prelex(CSOUND*, void*);
-extern int csound_prelex_destroy(void *);
-
+// TODO: move to csound_orclex.h
 extern int csound_orc_scan_buffer (const char *, size_t, void*);
-extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
-extern int csound_orclex_init(void *);
-extern void csound_orcset_extra(void *, void *);
-extern void csound_orcset_lineno(int, void*);
-extern int csound_orclex_destroy(void *);
-extern void print_tree(CSOUND *, char *, TREE *);
-extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
-extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
-extern TREE* csound_orc_optimize(CSOUND *, TREE *);
-//extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
-extern void csp_orc_sa_print_list(CSOUND*);
 
 #if 0
 static void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
@@ -78,17 +68,6 @@ static void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
     csoundDebugMsg(csound,"******************\n");
 }
 #endif
-
-uint64_t make_location(PRE_PARM *qq)
-{
-    int d = qq->depth;
-    uint64_t loc = 0;
-    int n = (d>8?d-7:0);
-    for (; n<=d; n++) {
-      loc = (loc<<8)+(qq->lstack[n]);
-    }
-    return loc;
-}
 
 uint64_t make_slocation(PRS_PARM *qq)
 {

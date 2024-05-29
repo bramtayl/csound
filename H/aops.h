@@ -205,8 +205,13 @@ typedef struct {
         int32_t narg;
 } OUTRANGE;
 
+MYFLT MOD(MYFLT a, MYFLT bb);
+
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
 int32_t outRange(CSOUND *csound, OUTRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);
+void csound_aops_init_tables(CSOUND *csound);
+
+OPCODE_INIT_FUNCTION(aops_localops_init);

@@ -36,6 +36,7 @@
 #include "auxfd.h"
 #include "memfiles.h"
 #include "insert_public.h"
+#include "text.h"
 
 static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 

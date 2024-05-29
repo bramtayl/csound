@@ -31,6 +31,7 @@
 #include <portmidi.h>
 #include <porttime.h>
 #include "memalloc.h"
+#include "namedins_public.h"
 
 /* Stub for compiling this file with MinGW and linking
    with portmidi.lib built with MSVC AND with Windows

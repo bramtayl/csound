@@ -29,6 +29,8 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "interlocks.h"
 
 /* The branch prediction slows it down!! */
 
@@ -981,3 +983,29 @@ int32_t randc(CSOUND *csound, RANDC *p)
     return OK;
 }
 
+static OENTRY ugens4_localops[] = {
+    {"buzz", sizeof(BUZZ), TR, 3, "a", "xxkio", (SUBR)bzzset, (SUBR)buzz, NULL,
+     NULL},
+    {"gbuzz", sizeof(GBUZZ), TR, 3, "a", "xxkkkio", (SUBR)gbzset, (SUBR)gbuzz,
+     NULL, NULL},
+    {"pluck", sizeof(PLUCK), TR, 3, "a", "kkiiioo", (SUBR)plukset, (SUBR)pluck,
+     NULL, NULL},
+    {"rand", sizeof(RAND), 0, 3, "a", "xvoo", (SUBR)rndset, (SUBR)arand, NULL,
+     NULL},
+    {"rand.k", sizeof(RAND), 0, 3, "k", "xvoo", (SUBR)rndset, (SUBR)krand, NULL,
+     NULL},
+    {"randc", sizeof(RANDC), 0, 3, "a", "xxvoo", (SUBR)rcset, (SUBR)randc, NULL,
+     NULL},
+    {"randc.k", sizeof(RANDC), 0, 3, "k", "xxvoo", (SUBR)rcset, (SUBR)krandc,
+     NULL, NULL},
+    {"randh", sizeof(RANDH), 0, 3, "a", "xxvoo", (SUBR)rhset, (SUBR)randh, NULL,
+     NULL},
+    {"randh.k", sizeof(RANDH), 0, 3, "k", "xxvoo", (SUBR)rhset, (SUBR)krandh,
+     NULL, NULL},
+    {"randi", sizeof(RANDI), 0, 3, "a", "xxvoo", (SUBR)riset, (SUBR)randi, NULL,
+     NULL},
+    {"randi.k", sizeof(RANDI), 0, 3, "k", "xxvoo", (SUBR)riset, (SUBR)krandi,
+     NULL, NULL},
+};
+
+LINKAGE_BUILTIN(ugens4_localops)

@@ -40,6 +40,9 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "csound_threads.h"
+#include "namedins_public.h"
+#include "mxfft.h"
 
 #ifndef __BUILDING_LIBCSOUND
 struct CSOUND_ {

@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 #define     MAXBINS         4096
 #ifndef PVFRAMSIZE
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */

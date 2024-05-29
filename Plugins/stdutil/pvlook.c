@@ -33,6 +33,8 @@
 #include <inttypes.h>
 #include "memalloc.h"
 #include "utility.h"
+#include "cfgvar.h"
+#include "pvlook.h"
 
 typedef struct PVLOOK_ {
     CSOUND  *csound;

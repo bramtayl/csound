@@ -33,6 +33,7 @@
 #include "fgens_public.h"
 #include "memfiles.h"
 #include "insert_public.h"
+#include "text.h"
 
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"

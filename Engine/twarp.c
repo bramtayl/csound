@@ -23,6 +23,9 @@
 
 #include "csoundCore_internal.h"                               /*    TWARP.C  */
 #include "memalloc.h"
+#include "text.h"
+#include "twarp.h"
+#include "sread.h"
 
 typedef struct {
     MYFLT   betbas;
@@ -30,9 +33,6 @@ typedef struct {
     MYFLT   durbas;
     MYFLT   timbas;
 } TSEG;
-
-int     realtset(CSOUND *, SRTBLK *);
-MYFLT   realt(CSOUND *, MYFLT);
 
 void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
 {
@@ -95,7 +95,7 @@ int realtset(CSOUND *csound, SRTBLK *bp)
 {
     char    *p;
     char    c;
-    MYFLT   tempo, betspan, durbas, avgdur, stof(CSOUND *, char *);
+    MYFLT   tempo, betspan, durbas, avgdur;
     TSEG    *tp, *prvtp;
     TSEG    *tseg = (TSEG*)csound->tseg;
 

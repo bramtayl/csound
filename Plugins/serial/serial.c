@@ -48,6 +48,8 @@
 #include "csdl.h"
 #include "interlocks.h"
 #include "insert_public.h"
+#include "csound_threads.h"
+#include "namedins_public.h"
 
 /* **************************************************
    As far as I can tell his should work on Windows

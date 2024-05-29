@@ -24,6 +24,8 @@
                                                         /*  DUMPF.H  */
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS   h;
         MYFLT  *ksig, *ifilcod, *iformat, *iprd;
@@ -114,3 +116,4 @@ typedef struct {
         FDCH   fdch;
 } KREADS;
 
+OPCODE_INIT_FUNCTION(dumpf_localops_init);

@@ -27,6 +27,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
 

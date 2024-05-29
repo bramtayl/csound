@@ -42,6 +42,7 @@
 #include "csdl.h"                               /*      IPMIDI.C         */
 #include "midiops.h"
 #include "oload.h"
+#include "namedins_public.h"
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {

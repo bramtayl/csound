@@ -105,6 +105,11 @@
 #include "midifile.h"
 #include "memalloc.h"
 #include "insert_public.h"
+#include "text.h"
+#include "insert.h"
+#include "midirecv.h"
+#include "csound_internal.h"
+#include "midisend.h"
 
 #define MGLOB(x) (csound->midiGlobals->x)
 
@@ -605,8 +610,6 @@ int sensMidi(CSOUND *csound)
     }
     return 2;                           /* else it's note_on/off */
 }
-
-extern void csoundCloseMidiOutFile(CSOUND *);
 
 void MidiClose(CSOUND *csound)
 {

@@ -32,6 +32,8 @@
 #define MAXPOLES    5000
 #define NDATA       4   /* number of data values stored with frame */
 
+#include "sysdep.h"
+
 typedef struct {
         uint32_t headersize, lpmagic, npoles, nvals;
         MYFLT   framrate, srate, duration;

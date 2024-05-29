@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct _tabl {
   OPDS h;
   MYFLT *sig, *ndx, *ftable, *mode, *offset, *wrap;
@@ -58,3 +60,5 @@ typedef struct _tablwa {
   MYFLT *strt,*ftable,*sig,*off,*skipinit;
   MYFLT pos;
 } TABLWA;
+
+OPCODE_INIT_FUNCTION(ugtabs_localops_init);

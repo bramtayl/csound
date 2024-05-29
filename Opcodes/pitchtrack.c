@@ -30,6 +30,7 @@
 #include <math.h>
 #include "fftlib.h"
 #include "auxfd.h"
+#include "text.h"
 
 #define MINFREQINBINS 5
 #define MAXHIST 3

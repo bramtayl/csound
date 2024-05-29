@@ -31,6 +31,12 @@
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
 #include "fgens_public.h"
+#include "random.h"
+#include "text.h"
+#include "sread.h"
+#include "aops.h"
+#include "random.h"
+#include "csound_prslex.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */
@@ -47,14 +53,6 @@ static  void    carryerror(CSOUND *), pcopy(CSOUND *, int, int, SRTBLK*);
 static  void    salcinit(CSOUND *);
 static  void    salcblk(CSOUND *), flushlin(CSOUND *);
 static  int     getop(CSOUND *), getpfld(CSOUND *, int);
-        MYFLT   stof(CSOUND *, char *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-extern int csound_prslex_init(void *);
-extern void csound_prsset_extra(void *, void *);
-
-extern int csound_prslex(CSOUND*, void*);
-extern int csound_prslex_destroy(void *);
-extern void cs_init_smacros(CSOUND*, PRS_PARM*, NAMES*);
 
 #define STA(x)  (csound->sread.x)
 
@@ -183,7 +181,6 @@ static void print_input_backtrace(CSOUND *csound, int needLFs,
 static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
 {
     MYFLT ans;
-    extern MYFLT MOD(MYFLT,MYFLT);
 
     switch (c) {
     case '+': ans = a + b; break;

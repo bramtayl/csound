@@ -39,6 +39,7 @@
 #include "text.h"
 #include "memalloc.h"
 #include "utility.h"
+#include "lpc_export.h"
 
 void lpc_export_usage(CSOUND *csound)
 {

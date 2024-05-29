@@ -22,6 +22,13 @@
 */
 
 #include "pvs_ops.h"
+#include "ifd.h"
+#include "partials.h"
+#include "psynth.h"
+#include "pvsbasic.h"
+#include "pvscent.h"
+#include "pvsdemix.h"
+#include "pvsband.h"
 
 /*
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)

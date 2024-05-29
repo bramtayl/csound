@@ -48,6 +48,7 @@
 #include "envvar_public.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 #define s2d(x)  *((DWORD *) (x))
 

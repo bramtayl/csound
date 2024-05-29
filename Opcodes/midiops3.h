@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
     MYFLT *ictlno, *imin, *imax, *initvalue, *ifn;
 } SLD;
@@ -199,3 +201,5 @@ typedef struct {
     MYFLT  *ichan;              /* input */
     ISLD14 s[32];
 } ISLIDER32BIT14;
+
+int32_t midiops3_init_(CSOUND *csound);

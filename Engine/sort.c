@@ -29,6 +29,8 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 
 #include "csoundCore_internal.h"                         /*   SORT.C  */
 #include "memalloc.h"
+#include "text.h"
+#include "sort.h"
 
 /* inline int ordering(SRTBLK *a, SRTBLK *b) */
 /* { */

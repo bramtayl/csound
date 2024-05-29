@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include "gtest/gtest.h"
 #include "time.h"
+#include "main.h"
+#include "musmon.h"
+#include "argdecode.h"
+#include "envvar_public.h"
 
 class EngineTests : public ::testing::Test {
 public:

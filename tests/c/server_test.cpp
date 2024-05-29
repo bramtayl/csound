@@ -17,6 +17,7 @@
 
 #include "csound.hpp"
 #include "csPerfThread.hpp"
+#include "envvar_public.h"
 
 void udp_send(const char* msg) {
     struct sockaddr_in server_addr;

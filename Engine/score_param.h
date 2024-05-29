@@ -24,6 +24,7 @@
 #ifndef __SCORE_PARAM_H
 #define __SCORE_PARAM_H
 
+#include "csoundCore_internal.h"
 
 typedef struct ListItem {
   double           val;
@@ -109,6 +110,5 @@ typedef struct score_parm_s {
 } SCORE_PARM;
 
 uint64_t make_slocation(PRS_PARM *);
-extern uint8_t file_to_int(CSOUND*, const char*);
 
 #endif

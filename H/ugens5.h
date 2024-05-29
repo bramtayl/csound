@@ -23,6 +23,7 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
 #include "lpc.h"        /*                               UGENS5.H        */
 
 typedef struct {
@@ -138,10 +139,8 @@ typedef struct {
         MYFLT   *ans, *sig, *min, *max;
 } LIMIT;
 
-int32_t kport(CSOUND*,PORT *p);
-int32_t ktone(CSOUND*,TONE *p);
-int32_t katone(CSOUND*,TONE *p);
-int32_t kreson(CSOUND*,RESON *p);
-int32_t kareson(CSOUND*,RESON *p);
-int32_t klimit(CSOUND*,LIMIT *p);
-int32_t limit(CSOUND*,LIMIT *p);
+int32_t tonset(CSOUND *, TONE *);
+int32_t rsnset(CSOUND *, RESON *);
+int32_t tonsetx(CSOUND *, TONEX *);
+
+OPCODE_INIT_FUNCTION(ugens5_localops_init);

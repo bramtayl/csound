@@ -37,6 +37,8 @@
 #include "fftlib.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "mxfft.h"
+#include "atsa.h"
 
 #if defined(__GNUC__) && defined(__STRICT_ANSI__)
 #  ifndef inline

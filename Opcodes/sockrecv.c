@@ -43,6 +43,9 @@
 #include "memalloc.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "csound_threads.h"
+#include "circularbuffer.h"
+#include "text.h"
 
 #define MAXBUFS 32
 #define MTU (1456)

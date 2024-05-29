@@ -25,6 +25,8 @@
 #ifndef __CS_PAR_DISPATCH_H
 #define __CS_PAR_DISPATCH_H
 
+#include "sysdep.h"
+
 /* global variables lock support */
 struct global_var_lock_t;
 

@@ -26,6 +26,8 @@
 #include <errno.h>
 #include "memalloc.h"
 #include "envvar_public.h"
+#include "text.h"
+#include "midirecv.h"
 
 static const char *midiFile_ID = "MThd";
 static const char *midiTrack_ID = "MTrk";
@@ -773,9 +775,6 @@ int csoundMIDIFileClose(CSOUND *csound)
     return 0;
 }
 
-/* midirecv.c, resets MIDI controllers on a channel */
-extern  void    midi_ctl_reset(CSOUND *csound, int16 chan);
-
 /* called by csoundRewindScore() to reset performance to time zero */
 
 void midifile_rewind_score(CSOUND *csound)
@@ -818,3 +817,12 @@ int midiFileStatus(CSOUND *csound, MIDITEMPO *p){
   *p->kResult = csound->oparms->FMidiin;
   return OK;
 }
+
+static OENTRY midifile_localops[] = {
+    {"midifilestatus", sizeof(MIDITEMPO), 0, 2, "k", "", NULL,
+     (SUBR)midiFileStatus, NULL, NULL},
+    {"miditempo", sizeof(MIDITEMPO), 0, 3, "k", "", (SUBR)midiTempoOpcode,
+     (SUBR)midiTempoOpcode, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(midifile_localops)

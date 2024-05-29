@@ -29,6 +29,7 @@
 #  define  __attribute__(x)  /*NOTHING*/
 #endif
 
+#include "csound.h"
 
 /* list of languages */
 
@@ -118,6 +119,21 @@ extern "C" {
   PUBLIC double cs_strtod(char* nptr, char** endptr);
   PUBLIC int cs_sprintf(char *str, const char *format, ...);
   PUBLIC int cs_sscanf(char *str, const char *format, ...);
+
+  /**
+   * Set language to 'lang_code' (lang_code can be for example
+   * CSLANGUAGE_ENGLISH_UK or CSLANGUAGE_FRENCH or many others,
+   * see n_getstr.h for the list of languages). This affects all
+   * Csound instances running in the address space of the current
+   * process. The special language code CSLANGUAGE_DEFAULT can be
+   * used to disable translation of messages and free all memory
+   * allocated by a previous call to csoundSetLanguage().
+   * csoundSetLanguage() loads all files for the selected language
+   * from the directory specified by the CSSTRNGS environment
+   * variable.
+   */
+  PUBLIC void csoundSetLanguage(cslanguage_t lang_code);
+
 #ifdef __cplusplus
 }
 #endif

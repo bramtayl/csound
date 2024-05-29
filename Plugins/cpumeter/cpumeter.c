@@ -35,6 +35,7 @@
 #include "envvar_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 // only available on Linux (no /proc/stat on OSX)
 #if defined(__gnu_linux__)

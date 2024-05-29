@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *xdel, *kfeedback, *maxd, *iskip;
@@ -58,3 +60,4 @@ typedef struct {
         int16   xdel1cod, xdel2cod;
 } WGUIDE2;
 
+int32_t flanger_init_(CSOUND *);

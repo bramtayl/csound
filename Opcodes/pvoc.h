@@ -31,12 +31,37 @@
 typedef struct PVOC_GLOBALS_ PVOC_GLOBALS;
 
 #include "dsputil.h"
-#include "ugens8.h"
 #include "pvread.h"
-#include "pvinterp.h"
-#include "vpvoc.h"
 #include "pvadd.h"
 #include "pvocext.h"
+#include "namedins_public.h"
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *ktimpnt, *ifilno;
+    int32   maxFr, frSiz, prFlg;
+    /* base Frame (in frameData0) and maximum frame on file, ptr to fr, size */
+    MYFLT   frPktim, frPrtim, asr, scale;
+    float   *frPtr;
+    AUXCH   auxch;
+    MYFLT   *lastPhase, *fftBuf;  /* [PVFFTSIZE] FFT works on Real & Imag */
+    MYFLT   *buf;
+} PVBUFREAD;
+
+typedef struct {
+    FUNC    *function, *nxtfunction;
+    MYFLT   d;
+    int32   cnt;
+} TSEG;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *argums[VARGMAX];
+    TSEG    *cursegp;
+    FUNC    *outfunc;
+    int32   nsegs;
+    AUXCH   auxch;
+} TABLESEG;
 
 struct PVOC_GLOBALS_ {
     CSOUND    *csound;
@@ -56,5 +81,29 @@ static inline PVOC_GLOBALS *PVOC_GetGlobals(CSOUND *csound)
       return PVOC_AllocGlobals(csound);
     return p;
 }
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno, *ispecwp, *imode;
+    MYFLT   *ifreqlim, *igatefun;
+    int32   mems;
+    int32   kcnt, baseFr, maxFr, frSiz, prFlg, opBpos;
+    /* RWD 8:2001 for pvocex: need these too */
+    int32   frInc, chans;
+
+    MYFLT   frPktim, frPrtim, scale, asr, lastPex;
+    MYFLT   PvMaxAmp;
+    float   *frPtr, *pvcopy;
+    FUNC    *AmpGateFunc;
+    AUXCH   auxch;
+    MYFLT   *lastPhase; /* [PVDATASIZE] Keep track of cum. phase */
+    MYFLT   *fftBuf;    /* [PVFFTSIZE]  FFT works on Real & Imag */
+    MYFLT   *dsBuf;     /* [PVFFTSIZE]  Output of downsampling may be 2x */
+    MYFLT   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
+    MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
+    MYFLT   *dsputil_env;
+    AUXCH   memenv;
+    PVOC_GLOBALS  *pp;
+} PVOC;
 
 #endif  /* CSOUND_PVOC_H */

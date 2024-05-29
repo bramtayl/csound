@@ -27,8 +27,10 @@
 
 #include "csoundCore_internal.h"
 
-/* typedef int    (*SUBR)(void *, void *); */
-
-extern ORCTOKEN *new_token(CSOUND *, int);
+CS_PRINTF2 void synterr(CSOUND *, const char *, ...);
+ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner);
+int add_udo_definition(CSOUND *csound, char *opname,
+                       char *outtypes, char *intypes,
+                       int flags);
 
 #endif

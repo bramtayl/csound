@@ -107,4 +107,11 @@ typedef struct FM4OPV {
     MYFLT       last_control;
 } FM4OPV;
 
+extern MYFLT phonGains[32][2];
+extern MYFLT phonParams[32][4][3];
+
+void make_TwoZero(TwoZero *p);
+void TwoZero_setZeroCoeffs(TwoZero* p, MYFLT *coeffs);
+MYFLT TwoZero_tick(TwoZero *p, MYFLT sample);
+
 #endif

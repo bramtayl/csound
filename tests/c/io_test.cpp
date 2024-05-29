@@ -2,6 +2,11 @@
 #include "gtest/gtest.h"
 
 #include "csound.h"
+#include "main.h"
+#include "threadsafe_public.h"
+#include "musmon.h"
+#include "argdecode.h"
+#include "envvar_public.h"
 
 class IOTests : public ::testing::Test {
 public:

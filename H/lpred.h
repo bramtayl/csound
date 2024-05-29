@@ -149,6 +149,13 @@ extern "C" {
     MYFLT kcnt;
   } RESONB;
 
+typedef struct LPCparam_ {
+  MYFLT *r, *E, *b, *k, *pk, *am, *tmpmem, *cf, cps, rms, *ftbuf;
+  MYCMPLX *pl;
+  int32_t N, M, FN;
+} LPCparam;
+
+OPCODE_INIT_FUNCTION(lpred_localops_init);
 
 #ifdef __cplusplus
 }

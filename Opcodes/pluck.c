@@ -32,11 +32,11 @@
  */
 
 #include "stdopcod.h"
-#include "wavegde.h"
 #include "pluck.h"
 #include "memalloc.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 /* external prototypes */
 static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);

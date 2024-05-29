@@ -139,5 +139,7 @@ typedef struct {
     int32_t oldCount;
 } MANDEL;
 
+int32_t gab_gab_init_(CSOUND *csound);
+
 #endif
 

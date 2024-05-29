@@ -22,6 +22,8 @@
 #ifndef __MPADEC_H
 #define __MPADEC_H
 
+#include "sysdep.h"
+
 #undef FALSE
 #undef TRUE
 #define FALSE 0

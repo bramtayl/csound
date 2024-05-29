@@ -27,6 +27,7 @@
 #include "newfils.h"
 #include <math.h>
 #include "fgens_public.h"
+#include "namedins_public.h"
 
 static inline
 double fast_tanh(double x)

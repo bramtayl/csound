@@ -32,8 +32,8 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
-
-extern MYFLT MOD(MYFLT a, MYFLT bb);
+#include "fgens.h"
+#include "mxfft.h"
 
 typedef struct {
   OPDS    h;
@@ -3415,12 +3415,6 @@ typedef struct _fft {
   void *setup;
   AUXCH mem;
 } FFT;
-
-
-static uint32_t isPowerOfTwo (uint32_t x) {
-  return x != 0  ? !(x & (x - 1)) : 0;
-}
-
 
 int32_t init_rfft(CSOUND *csound, FFT *p) {
   int32_t   N = p->in->sizes[0];

@@ -53,6 +53,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <string>
 
 /**
  * A thread-safe queue, or first-in first-out (FIFO) queue, implemented using

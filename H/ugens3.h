@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
@@ -81,3 +83,5 @@ typedef struct {
         int32   mksecs;
         AUXCH   aux;            /* PTLPTR  ptlptrs[MAXPTLS + 1]; make dynamic */
 } ADSYN;
+
+OPCODE_INIT_FUNCTION(ugens3_localops_init);

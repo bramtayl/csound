@@ -2,6 +2,12 @@
 #include <string.h>
 #include "gtest/gtest.h"
 #include "csound.h"
+#include "threadsafe_public.h"
+#include "main.h"
+#include "musmon.h"
+#include "argdecode.h"
+#include "bus_public.h"
+#include "envvar_public.h"
 
 const char orc1 [] = "chn_k \"testing\", 3\n  instr 1\n  endin\n";
 

@@ -29,15 +29,7 @@
 
 #include "interlocks.h"
 
-
-extern int32_t ifd_init_(CSOUND *);
-extern int32_t partials_init_(CSOUND *);
-extern int32_t psynth_init_(CSOUND *);
-extern int32_t pvsbasic_init_(CSOUND *);
-extern int32_t pvscent_init_(CSOUND *);
-extern int32_t pvsdemix_init_(CSOUND *);
-extern int32_t
-pvsband_init_(CSOUND *);
+int32_t pvsopc_ModuleInit(CSOUND *csound);
 
 #endif  /* CSOUND_PVS_OPS_H */
 

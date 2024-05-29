@@ -22,6 +22,7 @@
 */
 
 #include "csound.h"                                    /*   SMAIN.C  */
+#include "utility.h"
 
 #if defined(__gnu_linux__) || defined(SGI) || defined(sol) || \
     defined(__MACH__) || defined(__EMX__)

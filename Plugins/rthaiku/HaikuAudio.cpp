@@ -38,7 +38,7 @@
 #include <media/BufferProducer.h>
 #include <media/MediaEventLooper.h>
 
-#include "haiku_audio.h"
+#include "haiku_audio.hpp"
 
 #define XDPRINTF(x)
 #define DPRINTF(x)

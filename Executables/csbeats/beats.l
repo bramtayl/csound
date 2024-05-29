@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "beats.tab.h"
+#include "beatslex.yy.h"
 
 #if defined(_WIN32) 
 #include <io.h>
@@ -34,14 +35,7 @@
 void comment(void);
 void comment1(void);
 int yyline = 0;
- extern int last_note;
- extern int last_integer;
- extern double last_float;
- extern double last_duration;
- extern double bpm;
  int next_instr=0;
- extern int instrument;
- extern int pnum;
 %}
 
 %option nounput

@@ -298,5 +298,7 @@ typedef struct {                /* ar rbjeq asig, kfco, klvl, kQ, kS[, imode] */
         ftype;
 } RBJEQ;
 
+int32_t oscbnk_init_(CSOUND *csound);
+
 #endif          /* CSOUND_OSCBNK_H */
 

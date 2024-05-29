@@ -25,6 +25,9 @@
 #include "csoundCore_internal.h"
 #include <math.h>
 #include "insert_public.h"
+#include "threadsafe_public.h"
+#include "namedins_public.h"
+#include "text.h"
 
 typedef struct {
     OPDS        h;

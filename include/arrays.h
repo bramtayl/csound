@@ -26,6 +26,7 @@
 
 #include "memalloc.h"
 #include "insert_public.h"
+#include "text.h"
 
 static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
 {

@@ -30,6 +30,10 @@
 #include "namedins_public.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "goto_ops.h"
+#include "musmon_internal.h"
+#include "interlocks.h"
 
 int32_t igoto(CSOUND *csound, GOTO *p)
 {
@@ -282,7 +286,6 @@ int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
   return turnoff2(csound, p, 0);
 }
 
-extern void delete_selected_rt_events(CSOUND*, MYFLT);
 int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
   MYFLT p1;
@@ -393,3 +396,68 @@ int32_t loop_ge_p(CSOUND *csound, LOOP_OPS *p)
     CS_PDS = p->l->prvp;
   return OK;
 }
+
+static OENTRY goto_ops_localops[] = {
+    {"cggoto.0", sizeof(CGOTO), 0, 3, "", "Bl", (SUBR)icgoto, (SUBR)kcgoto,
+     NULL, NULL},
+    {"cigoto", sizeof(CGOTO), 0, 1, "", "Bl", (SUBR)icgoto, NULL, NULL, NULL},
+    {"cingoto", sizeof(CGOTO), 0, 1, "", "Bl", (SUBR)ingoto, NULL, NULL, NULL},
+    {"ckgoto", sizeof(CGOTO), 0, 2, "", "Bl", NULL, (SUBR)kcgoto, NULL, NULL},
+    {"cngoto", sizeof(CGOTO), 0, 3, "", "Bl", (SUBR)ingoto, (SUBR)kngoto, NULL,
+     NULL},
+    {"cnkgoto", sizeof(CGOTO), 0, 2, "", "Bl", NULL, (SUBR)kngoto, NULL, NULL},
+    {"goto", sizeof(GOTO), 0, 3, "", "l", (SUBR)igoto, (SUBR)kgoto, NULL, NULL},
+    {"igoto", sizeof(GOTO), 0, 1, "", "l", (SUBR)igoto, NULL, NULL, NULL},
+    {"ihold", sizeof(LINK), 0, 1, "", "", (SUBR)ihold, NULL, NULL, NULL},
+    {"kgoto", sizeof(GOTO), 0, 2, "", "l", NULL, (SUBR)kgoto, NULL, NULL},
+    {"loop_ge.i", sizeof(LOOP_OPS), 0, 1, "", "iiil", (SUBR)loop_ge_i, NULL,
+     NULL, NULL},
+    {"loop_ge.k", sizeof(LOOP_OPS), 0, 2, "", "kkkl", NULL, (SUBR)loop_ge_p,
+     NULL, NULL},
+    {"loop_gt.i", sizeof(LOOP_OPS), 0, 1, "", "iiil", (SUBR)loop_g_i, NULL,
+     NULL, NULL},
+    {"loop_gt.k", sizeof(LOOP_OPS), 0, 2, "", "kkkl", NULL, (SUBR)loop_g_p,
+     NULL, NULL},
+    {"loop_le.i", sizeof(LOOP_OPS), 0, 1, "", "iiil", (SUBR)loop_le_i, NULL,
+     NULL, NULL},
+    {"loop_le.k", sizeof(LOOP_OPS), 0, 2, "", "kkkl", NULL, (SUBR)loop_le_p,
+     NULL, NULL},
+    {"loop_lt.i", sizeof(LOOP_OPS), 0, 1, "", "iiil", (SUBR)loop_l_i, NULL,
+     NULL, NULL},
+    {"loop_lt.k", sizeof(LOOP_OPS), 0, 2, "", "kkkl", NULL, (SUBR)loop_l_p,
+     NULL, NULL},
+    {"reinit", sizeof(GOTO), 0, 2, "", "l", NULL, (SUBR)reinit, NULL, NULL},
+    {"rigoto", sizeof(GOTO), 0, 1, "", "l", (SUBR)rigoto, NULL, NULL, NULL},
+    {"rireturn", sizeof(LINK), 0, 1, "", "", (SUBR)rireturn, NULL, NULL, NULL},
+    {"tigoto", sizeof(GOTO), 0, 1, "", "l", (SUBR)tigoto, NULL, NULL, NULL},
+    {"timout", sizeof(TIMOUT), 0, 3, "", "iil", (SUBR)timset, (SUBR)timout,
+     NULL, NULL},
+    {"tival", sizeof(EVAL), 0, 1, "i", "", (SUBR)tival, NULL, NULL, NULL},
+    {"turnoff2.c", sizeof(TURNOFF2), _CW, 2, "", "ikk", NULL, (SUBR)turnoff2k,
+     NULL, NULL},
+    {"turnoff2.i", sizeof(TURNOFF2), _CW, 2, "", "ikk", NULL, (SUBR)turnoff2k,
+     NULL, NULL},
+    {"turnoff2.k", sizeof(TURNOFF2), _CW, 2, "", "kkk", NULL, (SUBR)turnoff2k,
+     NULL, NULL},
+    {"turnoff2.r", sizeof(TURNOFF2), _CW, 2, "", "ikk", NULL, (SUBR)turnoff2k,
+     NULL, NULL},
+    {"turnoff2.S", sizeof(TURNOFF2), _CW, 2, "", "Skk", NULL, (SUBR)turnoff2S,
+     NULL, NULL},
+    {"turnoff2_i.i", sizeof(TURNOFF2), _CW, 1, "", "ioo", (SUBR)turnoff2k, NULL,
+     NULL, NULL},
+    {"turnoff2_i.S", sizeof(TURNOFF2), _CW, 1, "", "Soo", (SUBR)turnoff2S, NULL,
+     NULL, NULL},
+    {"turnoff3.c", sizeof(TURNOFF2), _CW, 2, "", "i", NULL, (SUBR)turnoff3k,
+     NULL, NULL},
+    {"turnoff3.i", sizeof(TURNOFF2), _CW, 2, "", "i", NULL, (SUBR)turnoff3k,
+     NULL, NULL},
+    {"turnoff3.k", sizeof(TURNOFF2), _CW, 2, "", "k", NULL, (SUBR)turnoff3k,
+     NULL, NULL},
+    {"turnoff3.r", sizeof(TURNOFF2), _CW, 2, "", "i", NULL, (SUBR)turnoff3k,
+     NULL, NULL},
+    {"turnoff3.S", sizeof(TURNOFF2), _CW, 2, "", "S", NULL, (SUBR)turnoff3S,
+     NULL, NULL},
+    {"turnoff", sizeof(LINK), 0, 2, "", "", NULL, (SUBR)turnoff, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(goto_ops_localops)

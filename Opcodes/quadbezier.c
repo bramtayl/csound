@@ -24,6 +24,7 @@
 #include "csoundCore_internal.h"
 #include <math.h>
 #include "fgens_public.h"
+#include "text.h"
 
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
 static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);

@@ -24,6 +24,8 @@
 #ifndef CSOUND_CFGVAR_H
 #define CSOUND_CFGVAR_H
 
+#include "csound.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

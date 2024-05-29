@@ -93,3 +93,6 @@ typedef struct {
 } RANDC;
 
 extern MYFLT intpow1(MYFLT x, int32_t n); /* Binary positive power function */
+int32 randint31(int32 seed31);
+
+OPCODE_INIT_FUNCTION(ugens4_localops_init);

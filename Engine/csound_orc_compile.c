@@ -23,6 +23,8 @@
   02110-1301 USA
 */
 
+#include "csound_orc_compile.h"
+
 #include "csoundCore_internal.h"
 #include "csound_orc.h"
 #include "parse_param.h"
@@ -31,6 +33,7 @@
 #include <math.h>
 #include <string.h>
 
+#include "auxfd_internal.h"
 #include "insert.h"
 #include "oload.h"
 #include "pstream.h"
@@ -39,20 +42,26 @@
 #include "csound_standard_types.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "find_opcode.h"
+#include "new_orc_parser.h"
+#include "csound_threads.h"
+#include "text.h"
+#include "auxfd_internal.h"
+#include "csmodule.h"
+#include "tok.h"
+#include "cs_par_orc_semantics.h"
+#include "aops.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
-void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
 static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
                       ENGINE_STATE *engineState);
 static void insprep(CSOUND *, INSTRTXT *, ENGINE_STATE *engineState);
 static void lgbuild(CSOUND *, INSTRTXT *, char *, int inarg,
                     ENGINE_STATE *engineState);
-int pnum(char *s);
 static void unquote_string(char *, const char *);
 void print_tree(CSOUND *, char *, TREE *);
 void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip);
-char argtyp2(char *s);
 void debugPrintCsound(CSOUND *csound);
 
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
@@ -62,8 +71,6 @@ int check_instr_name(char *s);
 void free_instr_var_memory(CSOUND *, INSDS *);
 void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                         OPDS *ids);
-
-extern const char *SYNTHESIZED_ARG;
 
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE
@@ -306,8 +313,6 @@ char** splitArgs(CSOUND* csound, char* argString)
   //    }
   return args;
 }
-
-OENTRY* find_opcode(CSOUND*, char*);
 
 char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
   char temp[512];
@@ -721,7 +726,6 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   if (A4 == 0)
     csound->A4 = 440.0;
   else {
-    extern void csound_aops_init_tables(CSOUND *);
     csound->A4 = A4;
     csound_aops_init_tables(csound);
   }
@@ -1978,7 +1982,7 @@ if (engineState != &csound->engineState) {
 #ifdef EMSCRIPTEN
 void sanitize(CSOUND *csound) {}
 #else
-extern void sanitize(CSOUND *csound);
+#include "cs_par_orc_semantics.h"
 #endif
 
 /**
@@ -2333,7 +2337,6 @@ char argtyp2(char *s) { /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
 
 /* For diagnostics map file name or macro name to an index */
 uint8_t file_to_int(CSOUND *csound, const char *name) {
-  // extern char *strdup(const char *);
   uint8_t n = 0;
   char **filedir = csound->filedir;
   while (n < 255 && filedir[n] && n < 255) { /* Do we have it already? */

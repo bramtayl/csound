@@ -26,6 +26,8 @@
 #ifndef CSOUND_OSCILS_H
 #define CSOUND_OSCILS_H
 
+#include "csoundCore_common.h"
+
 /* oscils opcode struct */
 
 typedef struct {
@@ -61,16 +63,6 @@ typedef struct {
 /*  double  wsized2_d, pidwsize_d; */           /* for oscils_hann.c */
 } TABLEXKT;
 
-/* these functions are exported to entry*.c */
-
-#ifndef CSOUND_OSCILS_C
-extern int oscils_set (CSOUND *, void*);
-extern int oscils (CSOUND *, void*);
-extern int lphasor_set (CSOUND *, void*);
-extern int lphasor (CSOUND *, void*);
-extern int tablexkt_set (CSOUND *, void*);
-extern int tablexkt (CSOUND *, void*);
-#endif
-
+OPCODE_INIT_FUNCTION(oscils_localops_init);
 #endif              /* CSOUND_OSCILS_H */
 

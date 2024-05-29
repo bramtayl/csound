@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kfco, *kres, *istor;
@@ -45,3 +47,5 @@ typedef struct {
         int32_t
         loop;
 } LOWPR_SEP;
+
+int32_t lowpassr_init_(CSOUND *csound);

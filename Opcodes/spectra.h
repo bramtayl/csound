@@ -24,6 +24,9 @@
 #ifndef __SPECTRA_H
 #define __SPECTRA_H
 
+#include "csoundCore.h"
+#include "cwindow.h"
+
 #define MAXFRQS 120
 
 typedef struct {
@@ -128,8 +131,8 @@ typedef struct {
         AUXCH   auxch;
 } SPECFILT;
 
-extern void DOWNset(CSOUND *, DOWNDAT *, int32);
-extern void SPECset(CSOUND *, SPECDAT *, int32);
+void DOWNset(CSOUND *, DOWNDAT *, int32);
+void SPECset(CSOUND *, SPECDAT *, int32);
 
 #endif
 

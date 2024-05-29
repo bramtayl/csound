@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *xcps, *iphs;
@@ -71,3 +73,5 @@ typedef struct {
         FUNC    *ftp;
         FUNC    FF;
 } OSC;
+
+OPCODE_INIT_FUNCTION(ugens2_localops_init);

@@ -33,6 +33,7 @@
 #include <stdarg.h>
 #include "utility.h"
 #include "memfiles.h"
+#include "het_export.h"
 
 #define END  32767
 

@@ -80,8 +80,52 @@
 
 #include "csoundCore_internal.h"
 #include "csmodule.h"
+#include "csmodule_public.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "envvar_public.h"
+#include "text.h"
+#include "sfont.h"
+#include "stdopcod.h"
+#include "pvs_ops.h"
+#include "gab/newgabopc.h"
+#include "fgens.h"
+
+#include "aops.h"
+#include "bus.h"
+#include "cmath.h"
+#include "compile_ops.h"
+#include "csound_type_system_internal.h"
+#include "diskin2.h"
+#include "disprep.h"
+#include "dumpf.h"
+#include "fgens.h"
+#include "goto_ops.h"
+#include "insert.h"
+#include "linevent.h"
+#include "lpred.h"
+#include "midifile.h"
+#include "midiinterop.h"
+#include "midiops_internal.h"
+#include "midiout.h"
+#include "musmon_internal.h"
+#include "oscils.h"
+#include "pstream_internal.h"
+#include "pvsanal.h"
+#include "remote.h"
+#include "schedule_internal.h"
+#include "sndinfUG.h"
+#include "str_ops.h"
+#include "ugens1.h"
+#include "ugens2.h"
+#include "ugens3.h"
+#include "ugens4.h"
+#include "ugens5.h"
+#include "ugens6.h"
+#include "ugrw1.h"
+#include "ugtabs.h"
+#include "vdelay.h"
+#include "windin.h"
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -117,10 +161,8 @@ int             closedir(DIR*);
 #  include <direct.h>
 #endif
 
-extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
-
 #if defined(INIT_STATIC_MODULES)
-extern int init_static_modules(CSOUND *);
+#include "init_static_modules.h"
 #endif
 
 /* module interface function names */
@@ -1006,7 +1048,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
  * Return value is CSOUND_SUCCESS if there was no error, and
  * CSOUND_ERROR if some modules could not be de-initialised.
  */
-extern int sfont_ModuleDestroy(CSOUND *csound);
+
 int csoundDestroyModules(CSOUND *csound)
 {
     csoundModule_t  *m;
@@ -1040,71 +1082,6 @@ int csoundDestroyModules(CSOUND *csound)
 #endif /* __wasi__ */
 
  /* ------------------------------------------------------------------------ */
-
-#if defined(_WIN32)
-
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
-{
-    *library = (void*) LoadLibrary(libraryPath);
-    return (*library != NULL ? 0 : -1);
-}
-
-PUBLIC int csoundCloseLibrary(void *library)
-{
-    return (int) (FreeLibrary((HMODULE) library) == FALSE ? -1 : 0);
-}
-
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
-    return (void*) GetProcAddress((HMODULE) library, procedureName);
-}
-
-#elif !(defined(NACL)) && !(defined(__wasi__)) && (defined(__gnu_linux__) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
-
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
-{
-    int flg = RTLD_NOW;
-    if (libraryPath != NULL) {
-      int len = (int) strlen(libraryPath);
-      /* ugly hack to fix importing modules in Python opcodes */
-      if (len >= 9 && strcmp(&(libraryPath[len - 9]), "/libpy.so") == 0)
-        flg |= RTLD_GLOBAL;
-      if (len >= 12 && strcmp(&(libraryPath[len - 12]), "/libpy.dylib") == 0)
-        flg |= RTLD_GLOBAL;
-    }
-    *library = (void*) dlopen(libraryPath, flg);
-    return (*library != NULL ? 0 : -1);
-}
-
-PUBLIC int csoundCloseLibrary(void *library)
-{
-    return (int) dlclose(library);
-}
-
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
-    return (void*) dlsym(library, procedureName);
-}
-
-#else /* case for platforms without shared libraries -- added 062404, akozar */
-
-int csoundOpenLibrary(void **library, const char *libraryPath)
-{
-    *library = NULL;
-    return -1;
-}
-
-int csoundCloseLibrary(void *library)
-{
-    return 0;
-}
-
-void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
-    return NULL;
-}
-
-#endif
 
 #if ENABLE_OPCODEDIR_WARNINGS
 static const char *opcodedirWarnMsg[] = {
@@ -1147,13 +1124,12 @@ void print_opcodedir_warning(CSOUND *p)
  - insert source code to libcsound_SRCS in../CMakeLists.txt
 */
 
-typedef int32_t (*INITFN)(CSOUND *, void *);
+typedef int32_t (*INITFN)(CSOUND *, OENTRY **);
 
 EXTERN_INIT_FUNCTION(babo_localops_init);
 EXTERN_INIT_FUNCTION(bilbar_localops_init);
 EXTERN_INIT_FUNCTION(compress_localops_init);
 EXTERN_INIT_FUNCTION(pvsbuffer_localops_init);
-EXTERN_INIT_FUNCTION(vosim_localops_init);
 EXTERN_INIT_FUNCTION(eqfil_localops_init);
 EXTERN_INIT_FUNCTION(modal4_localops_init);
 EXTERN_INIT_FUNCTION(physmod_localops_init);
@@ -1172,11 +1148,9 @@ EXTERN_INIT_FUNCTION(gendy_localops_init);
 EXTERN_INIT_FUNCTION(vbap_localops_init);
 EXTERN_INIT_FUNCTION(harmon_localops_init);
 EXTERN_INIT_FUNCTION(pitchtrack_localops_init);
-EXTERN_INIT_FUNCTION(squinewave_localops_init);
 
 EXTERN_INIT_FUNCTION(partikkel_localops_init);
 EXTERN_INIT_FUNCTION(shape_localops_init);
-EXTERN_INIT_FUNCTION(tabaudio_localops_init);
 EXTERN_INIT_FUNCTION(crossfm_localops_init);
 EXTERN_INIT_FUNCTION(pvlock_localops_init);
 EXTERN_INIT_FUNCTION(scnoise_localops_init);
@@ -1186,8 +1160,6 @@ EXTERN_INIT_FUNCTION(mp3in_localops_init);
 EXTERN_INIT_FUNCTION(afilts_localops_init);
 EXTERN_INIT_FUNCTION(pinker_localops_init);
 EXTERN_INIT_FUNCTION(paulstretch_localops_init);
-EXTERN_INIT_FUNCTION(wpfilters_localops_init);
-EXTERN_INIT_FUNCTION(zak_localops_init);
 EXTERN_INIT_FUNCTION(lufs_localops_init);
 EXTERN_INIT_FUNCTION(sterrain_localops_init);
 EXTERN_INIT_FUNCTION(date_localops_init);
@@ -1202,12 +1174,6 @@ EXTERN_INIT_FUNCTION(select_localops_init);
 EXTERN_INIT_FUNCTION(sequencer_localops_init);
 EXTERN_INIT_FUNCTION(scugens_localops_init);
 EXTERN_INIT_FUNCTION(emugens_localops_init);
-
-extern int32_t stdopc_ModuleInit(CSOUND *csound);
-extern int32_t pvsopc_ModuleInit(CSOUND *csound);
-extern int32_t sfont_ModuleInit(CSOUND *csound);
-extern int32_t sfont_ModuleCreate(CSOUND *csound);
-extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
 #ifdef HAVE_SOCKETS
 EXTERN_INIT_FUNCTION(socksend_localops_init);
@@ -1246,16 +1212,31 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   #ifndef NO_SERIAL_OPCODES                                 
     EXTERN_INIT_FUNCTION(serial_localops_init);
   #endif
+  EXTERN_INIT_FUNCTION(space_init_);
+  EXTERN_INIT_FUNCTION(spat3d_init_);
+  EXTERN_INIT_FUNCTION(squinewave_localops_init);
   EXTERN_INIT_FUNCTION(sterrain_localops_init);
+  EXTERN_INIT_FUNCTION(syncgrain_init_);
   EXTERN_INIT_FUNCTION(system_call_localops_init);
+  EXTERN_INIT_FUNCTION(tabaudio_localops_init);
   EXTERN_INIT_FUNCTION(tabsum_localops_init);
   EXTERN_INIT_FUNCTION(ugakbari_localops_init);
+  EXTERN_INIT_FUNCTION(ugens9_init_);
+  EXTERN_INIT_FUNCTION(ugensa_init_);
+  EXTERN_INIT_FUNCTION(ugmoss_init_);
+  EXTERN_INIT_FUNCTION(ugnorman_init_);
+  EXTERN_INIT_FUNCTION(ugsc_init_)
   EXTERN_INIT_FUNCTION(vaops_localops_init);
+  EXTERN_INIT_FUNCTION(vbap_localops_init);
+  EXTERN_INIT_FUNCTION(vosim_localops_init);
+  EXTERN_INIT_FUNCTION(wave_terrain_init_);
+  EXTERN_INIT_FUNCTION(wpfilters_localops_init);
   EXTERN_INIT_FUNCTION(wterrain2_localops_init);
+  EXTERN_INIT_FUNCTION(zak_localops_init);
 #endif
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
-                                 bilbar_localops_init, vosim_localops_init,
+                                 bilbar_localops_init,
                                  compress_localops_init, pvsbuffer_localops_init,
                                  eqfil_localops_init, modal4_localops_init,
                                  physmod_localops_init,
@@ -1264,7 +1245,6 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtferX_localops_init, loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
                                  phisem_localops_init, pvoc_localops_init,
-                                 vbap_localops_init,
                                  harmon_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
                                  shape_localops_init,
@@ -1272,8 +1252,6 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtfearly_localops_init,
                                  hrtfreverb_localops_init,
                                  paulstretch_localops_init,
-                                 squinewave_localops_init, tabaudio_localops_init,
-
 #if !(defined(NACL)) && !(defined(__wasi__))
 #ifdef HAVE_SOCKETS
                                  sockrecv_localops_init,
@@ -1283,9 +1261,43 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #endif
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init, gendy_localops_init,
-                                 wpfilters_localops_init, zak_localops_init,
                                  scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
+                                 aops_localops_init,
+                                 bus_localops_init,
+                                 cmath_localops_init,
+                                 compile_ops_localops_init,
+                                 csound_type_system_internal_localops_init,
+                                 diskin2_localops_init,
+                                 disprep_localops_init,
+                                 dumpf_localops_init,
+                                 fgens_localops_init,
+                                 goto_ops_localops_init,
+                                 insert_localops_init,
+                                 linevent_localops_init,
+                                 lpred_localops_init,
+                                 midifile_localops_init,
+                                 midiinterop_localops_init,
+                                 midiops_internal_localops_init,
+                                 midiout_localops_init,
+                                 musmon_internal_localops_init,
+                                 oscils_localops_init,
+                                 pstream_internal_localops_init,
+                                 pvsanal_localops_init,
+                                 remote_localops_init,
+                                 schedule_internal_localops_init,
+                                 sndinfUG_localops_init,
+                                 str_ops_localops_init,
+                                 ugens1_localops_init,
+                                 ugens2_localops_init,
+                                 ugens3_localops_init,
+                                 ugens4_localops_init,
+                                 ugens5_localops_init,
+                                 ugens6_localops_init,
+                                 ugrw1_localops_init,
+                                 ugtabs_localops_init,
+                                 vdelay_localops_init,
+                                 windin_localops_init,
   #ifdef INIT_STATIC_MODULES
     ambicode_localops_init,
     ambicode1_localops_init,
@@ -1318,13 +1330,27 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     #ifndef NO_SERIAL_OPCODES                                 
           serial_localops_init,
     #endif
+    space_init_,
+    spat3d_init_,
+    squinewave_localops_init,
     sterrain_localops_init,
+    syncgrain_init_,
     system_call_localops_init,
+    tabaudio_localops_init,
     tabsum_localops_init,
     ugakbari_localops_init,
-    system_call_localops_init,
+    ugens9_init_,
+    ugensa_init_,
+    ugmoss_init_,
+    ugnorman_init_,
+    ugsc_init_,
     vaops_localops_init,
+    vbap_localops_init,
+    vosim_localops_init,
+    wave_terrain_init_,
+    wpfilters_localops_init,
     wterrain2_localops_init,
+    zak_localops_init,
   #endif
                                  NULL };
 

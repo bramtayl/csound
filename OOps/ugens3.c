@@ -30,6 +30,8 @@
 #include "fgens_public.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
+#include "interlocks.h"
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {
@@ -1515,3 +1517,24 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
     p->mksecs += timkincr;                  /* advance the time */
     return OK;
 }
+
+static OENTRY ugens3_localops[] = {
+    {"adsyn", sizeof(ADSYN), 0, 3, "a", "kkkSo", (SUBR)adset_S, (SUBR)adsyn,
+     NULL, NULL},
+    {"adsyn.i", sizeof(ADSYN), 0, 3, "a", "kkkio", (SUBR)adset, (SUBR)adsyn,
+     NULL, NULL},
+    {"foscil", sizeof(FOSC), TR, 3, "a", "xkxxkjo", (SUBR)foscset, (SUBR)foscil,
+     NULL, NULL},
+    {"foscili", sizeof(FOSC), TR, 3, "a", "xkxxkjo", (SUBR)foscset,
+     (SUBR)foscili, NULL, NULL},
+    {"loscil3", sizeof(LOSC), TR, 3, "mm", "xkjojoojoo", (SUBR)losset,
+     (SUBR)loscil3, NULL, NULL},
+    {"loscil3phs", sizeof(LOSCPHS), TR, 3, "amm", "xkjojoojoo",
+     (SUBR)losset_phs, (SUBR)loscil3_phs, NULL, NULL},
+    {"loscil", sizeof(LOSC), TR, 3, "mm", "xkjojoojoo", (SUBR)losset,
+     (SUBR)loscil, NULL, NULL},
+    {"loscilphs", sizeof(LOSCPHS), TR, 3, "amm", "xkjojoojoo", (SUBR)losset_phs,
+     (SUBR)loscil_phs, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(ugens3_localops)

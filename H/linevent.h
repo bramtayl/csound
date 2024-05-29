@@ -45,4 +45,16 @@ typedef struct {
     int argno;
 } LINEVENT2;
 
+#define STA_LINEVENT(x)   (csound->lineventStatics.x)
+
+#define LBUFSIZ1 32768
+
+void sensLine(CSOUND *csound, void *userData);
+void    RTLineset(CSOUND *);
+
+int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+
+OPCODE_INIT_FUNCTION(linevent_localops_init);
+
 #endif      /* CSOUND_LINEVENT_H */

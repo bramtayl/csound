@@ -29,6 +29,7 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 

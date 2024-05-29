@@ -23,6 +23,7 @@
 
 #include "csoundCore_internal.h"
 #include "memalloc.h"
+#include "circularbuffer.h"
 
 typedef struct _circular_buffer {
   char *buffer;

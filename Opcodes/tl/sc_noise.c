@@ -35,6 +35,7 @@
 */
 
 #include "csoundCore_internal.h"
+#include "random.h"
 
 typedef struct {
         OPDS    h;

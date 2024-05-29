@@ -23,7 +23,7 @@
 
 #include "csdl.h"
 #include "ptrigtbl.h"
-#include "fhtfun.h"
+#include "cross2.h"
 #include "interlocks.h"
 #include <math.h>
 #include "auxfd.h"

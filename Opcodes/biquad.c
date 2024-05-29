@@ -37,6 +37,7 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
 
 /***************************************************************************/
 /* The biquadratic filter computes the digital filter two x components and */

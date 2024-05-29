@@ -37,32 +37,16 @@
 #include "csound_orc_semantics.h"
 #include "memalloc.h"
 #include "csound_orc_semantics_public.h"
+#include "find_opcode.h"
+#include "text.h"
+#include "csound_orclex.h"
+#include "csound_orc_compile.h"
+#include "tok.h"
 
-extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);
 
-extern uint64_t csound_orcget_locn(void *);
-extern  char argtyp2(char*);
-extern  int tree_arg_list_count(TREE *);
-void print_tree(CSOUND *, char *, TREE *);
-
-/* from csound_orc_compile.c */
-extern int argsRequired(char* arrayName);
-extern char** splitArgs(CSOUND* csound, char* argString);
-extern int pnum(char*);
-
-OENTRIES* find_opcode2(CSOUND*, char*);
-char* resolve_opcode_get_outarg(CSOUND* csound,
-                                OENTRIES* entries, char* inArgTypes);
-int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
-char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                               TYPE_TABLE* typeTable);
 char* convert_internal_to_external(CSOUND* csound, char* arg);
-char* convert_external_to_internal(CSOUND* csound, char* arg);
 
-extern int add_udo_definition(CSOUND *csound, char *opname,
-                              char *outtypes, char *intypes, int flags);
-extern TREE * create_opcode_token(CSOUND *csound, char* op);
 int is_reserved(char*);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
@@ -653,39 +637,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   }
 }
 
-
-
-char* get_opcode_short_name(CSOUND* csound, char* opname) {
-
-  char* dot = strchr(opname, '.');
-  if (dot != NULL) {
-    int opLen = dot - opname;
-    return cs_strndup(csound, opname, opLen);
-  }
-  return opname;
-}
-
-/* find opcode with the specified name in opcode list */
-/* returns index to opcodlst[], or zero if the opcode cannot be found */
-OENTRY* find_opcode(CSOUND *csound, char *opname)
-{
-  char *shortName;
-  CONS_CELL* head;
-  OENTRY* retVal;
-
-  if (opname[0] == '\0' || isdigit(opname[0]))
-    return 0;
-
-  shortName = get_opcode_short_name(csound, opname);
-
-  head = cs_hash_table_get(csound, csound->opcodes, shortName);
-
-  retVal = (head != NULL) ? head->value : NULL;
-  if (shortName != opname) mfree(csound, shortName);
-
-  return retVal;
-}
-
 static OENTRIES* get_entries(CSOUND* csound, int count)
 {
   OENTRIES* x = mcalloc(csound, sizeof(OENTRIES*)+sizeof(OENTRY*)*count);
@@ -1058,23 +1009,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
   //    return retVal;
 }
 
-OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
-                             char* outArgTypes, char* inArgTypes) {
-  IGN(csound);
-  OENTRY* retVal = NULL;
-  int i;
-
-  char* outTest = (!strcmp("0", outArgTypes)) ? "" : outArgTypes;
-  for (i = 0; i < entries->count; i++) {
-    OENTRY* temp = entries->entries[i];
-    if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
-        temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
-      retVal = temp;
-    }
-  }
-  return retVal;
-}
-
 /* used when creating T_FUNCTION's */
 char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                                 char* inArgTypes) {
@@ -1293,44 +1227,6 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
   mfree(csound, argTypes);
   return argString;
 }
-
-
-OENTRY* find_opcode_new(CSOUND* csound, char* opname,
-                        char* outArgsFound, char* inArgsFound) {
-
-  //    csoundMessage(csound, "Searching for opcode: %s | %s | %s\n",
-  //                    outArgsFound, opname, inArgsFound);
-
-  OENTRIES* opcodes = find_opcode2(csound, opname);
-
-  if (opcodes->count == 0) {
-    return NULL;
-  }
-  OENTRY* retVal = resolve_opcode(csound, opcodes, outArgsFound, inArgsFound);
-
-  mfree(csound, opcodes);
-  return retVal;
-
-}
-
-OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
-                          char* outArgsFound, char* inArgsFound) {
-
-  OENTRIES* opcodes = find_opcode2(csound, opname);
-
-  if (opcodes->count == 0) {
-    return NULL;
-  }
-
-
-  OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
-                                        outArgsFound, inArgsFound);
-
-  mfree(csound, opcodes);
-
-  return retVal;
-}
-
 
 //FIXME - this needs to be updated to take into account array names
 // that could clash with non-array names, i.e. kVar and kVar[]
@@ -2647,8 +2543,6 @@ int csound_orcwrap(void* dummy)
 
 /* UTILITY FUNCTIONS */
 
-extern int csound_orcget_lineno(void*);
-extern char *csound_orcget_current_pointer(void *);
 /* BISON PARSER FUNCTION */
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE **astTree, const char *str)
@@ -2856,13 +2750,6 @@ void delete_tree(CSOUND *csound, TREE *l)
     mfree(csound, old);
   }
 }
-
-PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree)
-{
-  //printf("Tree %p\n", tree);
-  delete_tree(csound, tree);
-}
-
 
 /* DEBUGGING FUNCTIONS */
 void print_tree_i(CSOUND *csound, TREE *l, int n)

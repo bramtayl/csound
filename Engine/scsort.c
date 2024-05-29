@@ -25,18 +25,16 @@
 #include "corfile.h"
 #include <ctype.h>
 #include "csound_orc_semantics_public.h"
-
-extern void sort(CSOUND*);
-extern void twarp(CSOUND*);
-extern void swritestr(CSOUND*, CORFIL *sco, int first);
-extern void sfree(CSOUND *csound);
-//extern void sread_init(CSOUND *csound);
-extern int  sread(CSOUND *csound);
+#include "scsort.h"
+#include "swritestr.h"
+#include "sread.h"
+#include "sort.h"
+#include "twarp.h"
+#include "swritestr.h"
 
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */
 
-extern void sread_initstr(CSOUND *, CORFIL *sco);
 char *scsortstr(CSOUND *csound, CORFIL *scin)
 {
     int     n;

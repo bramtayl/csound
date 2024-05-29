@@ -88,6 +88,8 @@ static char *rcsid = "$Id$";
 #include <assert.h>
 #include "memalloc.h"
 #include "fftlib.h"
+#include "mxfft.h"
+#include "text.h"
 
 static void fft_(CSOUND *,MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t);
 static void fftmx(MYFLT *, MYFLT *, int32_t, int32_t, int32_t, int32_t, int32_t,

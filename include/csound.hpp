@@ -44,6 +44,29 @@
 #ifdef __BUILDING_CSOUND_INTERFACES
 #endif
 #endif
+#include "cfgvar.h"
+#include "new_orc_parser.h"
+#include "threadsafe_public.h"
+#include "csound_orc_semantics_public.h"
+#include "cscore.h"
+#include "main.h"
+#include "musmon.h"
+#include "argdecode.h"
+#include "libsnd_u.h"
+#include "threadsafe_public.h"
+#include "utility.h"
+#include "bus_public.h"
+#include "fgens_public.h"
+#include "opcode.h"
+#include "csound_threads.h"
+#include "envvar_public.h"
+#include "namedins_public.h"
+#include "random.h"
+#include "libsnd.h"
+#include "random.h"
+#include "main.h"
+#include "bus_public.h"
+#include "envvar_public.h"
 
 #ifdef SWIGPYTHON
 #define MESSAGE_BUFFER_LENGTH 8192

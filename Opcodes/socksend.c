@@ -44,6 +44,7 @@
 #include "auxfd.h"
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 

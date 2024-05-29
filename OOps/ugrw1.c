@@ -53,6 +53,8 @@
 #include "memalloc.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "text.h"
+#include "interlocks.h"
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -829,3 +831,46 @@ int32_t outz(CSOUND *csound, IOZ *p)
     return csoundPerfError(csound, &(p->h),
                              Str("outz index < 0. No output."));
 }
+
+static OENTRY ugrw1_localops[] = {
+    {"elapsedcycles.i", sizeof(RDTIME), 0, 1, "i", "", (SUBR)elapsedcycles,
+     NULL, NULL, NULL},
+    {"elapsedcycles.k", sizeof(RDTIME), 0, 2, "k", "", NULL,
+     (SUBR)elapsedcycles, NULL, NULL},
+    {"elapsedtime.i", sizeof(RDTIME), 0, 1, "i", "", (SUBR)elapsedtime, NULL,
+     NULL, NULL},
+    {"elapsedtime.k", sizeof(RDTIME), 0, 2, "k", "", NULL, (SUBR)elapsedtime,
+     NULL, NULL},
+    {"eventcycles", sizeof(RDTIME), 0, 3, "k", "", (SUBR)instimset,
+     (SUBR)eventcycles, NULL, NULL},
+    {"eventtime", sizeof(RDTIME), 0, 3, "k", "", (SUBR)instimset,
+     (SUBR)eventtime, NULL, NULL},
+    {"inz", sizeof(IOZ), ZW, 2, "", "k", NULL, (SUBR)inz, NULL, NULL},
+    {"outz", sizeof(IOZ), ZR | IR, 2, "", "k", NULL, (SUBR)outz, NULL, NULL},
+    {"peak.a", sizeof(PEAK), 0, 2, "k", "a", NULL, (SUBR)peaka, NULL, NULL},
+    {"peak.k", sizeof(PEAK), 0, 2, "k", "k", NULL, (SUBR)peakk, NULL, NULL},
+    {"printk2", sizeof(PRINTK2), WR, 3, "", "koo", (SUBR)printk2set,
+     (SUBR)printk2, NULL, NULL},
+    {"printk", sizeof(PRINTK), WR, 3, "", "ikoooo", (SUBR)printkset,
+     (SUBR)printk, NULL, NULL},
+    {"printks2", sizeof(PRINTK3), 0, 3, "", "Sk", (SUBR)printk3set,
+     (SUBR)printk3, NULL, NULL},
+    {"printks", sizeof(PRINTKS), WR, 3, "", "SiN", (SUBR)printksset_S,
+     (SUBR)printks, NULL, NULL},
+    {"printks.i", sizeof(PRINTKS), WR, 3, "", "iiN", (SUBR)printksset,
+     (SUBR)printks, NULL, NULL},
+    {"prints", sizeof(PRINTS), 0, 1, "", "SN", (SUBR)printsset_S, NULL, NULL,
+     NULL},
+    {"prints.i", sizeof(PRINTS), 0, 1, "", "iN", (SUBR)printsset, NULL, NULL,
+     NULL},
+    {"timeinstk", sizeof(RDTIME), 0, 3, "k", "", (SUBR)instimset,
+     (SUBR)instimek, NULL, NULL},
+    {"timeinsts", sizeof(RDTIME), 0, 3, "k", "", (SUBR)instimset,
+     (SUBR)instimes, NULL, NULL},
+    {"timek.i", sizeof(RDTIME), 0, 1, "i", "", (SUBR)timek, NULL, NULL, NULL},
+    {"timek.k", sizeof(RDTIME), 0, 2, "k", "", NULL, (SUBR)timek, NULL, NULL},
+    {"times.i", sizeof(RDTIME), 0, 1, "i", "", (SUBR)timesr, NULL, NULL, NULL},
+    {"times.k", sizeof(RDTIME), 0, 2, "k", "", NULL, (SUBR)timesr, NULL, NULL},
+};
+
+LINKAGE_BUILTIN(ugrw1_localops)

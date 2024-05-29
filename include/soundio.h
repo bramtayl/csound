@@ -25,6 +25,7 @@
 #define CSOUND_SOUNDIO_H
 
 #include "soundfile.h"
+#include "csound.h"
 
 
 #ifdef _WIN32

@@ -35,6 +35,9 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "namedins_public.h"
+#include "random.h"
+#include "text.h"
 
 #define STARTING  1
 #define PLAYING   2
@@ -2082,8 +2085,6 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
 
     return OK;
 }
-
-extern int32 randint31(int32);
 
 int32_t varicolset(CSOUND *csound, VARI *p)
 {

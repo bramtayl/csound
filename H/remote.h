@@ -59,6 +59,7 @@
 #endif
 #include <string.h>
 #include <errno.h>
+#include "csoundCore_common.h"
 
 
 void m_chanmsg(CSOUND *csound, MEVENT *mep);   /* called from midirecv & musmon */
@@ -168,4 +169,5 @@ int32_t getRemoteInsRfdCount(CSOUND *csound);
 /* musmon: determine whether MIDI channel accepts remove events */
 int32_t getRemoteChnRfd(CSOUND *csound, int32_t chan);
 
+OPCODE_INIT_FUNCTION(remote_localops_init);
 #endif      /* CSOUND_REMOTE_H */

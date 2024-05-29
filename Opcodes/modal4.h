@@ -59,7 +59,6 @@ typedef struct Modal4 {
     MYFLT       resons[4];
 } Modal4;
 
-void Modal4_clear(Modal4 *);
 void Modal4_setFreq(CSOUND*, Modal4 *m, MYFLT frequency);
 void Modal4_setRatioAndReson(CSOUND*,Modal4 *m, int32_t
                              whichOne,

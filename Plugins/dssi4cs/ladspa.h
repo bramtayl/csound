@@ -22,6 +22,8 @@
 #ifndef LADSPA_INCLUDED
 #define LADSPA_INCLUDED
 
+#include "sysdep.h"
+
 #define LADSPA_VERSION "1.1"
 #define LADSPA_VERSION_MAJOR 1
 #define LADSPA_VERSION_MINOR 1

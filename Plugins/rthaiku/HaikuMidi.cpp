@@ -36,7 +36,7 @@
 #include <MidiProducer.h>
 #include <MidiConsumer.h>
 
-#include "haiku_midi.h"
+#include "haiku_midi.hpp"
 
 #define XDPRINTF(x)
 #define DPRINTF(x)

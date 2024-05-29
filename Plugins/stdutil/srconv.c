@@ -53,6 +53,7 @@
 #include "memalloc.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "srconv.h"
 
 #define IBUF    (4096)
 #define IBUF2   (IBUF/2)

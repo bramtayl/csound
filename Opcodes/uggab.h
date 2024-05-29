@@ -27,6 +27,8 @@
 /* wrap and mirror UGs by Gabriel Maldonado */
 /********************************************/
 
+#include "csoundCore_common.h"
+
 typedef struct {
     OPDS  h;
     MYFLT *xdest, *xsig, *xlow, *xhigh;
@@ -231,5 +233,7 @@ typedef struct {
         int32_t initflag, rangeMin_cod, rangeMax_cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } RANDOM3;
+
+int32_t uggab_init_(CSOUND *csound);
 
 #endif /* UGGAB_H */

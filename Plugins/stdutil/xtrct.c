@@ -38,6 +38,7 @@
 #include "libsnd_u.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "xtrct.h"
 
 
 /* Constants */

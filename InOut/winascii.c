@@ -23,6 +23,8 @@
 
 #include "csoundCore.h"                         /*      winascii.c           */
 #include "cwindow.h"                            /*  teletype csound graphs   */
+#include "text.h"
+#include "winascii.h"
 
 #define HOR     80
 #define VER     20

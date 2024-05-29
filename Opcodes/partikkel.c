@@ -26,6 +26,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "namedins_public.h"
+#include "random.h"
+#include "text.h"
 
 #define INITERROR(x) csoundInitError(csound, Str("partikkel: " x))
 #define PERFERROR(x) csoundPerfError(csound, &(p->h),Str("partikkel: " x))

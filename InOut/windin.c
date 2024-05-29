@@ -28,7 +28,9 @@
 #include "csoundCore.h"        
 #include "cwindow.h"
 #include "windin.h"             
-#include "insert_public.h"                 
+#include "insert_public.h"       
+#include "text.h"
+#include "interlocks.h"    
 
 int xyinset(CSOUND *csound, XYIN *p)
 {
@@ -99,3 +101,8 @@ int xyinset(CSOUND *csound, XYIN *p)
 /*     return OK; */
 /* } */
 
+static OENTRY windin_localops[] = {{"xyin", sizeof(XYIN), _QQ, 1, "kk",
+                                    "iiiiioo", (SUBR)xyinset, NULL, NULL,
+                                    NULL}};
+
+LINKAGE_BUILTIN(windin_localops)

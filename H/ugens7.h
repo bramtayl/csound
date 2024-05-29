@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 #define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct ovrlap {
@@ -65,3 +67,5 @@ typedef struct {
         int32   pnt11, pnt12, pnt13, pnt21, pnt22, pnt23, pnt31, pnt32, pnt33;
         AUXCH   auxch;
 } HARMON;
+
+int32_t ugens7_init_(CSOUND *csound);

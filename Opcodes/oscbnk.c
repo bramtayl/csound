@@ -29,6 +29,7 @@
 #include "fftlib.h"
 #include "auxfd.h"
 #include "insert_public.h"
+#include "text.h"
 
 static inline STDOPCOD_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 {

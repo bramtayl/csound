@@ -108,6 +108,9 @@ on startup. 0 means no initialisation.
 
 #ifndef _NEWFILS_H
 #define _NEWFILS_H
+
+#include "csoundCore_common.h"
+
 #define DIM 4
 
 typedef struct _moogladder {
@@ -189,5 +192,7 @@ typedef struct _bob {
 
 static int32_t bob_init(CSOUND *csound,BOB *p);
 static int32_t bob_process(CSOUND *csound,BOB *p);
+
+int32_t newfils_init_(CSOUND *csound);
 
 #endif

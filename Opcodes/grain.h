@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
     OPDS        h;
     MYFLT       *sr, *xamp, *xlfr, *xdns, *kabnd, *kbnd, *kglen;
@@ -38,3 +40,5 @@ typedef struct {
     FUNC        *gftp, *eftp;
     int16       dnsadv, ampadv, lfradv;
 } PGRA;
+
+int32_t grain_init_(CSOUND *);

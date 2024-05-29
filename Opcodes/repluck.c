@@ -32,6 +32,7 @@
 #include "repluck.h"
 #include "memalloc.h"
 #include "auxfd.h"
+#include "text.h"
 
 static int32_t wgpsetin(CSOUND *, WGPLUCK2 *);
 

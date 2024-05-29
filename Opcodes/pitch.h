@@ -3,7 +3,7 @@
 /*
     pitch.h:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker,
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubï¿½cker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
@@ -260,11 +260,6 @@ typedef struct {
         int32_t     maxwind;
 } MEDFILT;
 
-int32_t Foscaa(CSOUND *, XOSC *p);
-int32_t Foscak(CSOUND *, XOSC *p);
-int32_t Foscka(CSOUND *, XOSC *p);
-int32_t Fosckk(CSOUND *, XOSC *p);
-int32_t Foscset(CSOUND *, XOSC *p);
 int32_t GardnerPink_init(CSOUND *, PINKISH *p);
 int32_t GardnerPink_perf(CSOUND *, PINKISH *p);
 int32_t adsynt(CSOUND *, ADSYNT *p);
@@ -277,15 +272,10 @@ int32_t clockread(CSOUND *, CLKRD *p);
 int32_t clockset(CSOUND *, CLOCK *p);
 int32_t scratchread(CSOUND *, SCRATCHPAD *p);
 int32_t scratchwrite(CSOUND *, SCRATCHPAD *p);
-int32_t cpuperc(CSOUND *, CPU_PERC *p);
-int32_t cpuperc_S(CSOUND *, CPU_PERC *p);
 int32_t hsboscil(CSOUND *, HSBOSC *p);
 int32_t hsboscset(CSOUND *, HSBOSC *p);
 int32_t impulse(CSOUND *, IMPULSE *p);
 int32_t impulse_set(CSOUND *, IMPULSE *p);
-int32_t instcount(CSOUND *, INSTCNT *p);
-int32_t instcount_S(CSOUND *, INSTCNT *p);
-int32_t totalcount(CSOUND *, INSTCNT *p);
 int32_t kphsorbnk(CSOUND *, PHSORBNK *p);
 int32_t ktrnseg(CSOUND *, TRANSEG *p);
 int32_t ktrnsegr(CSOUND *csound, TRANSEG *p);
@@ -294,13 +284,7 @@ int32_t lpf18set(CSOUND *, LPF18 *p);
 int32_t mac(CSOUND *, SUM *p);
 int32_t maca(CSOUND *, SUM *p);
 int32_t macset(CSOUND *, SUM *p);
-int32_t maxalloc(CSOUND *, CPU_PERC *p);
-int32_t mute_inst(CSOUND *, MUTE *p);
-int32_t maxalloc_S(CSOUND *, CPU_PERC *p);
-int32_t mute_inst_S(CSOUND *, MUTE *p);
-int32_t pfun(CSOUND *, PFUN *p);
-int32_t pfunk_init(CSOUND *, PFUNK *p);
-int32_t pfunk(CSOUND *, PFUNK *p);
+
 int32_t phsbnkset(CSOUND *, PHSORBNK *p);
 int32_t phsorbnk(CSOUND *, PHSORBNK *p);
 int32_t pinkish(CSOUND *, PINKISH *p);
@@ -321,5 +305,9 @@ int32_t wavesetset(CSOUND *, BARRI *p);
 int32_t medfiltset(CSOUND *, MEDFILT *p);
 int32_t medfilt(CSOUND *, MEDFILT *p);
 int32_t kmedfilt(CSOUND *, MEDFILT *p);
+
+int32_t macset(CSOUND *, SUM *);
+int32_t mac(CSOUND *, SUM *), maca(CSOUND *, SUM *);
+
 #endif /* PITCH_H */
 

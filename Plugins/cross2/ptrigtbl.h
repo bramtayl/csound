@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "sysdep.h"
+
 #define GOOD_TRIG
 
 #if defined(GOOD_TRIG)

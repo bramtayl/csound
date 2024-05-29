@@ -22,6 +22,7 @@
 #include <math.h>
 #include "insert_public.h"
 #include "fgens_public.h"
+#include "text.h"
 
 #define f7bit       (FL(127.0))
 #define oneTOf7bit  (MYFLT)(1.0/127.0)

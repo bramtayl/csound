@@ -27,6 +27,8 @@
 #include "csound.hpp"
 #include "csPerfThread.hpp"
 #include "soundio.h"
+#include "csound_threads.h"
+#include "circularbuffer.h"
 
 // ----------------------------------------------------------------------------
 

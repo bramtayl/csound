@@ -641,23 +641,35 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 # The csound library
 set(libcsound_SRCS
     Top/csound.c
+    Top/csound_internal.c
     Engine/auxfd.c
+    Engine/auxfd_internal.c
     Engine/cfgvar.c
+    Engine/cfgvar_internal.c
     Engine/corfiles.c
+    Engine/csound_orc_compile.c
     Engine/entry1.c
     Engine/envvar.c
     Engine/envvar_public.c
     Engine/extract.c
+    Engine/fgens.c
     Engine/fgens_public.c
+    Engine/find_opcode.c
     Engine/insert.c
     Engine/insert_public.c
+    Engine/linevent.c
     Engine/linevent_public.c
     Engine/memalloc.c
+    Engine/memalloc_internal.c
     Engine/memfiles.c
+    Engine/memfiles_internal.c
     Engine/musmon.c
+    Engine/musmon_internal.c
     Engine/namedins.c
     Engine/namedins_public.c
+    Engine/parse_param.c
     Engine/rdscor.c
+    Engine/rdscor_internal.c
     Engine/scsort.c
     Engine/scxtract.c
     Engine/sort.c
@@ -665,13 +677,16 @@ set(libcsound_SRCS
     Engine/swritestr.c
     Engine/twarp.c
     Engine/csound_type_system.c
+    Engine/csound_type_system_internal.c
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
     Engine/pools.c
     Engine/ugen.c
     InOut/soundfile.c
     InOut/libsnd.c
+    InOut/libsnd_internal.c
     InOut/libsnd_u.c
+    InOut/libsnd_u_internal.c
     InOut/midifile.c
     InOut/midirecv.c
     InOut/midisend.c
@@ -683,25 +698,29 @@ set(libcsound_SRCS
     OOps/aops.c
     OOps/aops_public.c
     OOps/bus.c
+    OOps/bus_public.c
     OOps/cmath.c
     OOps/diskin2.c
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
+    OOps/lpred.c
     OOps/lpred_public.c
     OOps/pffft.c
     OOps/goto_ops.c
     OOps/midiinterop.c
-    OOps/midiops.c
+    OOps/midiops_internal.c
     OOps/midiout.c
     OOps/mxfft.c
     OOps/oscils.c
-    OOps/pstream.c
+    OOps/pstream_internal.c
     OOps/pvfileio.c
+    OOps/pvfileio_internal.c
     OOps/pvsanal.c
     OOps/random.c
+    OOps/random_internal.c
     OOps/remote.c
-    OOps/schedule.c
+    OOps/schedule_internal.c
     OOps/sndinfUG.c
     OOps/str_ops.c
     OOps/ugens1.c
@@ -719,8 +738,6 @@ set(libcsound_SRCS
     Opcodes/bilbar.c
     Opcodes/compress.c
     Opcodes/eqfil.c
-    Opcodes/Vosim.c
-    Opcodes/squinewave.c
     Opcodes/pinker.c
     Opcodes/pitch.c
     Opcodes/pitch0.c
@@ -733,15 +750,10 @@ set(libcsound_SRCS
     Opcodes/arrays.c
     Opcodes/phisem.c
     Opcodes/hrtfopcodes.c
-    Opcodes/vbap.c
-    Opcodes/vbap1.c
-    Opcodes/vbap_n.c
-    Opcodes/vbap_zak.c
     Opcodes/harmon.c
     Opcodes/pitchtrack.c
     Opcodes/partikkel.c
     Opcodes/shape.c
-    Opcodes/tabaudio.c
     Opcodes/crossfm.c
     Opcodes/pvlock.c
     Opcodes/modal4.c
@@ -763,28 +775,30 @@ set(libcsound_SRCS
     Opcodes/gendy.c
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
-    Opcodes/wpfilters.c
-    Opcodes/zak.c
     Opcodes/fareygen.c
     Opcodes/quadbezier.c
     Opcodes/sequencer.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
     Top/argdecode.c
+    Top/argdecode_internal.c
     Top/csdebug.c
     Top/csdebug_internal.c
     Top/cscore_internal.c
-    Top/cscorfns.c
+    Top/cscore.c
     Top/csmodule.c
+    Top/csmodule_public.c
     Top/csoundCore_internal.c
-    Top/getstring.c
     Top/main.c
     Top/new_opts.c
     Top/one_file.c
     Top/opcode.c
-    Top/threads.c
+    Top/opcode_internal.c
+    Top/text.c
+    Top/csound_threads.c
     Top/utility.c
     Top/threadsafe.c
+    Top/threadsafe_public.c
     Top/server.c)
 
 if(WIN32 AND NOT MSVC)
@@ -823,17 +837,8 @@ set(stdopcod_SRCS
     Opcodes/reverbsc.c
     Opcodes/sndloop.c
     Opcodes/sndwarp.c
-    Opcodes/space.c
-    Opcodes/spat3d.c
-    Opcodes/syncgrain.c
     Opcodes/ugens7.c
-    Opcodes/ugens9.c
-    Opcodes/ugensa.c
     Opcodes/uggab.c
-    Opcodes/ugmoss.c
-    Opcodes/ugnorman.c
-    Opcodes/ugsc.c
-    Opcodes/wave-terrain.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
@@ -866,7 +871,7 @@ set(mp3in_SRCS
     InOut/libmpadec/layer3.c
     InOut/libmpadec/synth.c
     InOut/libmpadec/tables.c
-    InOut/libmpadec/mpadec.c
+    InOut/libmpadec/mpadec_internal.c
     InOut/libmpadec/mp3dec.c)
 
 list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
@@ -910,12 +915,30 @@ if(INIT_STATIC_MODULES)
         Plugins/select/select.c 
         Plugins/seqtime/seqtime.c
         Plugins/signalflowgraph/signalflowgraph.cpp
+        Plugins/space/space.c
+        Plugins/spat3d/spat3d.c
+        Plugins/squinewave/squinewave.c
         Plugins/sterrain/sterrain.c
+        Plugins/syncgrain/syncgrain.c
         Plugins/system_call/system_call.c
+        Plugins/tabaudio/tabaudio.c
         Plugins/tabsum/tabsum.c 
         Plugins/ugakbari/ugakbari.c 
+        Plugins/ugensa/ugensa.c
+        Plugins/ugmoss/ugmoss.c
+        Plugins/ugnorman/ugnorman.c
+        Plugins/ugens9/ugens9.c
+        Plugins/ugsc/ugsc.c
         Plugins/vaops/vaops.c 
+        Plugins/vbap/vbap.c
+        Plugins/vbap/vbap1.c
+        Plugins/vbap/vbap_n.c
+        Plugins/vbap/vbap_zak.c
+        Plugins/Vosim/Vosim.c
+        Plugins/wave-terrain.c
+        Plugins/wpfilters/wpfilters.c
         Plugins/wterrain2/wterrain2.c
+        Plugins/zak/zak.c
     )
     if (NOT WIN32)
         list(APPEND static_modules_SRCS Plugins/cpumeter/cpumeter.c)
@@ -986,7 +1009,7 @@ list(APPEND libcsound_SRCS
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
     Engine/new_orc_parser.c
-    Engine/symbtab.c)
+    Engine/tok.c)
 
 set_source_files_properties(${YACC_OUT} GENERATED)
 set_source_files_properties(${YACC_OUTH} GENERATED)
@@ -1071,7 +1094,7 @@ if(BUILD_MULTI_CORE)
     list(APPEND libcsound_SRCS
         Engine/cs_new_dispatch.c
         Engine/cs_par_base.c
-        Engine/cs_par_orc_semantic_analysis.c)
+        Engine/cs_par_orc_semantics.c)
 
     target_compile_definitions(libcsound_internals INTERFACE "PARCS")
 

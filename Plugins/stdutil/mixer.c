@@ -43,6 +43,7 @@
 #include "memalloc.h"
 #include "envvar_public.h"
 #include "utility.h"
+#include "mixer.h"
 
 /* Constants */
 

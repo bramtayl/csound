@@ -25,6 +25,7 @@
 #include "csoundCore_internal.h"
 #include "interlocks.h"
 #include "insert_public.h"
+#include "text.h"
 
 #include <math.h>
 

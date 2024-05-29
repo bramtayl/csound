@@ -25,6 +25,7 @@
 #include "pools.h"
 #include "csound_standard_types.h"
 #include "memalloc.h"
+#include "text.h"
 
 /* MYFLT POOL */
 

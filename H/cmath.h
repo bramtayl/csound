@@ -23,7 +23,8 @@
 
 #pragma once
 
-double besseli(double);
+#include "sysdep.h"
+#include "csoundCore_common.h"
 
 /* returns 0 on success, -1 if there are insufficient arguments, */
 /* and -2 in the case of an unknown distribution */
@@ -59,3 +60,5 @@ typedef struct gauss{
   MYFLT z;
   int flag;
 } GAUSS;
+
+OPCODE_INIT_FUNCTION(cmath_localops_init);

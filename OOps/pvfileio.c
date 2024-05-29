@@ -60,6 +60,8 @@
 #include "csoundCore_internal.h"
 #include "memalloc.h"
 #include "envvar_public.h"
+#include "fgens.h"
+#include "text.h"
 
 #if !defined(WAVE_FORMAT_EXTENSIBLE)
 #define WAVE_FORMAT_EXTENSIBLE  (0xFFFE)
@@ -70,11 +72,6 @@
 #define WAVE_FORMAT_IEEE_FLOAT  (0x0003)
 
 #define PVFILETABLE ((PVOCFILE**) ((CSOUND*) csound)->pvFileTable)
-
-const GUID KSDATAFORMAT_SUBTYPE_PVOC = {
-    0x8312b9c2, 0x2e6e, 0x11d4,
-    { 0xa8, 0x24, 0xde, 0x5b, 0x96, 0xc3, 0xab, 0x21 }
-};
 
 typedef struct pvoc_file {
     WAVEFORMATEX fmtdata;
@@ -142,14 +139,6 @@ static  int32_t     pvoc_writeheader(CSOUND *csound, PVOCFILE *p);
 static  int32_t     pvoc_readheader(CSOUND *csound, PVOCFILE *p,
                                                  WAVEFORMATPVOCEX *pWfpx);
 
-/* thanks to the SNDAN programmers for this! */
-/* return 1 for big-endian machine, 0 for little-endian machine */
-
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
 
 /* low level file I/O */
 

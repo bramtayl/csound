@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *kr, *asig, *ilen;
@@ -125,43 +127,6 @@ typedef struct {
         FUNC    *ftp;
 } PAN;
 
-int32_t downset(CSOUND *, DOWNSAMP *p);
-int32_t downsamp(CSOUND *, DOWNSAMP *p);
-int32_t upsamp(CSOUND *, UPSAMP *p);
-int32_t a_k_set(CSOUND *, INTERP *p);
-int32_t interpset(CSOUND *, INTERP *p);
-int32_t interp(CSOUND *, INTERP *p);
-int32_t indfset(CSOUND *, INDIFF *p);
-int32_t kntegrate(CSOUND *, INDIFF *p);
-int32_t integrate(CSOUND *, INDIFF *p);
-int32_t kdiff(CSOUND *, INDIFF *p);
-int32_t diff(CSOUND *, INDIFF *p);
-int32_t samphset(CSOUND *, SAMPHOLD *p);
-int32_t ksmphold(CSOUND *, SAMPHOLD *p);
-int32_t samphold(CSOUND *, SAMPHOLD *p);
-int32_t delset(CSOUND *, DELAY *p);
-int32_t delrset(CSOUND *, DELAYR *p);
-int32_t delwset(CSOUND *, DELAYW *p);
-int32_t tapset(CSOUND *, DELTAP *p);
-int32_t delay(CSOUND *, DELAY *p);
-int32_t delayr(CSOUND *, DELAYR *p);
-int32_t delayw(CSOUND *, DELAYW *p);
-int32_t deltap(CSOUND *, DELTAP *p);
-int32_t deltapi(CSOUND *, DELTAP *p);
-int32_t deltapn(CSOUND *, DELTAP *p);
-int32_t deltap3(CSOUND *, DELTAP *p);
-int32_t tapxset(CSOUND *, DELTAPX *p);
-int32_t deltapx(CSOUND *, DELTAPX *p);
-int32_t deltapxw(CSOUND *, DELTAPX *p);
-int32_t del1set(CSOUND *, DELAY1 *p);
-int32_t delay1(CSOUND *, DELAY1 *p);
-int32_t cmbset(CSOUND *, COMB *p);
-int32_t comb(CSOUND *, COMB *p);
-int32_t invcomb(CSOUND *, COMB *p);
-int32_t alpass(CSOUND *, COMB *p);
 void reverbinit(CSOUND *);
-int32_t rvbset(CSOUND *, REVERB *p);
-int32_t reverb(CSOUND *, REVERB *p);
-int32_t panset(CSOUND *, PAN *p);
-int32_t pan(CSOUND *, PAN *p);
 
+OPCODE_INIT_FUNCTION(ugens6_localops_init);

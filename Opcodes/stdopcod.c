@@ -23,6 +23,33 @@
 
 #include "stdopcod.h"
 #include "memalloc.h"
+#include "text.h"
+#include "bbcut.h"
+#include "biquad.h"
+#include "butter.h"
+#include "clfilt.h"
+#include "dam.h"
+#include "flanger.h"
+#include "follow.h"
+#include "fout.h"
+#include "ftgen.h"
+#include "gab/gab.h"
+#include "gab/vectorial.h"
+#include "grain.h"
+#include "locsig.h"
+#include "lowpassr.h"
+#include "midiops2.h"
+#include "midiops3.h"
+#include "newfils.h"
+#include "nlfilt.h"
+#include "oscbnk.h"
+#include "pluck.h"
+#include "repluck.h"
+#include "reverbsc.h"
+#include "sndloop.h"
+#include "sndwarp.h"
+#include "ugens7.h"
+#include "uggab.h"
 
 /* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
@@ -74,17 +101,8 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= reverbsc_init_(csound);
     err |= sndloop_init_(csound);
     err |= sndwarp_init_(csound);
-    err |= space_init_(csound);
-    err |= spat3d_init_(csound);
-    err |= syncgrain_init_(csound);
     err |= ugens7_init_(csound);
-    err |= ugens9_init_(csound);
-    err |= ugensa_init_(csound);
     err |= uggab_init_(csound);
-    err |= ugmoss_init_(csound);
-    err |= ugnorman_init_(csound);
-    err |= ugsc_init_(csound);
-    err |= wave_terrain_init_(csound);
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 

@@ -7,6 +7,10 @@
 
 #include "csound.h"
 #include "gtest/gtest.h"
+#include "musmon.h"
+#include "argdecode.h"
+#include "envvar_public.h"
+#include "circularbuffer.h"
 
 class CircularBufferTests : public ::testing::Test {
 public:

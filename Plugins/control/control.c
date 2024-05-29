@@ -31,6 +31,7 @@
 #include "namedins_public.h"
 #include "memalloc.h"
 #include "fgens_public.h"
+#include "csound_threads.h"
 #include "insert_public.h"
 
 #if defined(__MACH__)

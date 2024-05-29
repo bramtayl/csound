@@ -29,6 +29,7 @@
 #include "stdopcod.h"
 #include <math.h>
 #include "follow.h"
+#include "text.h"
 
 static int32_t flwset(CSOUND *csound, FOL *p)
 {

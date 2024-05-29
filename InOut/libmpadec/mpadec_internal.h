@@ -212,4 +212,9 @@ struct mpadec2_t {
                     ? ((mpa->bit_buffer >> (mpa->bits_left -= \
                        (uint8_t)(n))) & bitmask[n]) : mpa_getbits(mpa, n))
 
+extern const uint32_t bitmask[];
+
+uint32_t mpa_getbits(mpadec_t mpadec, unsigned n);
+uint16_t update_crc(uint16_t init, uint8_t *buf, int length);
+
 #endif

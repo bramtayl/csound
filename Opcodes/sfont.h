@@ -25,6 +25,7 @@
 
 #include "sftype.h"
 #include "sf.h"
+#include "csoundCore_common.h"
 
 typedef struct {
         OPDS    h;
@@ -104,3 +105,7 @@ typedef struct {
         MYFLT   attr[MAXSPLT], decr[MAXSPLT];
         MYFLT   env[MAXSPLT];
 } SFIPLAY;
+
+int32_t sfont_ModuleDestroy(CSOUND *csound);
+int32_t sfont_ModuleInit(CSOUND *csound);
+int32_t sfont_ModuleCreate(CSOUND *csound);

@@ -38,6 +38,7 @@
 /*#include "hetro.h"*/
 #include "text.h"
 #include "utility.h"
+#include "het_import.h"
 
 #define END  32767
 

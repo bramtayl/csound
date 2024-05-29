@@ -35,6 +35,7 @@
 #include "fftlib.h"
 #include "pffft.h"
 #include "memalloc.h"
+#include "text.h"
 
 
 

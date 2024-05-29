@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "csoundCore_common.h"
+
 typedef int BOOL;
 #ifndef TRUE
 #   define TRUE (1)
@@ -159,3 +161,5 @@ typedef struct {
     MYFLT             time[DELTAB_LENGTH];
     unsigned int  write_index, read_index;
 } MDELAY;
+
+OPCODE_INIT_FUNCTION(midiout_localops_init);

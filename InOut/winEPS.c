@@ -25,6 +25,7 @@
 #include <math.h>
 #include "memalloc.h"
 #include "envvar_public.h"
+#include "text.h"
 
 /*--------------------------------------  winEPS.c ---------------------------
  *

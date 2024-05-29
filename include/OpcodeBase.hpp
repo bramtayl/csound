@@ -43,6 +43,8 @@
 #include <vector>
 #include <interlocks.h>
 #include <csdl.h>
+#include "csound_threads.h"
+#include "namedins_public.h"
 
 /**
  * Template base class, or pseudo-virtual base class,

@@ -30,6 +30,8 @@
 #endif
 #include <portaudio.h>
 #include "memalloc.h"
+#include "csound_threads.h"
+#include "namedins_public.h"
 
 #define NO_FULLDUPLEX_PA_LOCK   0
 

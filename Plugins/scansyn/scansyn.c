@@ -35,6 +35,7 @@
 #include "auxfd.h"
 #include "fgens_public.h"
 #include "insert_public.h"
+#include "scansynx.h"
 
 /* #undef CS_KSMPS */
 /* #define CS_KSMPS     (csoundGetKsmps(csound)) */
