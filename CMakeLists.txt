@@ -782,7 +782,6 @@ set(libcsound_SRCS
     Opcodes/gendy.c
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
-    Opcodes/wpfilters.c
     Opcodes/fareygen.c
     Opcodes/quadbezier.c
     Opcodes/sequencer.c
@@ -937,8 +936,9 @@ if(INIT_STATIC_MODULES)
         Plugins/tabsum/tabsum.c 
         Plugins/ugakbari/ugakbari.c 
         Plugins/vaops/vaops.c 
-        Plugins/zak/zak.c
+        Plugins/wpfilters/wpfilters.c
         Plugins/wterrain2/wterrain2.c
+        Plugins/zak/zak.c
     )
     if (NOT WIN32)
         list(APPEND static_modules_SRCS Plugins/cpumeter/cpumeter.c)

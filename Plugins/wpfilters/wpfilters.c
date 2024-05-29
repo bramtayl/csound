@@ -42,6 +42,7 @@ Csound C versions by Steven Yi
 */
 
 #include "wpfilters.h"
+#include "csdl.h"
 
 static int32_t zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
      IGN(csound);
@@ -1054,7 +1055,6 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
     return OK;
 }
 
-
 static OENTRY wpfilters_localops[] =
   {
    { "zdf_1pole", sizeof(ZDF_1POLE), 0,3,"a","axOo",
@@ -1075,4 +1075,4 @@ static OENTRY wpfilters_localops[] =
       k35_hpf_init,(SUBR)k35_hpf_perf, NULL, NULL},
   };
 
-LINKAGE_BUILTIN(wpfilters_localops)
+ADD_INIT_FUNCTION(wpfilters_localops_init, wpfilters_localops)
