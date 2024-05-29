@@ -42,6 +42,7 @@ Re-written to take flexible number of outputs by JPff 2012 */
 #include "vbap_n.h"
 #include "vbap1.h"
 #include "vbap_zak.h"
+#include "csdl.h"
 
 #define MATSIZE (4)
 #define ATORAD  (TWOPI_F / FL(360.0))
@@ -1032,5 +1033,4 @@ static OENTRY vbap_localops[] = {
 
 };
 
-LINKAGE_BUILTIN(vbap_localops)
-
+ADD_INIT_FUNCTION(vbap_localops_init, vbap_localops)

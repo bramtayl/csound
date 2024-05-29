@@ -1219,6 +1219,7 @@ EXTERN_INIT_FUNCTION(sockrecv_localops_init);
   EXTERN_INIT_FUNCTION(tabsum_localops_init);
   EXTERN_INIT_FUNCTION(ugakbari_localops_init);
   EXTERN_INIT_FUNCTION(vaops_localops_init);
+  EXTERN_INIT_FUNCTION(vbap_localops_init);
   EXTERN_INIT_FUNCTION(vosim_localops_init);
   EXTERN_INIT_FUNCTION(wave_terrain_init_);
   EXTERN_INIT_FUNCTION(wpfilters_localops_init);
@@ -1236,7 +1237,6 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtferX_localops_init, loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
                                  phisem_localops_init, pvoc_localops_init,
-                                 vbap_localops_init,
                                  harmon_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
                                  shape_localops_init,
@@ -1330,6 +1330,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
     ugakbari_localops_init,
     system_call_localops_init,
     vaops_localops_init,
+    vbap_localops_init,
     vosim_localops_init,
     wave_terrain_init_,
     wpfilters_localops_init,

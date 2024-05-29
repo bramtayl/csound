@@ -751,10 +751,6 @@ set(libcsound_SRCS
     Opcodes/arrays.c
     Opcodes/phisem.c
     Opcodes/hrtfopcodes.c
-    Opcodes/vbap.c
-    Opcodes/vbap1.c
-    Opcodes/vbap_n.c
-    Opcodes/vbap_zak.c
     Opcodes/harmon.c
     Opcodes/pitchtrack.c
     Opcodes/partikkel.c
@@ -934,6 +930,10 @@ if(INIT_STATIC_MODULES)
         Plugins/tabsum/tabsum.c 
         Plugins/ugakbari/ugakbari.c 
         Plugins/vaops/vaops.c 
+        Plugins/vbap/vbap.c
+        Plugins/vbap/vbap1.c
+        Plugins/vbap/vbap_n.c
+        Plugins/vbap/vbap_zak.c
         Plugins/Vosim/Vosim.c
         Plugins/wave-terrain.c
         Plugins/wpfilters/wpfilters.c
